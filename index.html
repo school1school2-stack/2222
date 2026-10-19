@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<heحسب
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كشف حضور وغياب الطلاب حسحسبب الفصول - سحابة aaaa</title>
+    <title>كشف حضور وغياب الطلاب حسب الفصول - سحابة aaaa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -47,11 +47,15 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide">كشف حضور وغياب الطلاب حسب الفصول</h1>
-                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي - إدارة الفصول والمجموعات بالسحابة</p>
+                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي[cite: 1] - إدارة الفصول والمجموعات بالسحابة</p>
                 </div>
             </div>
             
             <div class="flex items-center gap-3">
+                <button onclick="shareWithManager()" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold px-3 py-2 rounded-lg border border-amber-300 shadow flex items-center gap-2 text-sm transition">
+                    <i class="fa-solid fa-share-nodes text-indigo-900"></i>
+                    <span>مشاركة للمدير</span>
+                </button>
                 <div id="cloudBadge" class="bg-indigo-900/80 px-4 py-2 rounded-lg border border-indigo-500/30 flex items-center gap-2 text-sm">
                     <i id="cloudIcon" class="fa-solid fa-cloud text-emerald-400 animate-pulse"></i>
                     <span id="cloudStatus" class="font-medium text-indigo-100">السحابة: متصل جاري التحميل...</span>
@@ -59,6 +63,12 @@
             </div>
         </div>
     </header>
+
+    <!-- Read-Only Mode Banner -->
+    <div id="readOnlyBanner" class="hidden bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md flex items-center justify-center gap-2">
+        <i class="fa-solid fa-eye text-lg"></i>
+        <span>أنت الآن في وضع "العرض والقراءة فقط" (لا يمكن تعديل الحضور أو البيانات)</span>
+    </div>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
 
@@ -86,7 +96,7 @@
             </div>
 
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <button onclick="openManageGroupsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 border border-slate-300">
+                <button id="manageGroupsBtn" onclick="openManageGroupsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 border border-slate-300">
                     <i class="fa-solid fa-folder-plus text-indigo-600"></i>
                     إدارة وإضافة الفصول
                 </button>
@@ -113,7 +123,7 @@
                     <!-- Add Student Batch / Dropdown Controls -->
                     <div class="flex flex-wrap items-center gap-2">
                         <!-- Dropdown Quick Add with Search Input -->
-                        <div class="relative flex items-center gap-1">
+                        <div id="quickAddControls" class="relative flex items-center gap-1">
                             <div class="relative">
                                 <input type="text" id="quickStudentInput" list="presetStudentsList" placeholder="ابحث أو اكتب اسم طالب..." class="bg-slate-50 border border-slate-300 text-slate-800 font-medium px-3 py-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none w-[200px]" autocomplete="off">
                                 <datalist id="presetStudentsList">
@@ -199,8 +209,8 @@
                                 <th class="p-4">اسم الطالب</th>
                                 <th class="p-4 text-center w-28">الفصل/المجموعة</th>
                                 <th class="p-4 text-center">الحالة اليوم</th>
-                                <th class="p-4 text-center">تحديد الحالة (اضغط لاختيار الخيار)</th>
-                                <th class="p-4 text-center w-28">إجراءات</th>
+                                <th class="p-4 text-center edit-column">تحديد الحالة (اضغط لاختيار الخيار)</th>
+                                <th class="p-4 text-center w-28 edit-column">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTableBody" class="divide-y divide-slate-100 text-sm">
@@ -216,7 +226,7 @@
                     </div>
                     <h3 class="text-lg font-bold text-slate-700 mb-1">لا يوجد طلاب في هذا الفصل حتى الآن</h3>
                     <p class="text-slate-500 text-sm max-w-md mx-auto mb-4">قم بإضافة قائمة أسماء الطلاب لهذا الفصل بالضغط على زر "إدراج أسماء" أو اختر من القائمة المنسدلة.</p>
-                    <button onclick="document.getElementById('openAddModalBtn').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition">
+                    <button id="emptyStateAddBtn" onclick="document.getElementById('openAddModalBtn').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition">
                         إضافة قائمة الأسماء الآن
                     </button>
                 </div>
@@ -472,6 +482,48 @@
         <span id="toastText">تم الحفظ بنجاح</span>
     </div>
 
+    <!-- Modal Share Manager -->
+    <div id="shareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
+            <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-amber-300"></i>
+                    مشاركة التقرير والكشف مع المدير
+                </h3>
+                <button onclick="closeShareModal()" class="text-indigo-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-600 leading-relaxed font-semibold">
+                    يمكنك إرسال رابط الكشف المباشر للمدير لمتابعة الحضور والغياب (وضع القراءة والعرض فقط) أو نسخ الرابط لإرساله عبر أي وسيلة أخرى:
+                </p>
+
+                <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
+                    <input type="text" id="shareUrlInput" readonly value="" class="bg-transparent text-xs font-mono font-bold text-slate-700 w-full focus:outline-none">
+                    <button onclick="copyShareUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0">
+                        <i class="fa-regular fa-copy"></i>
+                        نسخ
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    <button onclick="sendToWhatsAppManager()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        إرسال رابط العرض والقراءة للمدير عبر واتساب
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeShareModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Firebase Cloud Configuration
         const firebaseConfig = {
@@ -486,6 +538,7 @@
         const db = firebase.firestore();
 
         // Application State
+        let isReadOnly = false; // Flag for read-only view mode
         let activeGroup = 'الجميع'; // 'الجميع' or specific group name
         let groups = ['أول - أول', 'أول - ثاني', 'ثاني - أول']; // Default target groups
         let students = []; // List of { id, name, group }
@@ -509,6 +562,17 @@
 
         // Initializer
         window.addEventListener('DOMContentLoaded', () => {
+            // Check for read-only mode and shared group from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'view') {
+                isReadOnly = true;
+                applyReadOnlyMode();
+            }
+            const paramGroup = urlParams.get('group');
+            if (paramGroup) {
+                activeGroup = decodeURIComponent(paramGroup);
+            }
+
             selectedDateInput.value = currentDate;
             document.getElementById('singleReportDate').value = currentDate;
 
@@ -520,7 +584,30 @@
 
             initCloudSync();
             setupEventListeners();
+            updateShareUrl();
         });
+
+        function applyReadOnlyMode() {
+            document.getElementById('readOnlyBanner').classList.remove('hidden');
+            document.getElementById('manageGroupsBtn').classList.add('hidden');
+            document.getElementById('quickAddControls').classList.add('hidden');
+            document.getElementById('openAddModalBtn').classList.add('hidden');
+            if (document.getElementById('emptyStateAddBtn')) {
+                document.getElementById('emptyStateAddBtn').classList.add('hidden');
+            }
+
+            // Hide action and edit columns
+            document.querySelectorAll('.edit-column').forEach(el => el.classList.add('hidden'));
+        }
+
+        function updateShareUrl() {
+            let baseUrl = "https://school1school2-stack.github.io/2222/";
+            if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
+                baseUrl = window.location.origin + window.location.pathname;
+            }
+            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}`;
+            document.getElementById('shareUrlInput').value = shareUrl;
+        }
 
         function switchTab(tab) {
             const dailySec = document.getElementById('dailySection');
@@ -549,7 +636,7 @@
             const cloudStatus = document.getElementById('cloudStatus');
             const cloudIcon = document.getElementById('cloudIcon');
 
-            // 1. Fetch Groups list from cloud (fallback to user's specified default 3 groups if empty)
+            // 1. Fetch Groups list from cloud
             db.collection("attendance_groups").doc("list").onSnapshot((doc) => {
                 if (doc.exists && doc.data().groups && doc.data().groups.length > 0) {
                     groups = doc.data().groups;
@@ -585,7 +672,7 @@
                     students.push({
                         id: doc.id,
                         name: data.name || "طالب بدون اسم",
-                        group: data.group || groups[0] || 'أول - أول'
+                        group: data.group ? data.group.trim() : (groups[0] || 'أول - أول')
                     });
                 });
 
@@ -619,7 +706,7 @@
                 const opt = document.createElement('option');
                 opt.value = grp;
                 opt.textContent = grp;
-                if (grp === activeGroup) opt.selected = true;
+                if (grp.trim() === activeGroup.trim()) opt.selected = true;
                 classSelector.appendChild(opt);
             });
 
@@ -629,7 +716,7 @@
                 const opt = document.createElement('option');
                 opt.value = grp;
                 opt.textContent = grp;
-                if (activeGroup !== 'الجميع' && grp === activeGroup) opt.selected = true;
+                if (activeGroup !== 'الجميع' && grp.trim() === activeGroup.trim()) opt.selected = true;
                 modalGroupSelector.appendChild(opt);
             });
 
@@ -638,6 +725,7 @@
 
         function changeActiveGroup(groupName) {
             activeGroup = groupName;
+            updateShareUrl();
             renderTable();
             if (!document.getElementById('reportsSection').classList.contains('hidden')) {
                 generateReport();
@@ -709,15 +797,12 @@
                 return;
             }
 
-            // Update local groups array
             groups = groups.map(g => g === oldName ? trimmedNewName : g);
             if (activeGroup === oldName) activeGroup = trimmedNewName;
 
             try {
-                // 1. Update groups list in Firestore
                 await db.collection("attendance_groups").doc("list").set({ groups: groups });
 
-                // 2. Update group name for all students in this group
                 const studentsToUpdate = students.filter(s => s.group === oldName);
                 if (studentsToUpdate.length > 0) {
                     const batch = db.batch();
@@ -795,7 +880,11 @@
 
             let pCount = 0, aCount = 0, lCount = 0, oCount = 0;
 
-            const filteredForReport = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+            const filteredForReport = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
 
             filteredForReport.forEach(s => {
                 const status = dayRecords[s.id];
@@ -852,7 +941,11 @@
             let overallAbsent = 0;
             let overallLate = 0;
 
-            const activeStudents = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
 
             let studentStats = {};
             activeStudents.forEach(s => {
@@ -919,7 +1012,11 @@
             const start = document.getElementById('reportStartDate').value;
             const end = document.getElementById('reportEndDate').value;
 
-            const activeStudents = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
 
             if (activeStudents.length === 0) {
                 showToast('لا توجد بيانات للتصدير!', 'warning');
@@ -958,7 +1055,6 @@
             document.body.removeChild(link);
         }
 
-        // Fetch Attendance Status for Given Date
         function fetchAttendanceForDate(dateStr) {
             db.collection("attendance_records").doc(dateStr).onSnapshot((doc) => {
                 if (doc.exists) {
@@ -974,7 +1070,6 @@
 
         function populatePresetDropdown() {
             presetStudentsList.innerHTML = '';
-            // ترتيب قائمة الأسماء المقترحة أبجدياً أيضاً
             const sortedPreset = [...allowedStudentsPreset].sort((a, b) => a.localeCompare(b, 'ar'));
             sortedPreset.forEach(name => {
                 const opt = document.createElement('option');
@@ -986,14 +1081,15 @@
         function renderTable() {
             const searchTerm = searchInput.value.trim().toLowerCase();
 
-            // Filter by active Group & search term
+            // Filter by active Group & search term with strict trimming
             const filteredStudents = students.filter(s => {
-                const matchesGroup = (activeGroup === 'الجميع' || s.group === activeGroup);
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                const matchesGroup = (actGroup === 'الجميع' || sGroup === actGroup);
                 const matchesSearch = s.name.toLowerCase().includes(searchTerm);
                 return matchesGroup && matchesSearch;
             });
 
-            // ضمان ترتيب القائمة المفلترة أبجدياً
             filteredStudents.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
 
             if (filteredStudents.length === 0) {
@@ -1011,7 +1107,6 @@
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-slate-50 transition border-b border-slate-100';
 
-                // Status Badge rendering
                 let statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">غير محدد</span>`;
                 if (status === 'present') {
                     statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-check text-emerald-600"></i> حاضر</span>`;
@@ -1023,37 +1118,50 @@
                     statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800"><i class="fa-solid fa-file-signature text-blue-600"></i> بعذر</span>`;
                 }
 
-                row.innerHTML = `
-                    <td class="p-4 text-center text-slate-400 font-mono font-bold">${index + 1}</td>
-                    <td class="p-4 font-bold text-slate-800">${escapeHtml(student.name)}</td>
-                    <td class="p-4 text-center font-semibold text-slate-600">
-                        <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
-                            ${escapeHtml(student.group)}
-                        </span>
-                    </td>
-                    <td class="p-4 text-center">${statusBadge}</td>
-                    <td class="p-4">
-                        <div class="flex items-center justify-center gap-1.5">
-                            <button onclick="setStatus('${student.id}', 'present')" class="flex-1 max-w-[85px] py-1.5 px-2 rounded-lg text-xs font-bold border transition ${status === 'present' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}">
-                                <i class="fa-solid fa-check"></i> حاضر
+                if (isReadOnly) {
+                    row.innerHTML = `
+                        <td class="p-4 text-center text-slate-400 font-mono font-bold">${index + 1}</td>
+                        <td class="p-4 font-bold text-slate-800">${escapeHtml(student.name)}</td>
+                        <td class="p-4 text-center font-semibold text-slate-600">
+                            <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
+                                ${escapeHtml(student.group)}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center">${statusBadge}</td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td class="p-4 text-center text-slate-400 font-mono font-bold">${index + 1}</td>
+                        <td class="p-4 font-bold text-slate-800">${escapeHtml(student.name)}</td>
+                        <td class="p-4 text-center font-semibold text-slate-600">
+                            <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
+                                ${escapeHtml(student.group)}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center">${statusBadge}</td>
+                        <td class="p-4">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button onclick="setStatus('${student.id}', 'present')" class="flex-1 max-w-[85px] py-1.5 px-2 rounded-lg text-xs font-bold border transition ${status === 'present' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}">
+                                    <i class="fa-solid fa-check"></i> حاضر
+                                </button>
+                                <button onclick="setStatus('${student.id}', 'absent')" class="flex-1 max-w-[85px] py-1.5 px-2 rounded-lg text-xs font-bold border transition ${status === 'absent' ? 'bg-rose-600 text-white border-rose-600 shadow-sm' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'}">
+                                    <i class="fa-solid fa-xmark"></i> غائب
+                                </button>
+                                <select onchange="setStatus('${student.id}', this.value)" class="py-1.5 px-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                    <option value="" ${status === 'unmarked' ? 'selected' : ''}>خيارات أكثر...</option>
+                                    <option value="late" ${status === 'late' ? 'selected' : ''}>متأخر</option>
+                                    <option value="excused" ${status === 'excused' ? 'selected' : ''}>بعذر</option>
+                                    <option value="unmarked">مسح الإجراء</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteStudent('${student.id}')" class="text-slate-400 hover:text-rose-600 transition p-1 rounded-lg hover:bg-rose-50" title="حذف الطالب من السجل والسحابة">
+                                <i class="fa-regular fa-trash-can"></i>
                             </button>
-                            <button onclick="setStatus('${student.id}', 'absent')" class="flex-1 max-w-[85px] py-1.5 px-2 rounded-lg text-xs font-bold border transition ${status === 'absent' ? 'bg-rose-600 text-white border-rose-600 shadow-sm' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'}">
-                                <i class="fa-solid fa-xmark"></i> غائب
-                            </button>
-                            <select onchange="setStatus('${student.id}', this.value)" class="py-1.5 px-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                <option value="" ${status === 'unmarked' ? 'selected' : ''}>خيارات أكثر...</option>
-                                <option value="late" ${status === 'late' ? 'selected' : ''}>متأخر</option>
-                                <option value="excused" ${status === 'excused' ? 'selected' : ''}>بعذر</option>
-                                <option value="unmarked">مسح الإجراء</option>
-                            </select>
-                        </div>
-                    </td>
-                    <td class="p-4 text-center">
-                        <button onclick="deleteStudent('${student.id}')" class="text-slate-400 hover:text-rose-600 transition p-1 rounded-lg hover:bg-rose-50" title="حذف الطالب من السجل والسحابة">
-                            <i class="fa-regular fa-trash-can"></i>
-                        </button>
-                    </td>
-                `;
+                        </td>
+                    `;
+                }
 
                 studentsTableBody.appendChild(row);
             });
@@ -1062,6 +1170,7 @@
         }
 
         window.setStatus = async function(studentId, status) {
+            if (isReadOnly) return;
             const updatedRecords = { ...attendanceData };
 
             if (status === 'unmarked' || status === '') {
@@ -1084,6 +1193,7 @@
         };
 
         window.deleteStudent = async function(studentId) {
+            if (isReadOnly) return;
             if (!confirm("هل أنت متأكد من حذف الطالب من سجل السحابة؟")) return;
 
             try {
@@ -1100,7 +1210,11 @@
             let absentCount = 0;
             let otherCount = 0;
 
-            const activeStudents = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
 
             activeStudents.forEach(student => {
                 const status = attendanceData[student.id];
@@ -1116,24 +1230,21 @@
         }
 
         function setupEventListeners() {
-            // Date Picker Change
             selectedDateInput.addEventListener('change', (e) => {
                 currentDate = e.target.value;
                 fetchAttendanceForDate(currentDate);
             });
 
-            // Today Button
             document.getElementById('todayBtn').addEventListener('click', () => {
                 currentDate = new Date().toISOString().split('T')[0];
                 selectedDateInput.value = currentDate;
                 fetchAttendanceForDate(currentDate);
             });
 
-            // Search Filter
             searchInput.addEventListener('input', renderTable);
 
-            // Quick Add Functionality (From Search Input)
             async function addStudentFromInput() {
+                if (isReadOnly) return;
                 const name = quickStudentInput.value.trim();
                 if (!name) {
                     showToast('يرجى اختيار أو كتابة اسم الطالب أولاً', 'warning');
@@ -1142,8 +1253,7 @@
 
                 const targetGroup = activeGroup === 'الجميع' ? (groups[0] || 'عام') : activeGroup;
 
-                // Check if already in active list
-                if (students.some(s => s.name === name && s.group === targetGroup)) {
+                if (students.some(s => s.name === name && s.group.trim() === targetGroup.trim())) {
                     showToast('الطالب موجود مسبقاً في هذا الفصل', 'warning');
                     quickStudentInput.value = '';
                     return;
@@ -1152,7 +1262,7 @@
                 try {
                     await db.collection("attendance_students").add({
                         name: name,
-                        group: targetGroup,
+                        group: targetGroup.trim(),
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     showToast(`تم إضافة ${name} إلى (${targetGroup})`, 'success');
@@ -1162,7 +1272,6 @@
                 }
             }
 
-            // Quick Add via Button or Enter Key
             addQuickStudentBtn.addEventListener('click', addStudentFromInput);
             quickStudentInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -1171,23 +1280,26 @@
                 }
             });
 
-            // Modal Trigger Open
             document.getElementById('openAddModalBtn').addEventListener('click', () => {
+                if (isReadOnly) return;
                 updateGroupDropdowns();
-                const activeInGroup = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+                const activeInGroup = students.filter(s => {
+                    const sGroup = (s.group || '').trim();
+                    const actGroup = activeGroup.trim();
+                    return actGroup === 'الجميع' || sGroup === actGroup;
+                });
                 bulkNamesInput.value = activeInGroup.map(s => s.name).join('\n');
                 addModal.classList.remove('hidden');
             });
 
-            // Modal Close Controls
             const closeModal = () => addModal.classList.add('hidden');
             document.getElementById('closeModalBtn').addEventListener('click', closeModal);
             document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
 
-            // Save Batch Names to Cloud
             document.getElementById('saveNamesBtn').addEventListener('click', async () => {
+                if (isReadOnly) return;
                 const rawText = bulkNamesInput.value.trim();
-                const selectedGroup = modalGroupSelector.value;
+                const selectedGroup = modalGroupSelector.value.trim();
                 const lines = rawText ? rawText.split('\n').map(line => line.trim()).filter(line => line.length > 0) : [];
 
                 if (!selectedGroup) {
@@ -1198,9 +1310,8 @@
                 try {
                     const batch = db.batch();
                     
-                    // Add new students
                     lines.forEach(name => {
-                        const exists = students.some(s => s.name === name && s.group === selectedGroup);
+                        const exists = students.some(s => s.name === name && s.group.trim() === selectedGroup);
                         if (!exists) {
                             const newDocRef = db.collection("attendance_students").doc();
                             batch.set(newDocRef, {
@@ -1220,19 +1331,22 @@
                 }
             });
 
-            // Export CSV Excel
             document.getElementById('exportExcelBtn').addEventListener('click', exportToCSV);
         }
 
         function exportToCSV() {
-            const activeStudents = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
 
             if (activeStudents.length === 0) {
                 showToast('لا توجد بيانات للتصدير!', 'warning');
                 return;
             }
 
-            let csvContent = "\uFEFF"; // UTF-8 BOM for Arabic support
+            let csvContent = "\uFEFF"; 
             csvContent += `اسم الطالب,الفصل/المجموعة,حالة الحضور - تاريخ: ${currentDate}\n`;
 
             activeStudents.forEach(student => {
@@ -1254,6 +1368,44 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function shareWithManager() {
+            updateShareUrl();
+            document.getElementById('shareModal').classList.remove('hidden');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden');
+        }
+
+        function copyShareUrl() {
+            const shareInput = document.getElementById('shareUrlInput');
+            shareInput.select();
+            document.execCommand('copy');
+            showToast('تم نسخ رابط العرض والقراءة بنجاح 📋', 'success');
+        }
+
+        function sendToWhatsAppManager() {
+            const shareUrl = document.getElementById('shareUrlInput').value;
+            
+            let p = 0, a = 0, l = 0;
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
+            
+            activeStudents.forEach(s => {
+                const st = attendanceData[s.id];
+                if (st === 'present') p++;
+                else if (st === 'absent') a++;
+                else if (st === 'late' || st === 'excused') l++;
+            });
+
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك كشف الحضور والغياب ليوم (${currentDate}) - الفصل: (${activeGroup}):%0A- إجمالي الطلاب: ${activeStudents.length}%0A- الحاضرون: ${p}%0A- الغائبون: ${a}%0A- المتأخرون/بعذر: ${l}%0A%0Aيمكنكم الاطلاع المباشر والتقرير للفصل عبر الرابط:%0A${shareUrl}`;
+
+            window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
 
         function showToast(message, type = 'success') {
