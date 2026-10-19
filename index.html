@@ -47,7 +47,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide">كشف حضور وغياب الطلاب حسب الفصول</h1>
-                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي - إدارة الفصول والمجموعات بالسحابة</p>
+                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي[span_0](start_span)[span_0](end_span) - إدارة الفصول والمجموعات بالسحابة</p>
                 </div>
             </div>
             
@@ -636,19 +636,15 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         }
 
-        // تحسين دالة استخراج وتوليد البريد الإلكتروني للطلاب السابقين
+        // دالة صحيحة لاستخراج وتصفية الإيميل الحقيقي وعدم تكرار الاسم بدلاً عنه
         function getStudentEmail(data, docId) {
-            if (data.email && data.email.trim() !== '') {
-                // إذا كان البريد يحتوي على الاسم مُكررًا داخل الإيميل يتم تنظيفه وإظهار الجزء الخاص بالإيميل فقط
-                let cleanEmail = data.email.trim();
-                if (cleanEmail.includes('@')) {
-                    let parts = cleanEmail.split(/\s+/);
-                    let emailPart = parts.find(p => p.includes('@'));
-                    if (emailPart) return emailPart;
-                }
-                return cleanEmail;
+            let rawEmail = (data.email || '').trim();
+            if (rawEmail.includes('@')) {
+                let parts = rawEmail.split(/[\s,]+/);
+                let foundEmail = parts.find(p => p.includes('@') && p.includes('.'));
+                if (foundEmail) return foundEmail.toLowerCase();
             }
-            // إذا كان الطالب مضافاً سابقاً بدون بريد إلكتروني، يتم إظهار بريد وزارة التعليم الافتراضي
+            // إذا لم يكن مخزناً بشكل صحيح، يتم توليد إيميل وزارة التعليم بناءً على اسم المستخدم أو المعرف
             return `s${docId.substring(0, 6)}@rb.moe.gov.sa`;
         }
 
@@ -1077,7 +1073,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 row.innerHTML = `
                     <td class="p-4">
                         <div class="font-bold text-slate-800">${escapeHtml(student.name)}</div>
-                        <div class="text-xs text-rose-600 font-semibold mt-0.5">${escapeHtml(student.email)}</div>
+                        <div class="text-xs font-medium mt-0.5 px-2 py-0.5 rounded-md inline-block" style="color: #c53030; background-color: #fdf8f2; box-shadow: 0 1px 2px rgba(217, 119, 6, 0.1);">${escapeHtml(student.email)}</div>
                     </td>
                     <td class="p-4 text-center font-semibold text-slate-600">${escapeHtml(student.group)}</td>
                     <td class="p-4 text-center font-semibold text-emerald-600">${stat.present}</td>
@@ -1207,7 +1203,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     row.innerHTML = `
                         <td class="p-4">
                             <div class="font-bold text-slate-800">${escapeHtml(student.name)}</div>
-                            <div class="text-xs text-rose-600 font-semibold mt-0.5">${escapeHtml(student.email)}</div>
+                            <div class="text-xs font-medium mt-0.5 px-2 py-0.5 rounded-md inline-block" style="color: #c53030; background-color: #fdf8f2; box-shadow: 0 1px 2px rgba(217, 119, 6, 0.1);">${escapeHtml(student.email)}</div>
                         </td>
                         <td class="p-4 text-center font-semibold text-slate-600">
                             <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
@@ -1220,7 +1216,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     row.innerHTML = `
                         <td class="p-4">
                             <div class="font-bold text-slate-800">${escapeHtml(student.name)}</div>
-                            <div class="text-xs text-rose-600 font-semibold mt-0.5">${escapeHtml(student.email)}</div>
+                            <div class="text-xs font-medium mt-0.5 px-2 py-0.5 rounded-md inline-block" style="color: #c53030; background-color: #fdf8f2; box-shadow: 0 1px 2px rgba(217, 119, 6, 0.1);">${escapeHtml(student.email)}</div>
                         </td>
                         <td class="p-4 text-center font-semibold text-slate-600">
                             <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
