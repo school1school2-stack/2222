@@ -72,7 +72,7 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
 
-        <!-- Navigation Tabs (Will be hidden for manager) -->
+        <!-- Navigation Tabs -->
         <div id="tabsContainer" class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
             <button id="dailyTabBtn" onclick="switchTab('daily')" class="tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2">
                 <i class="fa-solid fa-calendar-check text-indigo-600"></i>
@@ -1266,19 +1266,15 @@ omar@example.com" class="w-full border border-slate-300 rounded-xl p-3 text-sm f
                     return;
                 }
 
-                // تحليل السطور: التعامل مع النمط (سطر اسم، سطر إيميل) أو سطر مفرد
                 let parsedList = [];
                 for (let i = 0; i < lines.length; i++) {
                     let currentLine = lines[i];
                     let nextLine = lines[i + 1];
                     
-                    // التحقق إذا كان السطر التالي عبارة عن إيميل يحتوي على @
                     if (nextLine && nextLine.includes('@') && !currentLine.includes('@')) {
                         parsedList.push({ name: currentLine, email: nextLine });
-                        i++; // تخطي سطر الإيميل في اللفة القادمة
+                        i++; 
                     } else if (currentLine.includes('@')) {
-                        // لو كان السطر الحالي يحتوي على إيميل وليس له اسم صريح، نعتبر ما قبله اسماً أو نتخطاه
-                        // لكن الغالب هو سطر اسم ثم سطر إيميل
                         parsedList.push({ name: "طالب بدون اسم", email: currentLine });
                     } else {
                         parsedList.push({ name: currentLine, email: "" });
