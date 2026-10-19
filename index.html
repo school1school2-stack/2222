@@ -52,7 +52,7 @@
             </div>
             
             <div class="flex items-center gap-3">
-                <button onclick="shareReportWithManager()" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold px-3 py-2 rounded-lg border border-amber-300 shadow flex items-center gap-2 text-sm transition">
+                <button id="shareManagerBtn" onclick="shareReportWithManager()" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold px-3 py-2 rounded-lg border border-amber-300 shadow flex items-center gap-2 text-sm transition">
                     <i class="fa-solid fa-share-nodes text-indigo-900"></i>
                     <span>مشاركة التقرير للمدير</span>
                 </button>
@@ -67,13 +67,13 @@
     <!-- Read-Only Mode Banner -->
     <div id="readOnlyBanner" class="hidden bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md flex items-center justify-center gap-2">
         <i class="fa-solid fa-eye text-lg"></i>
-        <span>أنت الآن في وضع "العرض والقراءة فقط" (لا يمكن تعديل الحضور أو البيانات)</span>
+        <span>أنت الآن في لوحة "تقارير الحضور والإحصائيات" (عرض فقط للمدير)</span>
     </div>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
 
-        <!-- Navigation Tabs -->
-        <div class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
+        <!-- Navigation Tabs (Will be hidden for manager) -->
+        <div id="tabsContainer" class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
             <button id="dailyTabBtn" onclick="switchTab('daily')" class="tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2">
                 <i class="fa-solid fa-calendar-check text-indigo-600"></i>
                 كشف الحضور اليومي
@@ -497,7 +497,7 @@
             
             <div class="p-6 space-y-4">
                 <p class="text-xs text-slate-600 leading-relaxed font-semibold">
-                    يمكنك إرسال رابط التقرير والإحصائيات التراكمية مباشرة للمدير (وضع العرض والقراءة فقط) أو نسخ الرابط لإرساله عبر أي وسيلة أخرى:
+                    يمكنك إرسال رابط التقرير والإحصائيات التراكمية مباشرة للمدير (سيظهر له قسم التقارير حصرياً) أو نسخ الرابط لإرساله عبر أي وسيلة أخرى:
                 </p>
 
                 <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
@@ -511,7 +511,7 @@
                 <div class="grid grid-cols-1 gap-2 pt-2">
                     <button onclick="sendReportToWhatsAppManager()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow">
                         <i class="fa-brands fa-whatsapp text-lg"></i>
-                        إرسال رابط التقرير والإحصائيات للمدير عبر واتساب
+                        إرسال رابط التقارير للمدير عبر واتساب
                     </button>
                 </div>
             </div>
@@ -590,10 +590,12 @@
             document.getElementById('manageGroupsBtn').classList.add('hidden');
             document.getElementById('quickAddControls').classList.add('hidden');
             document.getElementById('openAddModalBtn').classList.add('hidden');
-            if (document.getElementById('emptyStateAddBtn')) {
-                document.getElementById('emptyStateAddBtn').classList.add('hidden');
-            }
-            document.querySelectorAll('.edit-column').forEach(el => el.classList.add('hidden'));
+            document.getElementById('shareManagerBtn').classList.add('hidden');
+            document.getElementById('tabsContainer').classList.add('hidden'); // إخفاء أزرار التبويبات بالكامل عن المدير
+            
+            // إخفاء قسم الحضور اليومي تماماً وجعل قسم التقارير هو الظهور الوحيد
+            document.getElementById('dailySection').classList.add('hidden');
+            document.getElementById('reportsSection').classList.remove('hidden');
         }
 
         function updateShareUrl() {
@@ -601,8 +603,7 @@
             if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
                 baseUrl = window.location.origin + window.location.pathname;
             }
-            // إضافة معامل تبويب التقارير ليفتح مباشرة على صفحة التقرير عند المدير
-            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}&tab=reports`;
+            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}`;
             document.getElementById('shareUrlInput').value = shareUrl;
         }
 
@@ -687,11 +688,8 @@
                     allAttendanceRecords[doc.id] = doc.data().records || {};
                 });
                 renderSingleDayReport();
-                
-                // إذا كان المدير يفتح الرابط، يتم توجيهه تلقائياً لتبويب التقرير مباشرة
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('tab') === 'reports') {
-                    switchTab('reports');
+                if (isReadOnly) {
+                    generateReport();
                 }
             });
         }
@@ -722,10 +720,8 @@
             activeGroup = groupName.trim();
             updateShareUrl();
             renderTable();
-            if (!document.getElementById('reportsSection').classList.contains('hidden')) {
-                generateReport();
-                renderSingleDayReport();
-            }
+            generateReport();
+            renderSingleDayReport();
         }
 
         function openManageGroupsModal() {
@@ -1376,13 +1372,12 @@
             const shareInput = document.getElementById('shareUrlInput');
             shareInput.select();
             document.execCommand('copy');
-            showToast('تم نسخ رابط التقرير والإحصائيات بنجاح 📋', 'success');
+            showToast('تم نسخ رابط التقارير بنجاح 📋', 'success');
         }
 
         function sendReportToWhatsAppManager() {
             const shareUrl = document.getElementById('shareUrlInput').value;
             
-            // حساب نسبة الحضور العامة الحالية للفصل المحدد
             const start = document.getElementById('reportStartDate').value;
             const end = document.getElementById('reportEndDate').value;
             const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
@@ -1407,7 +1402,7 @@
             const grandTotal = overallPresent + overallAbsent + overallLate;
             const avgRate = grandTotal > 0 ? Math.round((overallPresent / grandTotal) * 100) : 0;
 
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقرير الحضور والإحصائيات التراكمي للفصل: (${activeGroup})%0A- إجمالي أيام الرصد: ${relevantDates.length} يوم%0A- نسبة الحضور العامة: ${avgRate}%%%0A- إجمالي حالات الغياب: ${overallAbsent}%0A- إجمالي التأخر: ${overallLate}%0A%0Aيمكنكم الاطلاع المباشر على صفحة التقارير الكاملة عبر الرابط:%0A${shareUrl}`;
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقرير الحضور والإحصائيات للفصل: (${activeGroup})%0A- إجمالي أيام الرصد: ${relevantDates.length} يوم%0A- نسبة الحضور العامة: ${avgRate}%%%0A- إجمالي الغياب: ${overallAbsent}%0A- إجمالي التأخر: ${overallLate}%0A%0Aيمكنكم الاطلاع على تفاصيل التقارير والإحصائيات عبر الرابط:%0A${shareUrl}`;
 
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
