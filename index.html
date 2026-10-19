@@ -52,6 +52,10 @@
             </div>
             
             <div class="flex items-center gap-3">
+                <button onclick="shareWithManager()" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold px-3 py-2 rounded-lg border border-amber-300 shadow flex items-center gap-2 text-sm transition">
+                    <i class="fa-solid fa-share-nodes text-indigo-900"></i>
+                    <span>مشاركة للمدير</span>
+                </button>
                 <div id="cloudBadge" class="bg-indigo-900/80 px-4 py-2 rounded-lg border border-indigo-500/30 flex items-center gap-2 text-sm">
                     <i id="cloudIcon" class="fa-solid fa-cloud text-emerald-400 animate-pulse"></i>
                     <span id="cloudStatus" class="font-medium text-indigo-100">السحابة: متصل جاري التحميل...</span>
@@ -470,6 +474,48 @@
     <div id="toast" class="fixed bottom-5 left-5 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 text-sm flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none translate-y-2 z-50">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toastText">تم الحفظ بنجاح</span>
+    </div>
+
+    <!-- Modal Share Manager -->
+    <div id="shareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
+            <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-amber-300"></i>
+                    مشاركة التقرير والكشف مع المدير
+                </h3>
+                <button onclick="closeShareModal()" class="text-indigo-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-600 leading-relaxed font-semibold">
+                    يمكنك إرسال رابط الكشف المباشر للمدير لمتابعة الحضور والغياب أو نسخ الرابط لإرساله عبر أي وسيلة أخرى:
+                </p>
+
+                <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
+                    <input type="text" id="shareUrlInput" readonly value="https://school1school2-stack.github.io/2222/" class="bg-transparent text-xs font-mono font-bold text-slate-700 w-full focus:outline-none">
+                    <button onclick="copyShareUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0">
+                        <i class="fa-regular fa-copy"></i>
+                        نسخ
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    <button onclick="sendToWhatsAppManager()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        إرسال تقرير اليوم للمدير عبر واتساب
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeShareModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">
+                    إغلاق
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1254,6 +1300,41 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // Functions for Sharing with Manager
+        function shareWithManager() {
+            document.getElementById('shareModal').classList.remove('hidden');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden');
+        }
+
+        function copyShareUrl() {
+            const shareInput = document.getElementById('shareUrlInput');
+            shareInput.select();
+            document.execCommand('copy');
+            showToast('تم نسخ رابط المستودع بنجاح 📋', 'success');
+        }
+
+        function sendToWhatsAppManager() {
+            const repositoryUrl = "https://school1school2-stack.github.io/2222/";
+            
+            // Calculate today's quick summary
+            let p = 0, a = 0, l = 0;
+            const activeStudents = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+            
+            activeStudents.forEach(s => {
+                const st = attendanceData[s.id];
+                if (st === 'present') p++;
+                else if (st === 'absent') a++;
+                else if (st === 'late' || st === 'excused') l++;
+            });
+
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك ملخص كشف الحضور والغياب ليوم (${currentDate}) - الفصل: (${activeGroup}):%0A- إجمالي الطلاب: ${activeStudents.length}%0A- الحاضرون: ${p}%0A- الغائبون: ${a}%0A- المتأخرون/بعذر: ${l}%0A%0Aيمكنكم الاطلاع المباشر والتفصيلي عبر الرابط:%0A${repositoryUrl}`;
+
+            window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
 
         function showToast(message, type = 'success') {
