@@ -135,10 +135,12 @@
                             </button>
                         </div>
 
-                        <button id="openAddModalBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-user-plus"></i>
-                            إدراج أسماء وإيميلات (دفعة واحدة)
+                        <!-- زر إدراج الأسماء والإيميلات دفعة واحدة الواضح -->
+                        <button id="openAddModalBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition flex items-center gap-2 shadow-md">
+                            <i class="fa-solid fa-paste text-yellow-300"></i>
+                            نسخ ولصق أسماء وإيميلات الطلاب
                         </button>
+
                         <button id="exportExcelBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-sm">
                             <i class="fa-solid fa-file-excel"></i>
                             تصدير Excel / CSV
@@ -225,7 +227,7 @@
                         <i class="fa-solid fa-user-slash"></i>
                     </div>
                     <h3 class="text-lg font-bold text-slate-700 mb-1">لا يوجد طلاب في هذا الفصل حتى الآن</h3>
-                    <p class="text-slate-500 text-sm max-w-md mx-auto mb-4">قم بإضافة قائمة أسماء الطلاب مع إيميلاتهم لهذا الفصل بالضغط على زر "إدراج أسماء وإيميلات".</p>
+                    <p class="text-slate-500 text-sm max-w-md mx-auto mb-4">قم بإضافة قائمة أسماء الطلاب مع إيميلاتهم لهذا الفصل بالضغط على زر "نسخ ولصق أسماء وإيميلات الطلاب".</p>
                     <button id="emptyStateAddBtn" onclick="document.getElementById('openAddModalBtn').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition">
                         إضافة قائمة الأسماء والإيميلات الآن
                     </button>
@@ -397,8 +399,8 @@
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-800 text-white flex justify-between items-center">
                 <h3 class="text-lg font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-users-rectangle"></i>
-                    إضافة أسماء الطلاب وإيميلاتهم للسحابة
+                    <i class="fa-solid fa-paste"></i>
+                    نسخ ولصق أسماء الطلاب وإيميلاتهم
                 </h3>
                 <button id="closeModalBtn" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -413,15 +415,13 @@
                     </select>
 
                     <label class="block text-sm font-bold text-slate-700 mb-2">
-                        ألصق أو اكتب الأسماء والإيميلات هنا (كل سطر اسم، وتحته أو بجانبه الإيميل):
+                        ألصق قائمة أسماء الطلاب وإيميلاتهم هنا (كل اسم سطر، وتحته الإيميل):
                     </label>
                     <textarea id="bulkNamesInput" rows="7" placeholder="أحمد محمد علي
-ahmed@example.com
+t486739@rb.moe.gov.sa
 خالد عبد الله
-khaled@example.com
-عمر يوسف
-omar@example.com" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none leading-relaxed font-mono"></textarea>
-                    <p class="text-xs text-slate-500 mt-1">يمكنك لصق قائمة أسماء يتبعها البريد الإلكتروني مباشرة (يدعم التنسيق بالتناوب: سطر اسم وسطر إيميل، أو مفصولين بمسافة).</p>
+khaled@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none leading-relaxed font-mono"></textarea>
+                    <p class="text-xs text-slate-500 mt-1">النظام سيدخل اسم الطالب وتحته البريد الإلكتروني المزامن تلقائياً.</p>
                 </div>
 
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex items-start gap-2">
@@ -1112,7 +1112,8 @@ omar@example.com" class="w-full border border-slate-300 rounded-xl p-3 text-sm f
                     statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800"><i class="fa-solid fa-file-signature text-blue-600"></i> بعذر</span>`;
                 }
 
-                const emailHtml = student.email ? `<br><span class="text-xs text-red-600 font-mono font-normal">${escapeHtml(student.email)}</span>` : '';
+                // عرض الإيميل تحت اسم الطالب بخط صغير ولون أحمر
+                const emailHtml = student.email ? `<br><span class="text-xs text-red-600 font-mono font-bold">${escapeHtml(student.email)}</span>` : '';
 
                 if (isReadOnly) {
                     row.innerHTML = `
