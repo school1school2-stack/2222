@@ -538,14 +538,14 @@
         const db = firebase.firestore();
 
         // Application State
-        let isReadOnly = false; // Flag for read-only view mode
-        let activeGroup = 'الجميع'; // 'الجميع' or specific group name
-        let groups = ['أول - أول', 'أول - ثاني', 'ثاني - أول']; // Default target groups
-        let students = []; // List of { id, name, group }
-        let allowedStudentsPreset = []; // Pre-populated list from allowed_students collection
-        let attendanceData = {}; // Format: { "studentDocId": "present" | "absent" | "late" | "excused" }
+        let isReadOnly = false; 
+        let activeGroup = 'الجميع'; 
+        let groups = ['أول - أول', 'أول - ثاني', 'ثاني - أول']; 
+        let students = []; 
+        let allowedStudentsPreset = []; 
+        let attendanceData = {}; 
         let currentDate = new Date().toISOString().split('T')[0];
-        let allAttendanceRecords = {}; // For analytics report calculation { dateStr: { records: {} } }
+        let allAttendanceRecords = {}; 
 
         // DOM Elements
         const selectedDateInput = document.getElementById('selectedDate');
@@ -562,7 +562,6 @@
 
         // Initializer
         window.addEventListener('DOMContentLoaded', () => {
-            // Check for read-only mode and shared group from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') === 'view') {
                 isReadOnly = true;
@@ -570,13 +569,12 @@
             }
             const paramGroup = urlParams.get('group');
             if (paramGroup) {
-                activeGroup = decodeURIComponent(paramGroup);
+                activeGroup = decodeURIComponent(paramGroup).trim();
             }
 
             selectedDateInput.value = currentDate;
             document.getElementById('singleReportDate').value = currentDate;
 
-            // Set default date bounds for report (current month)
             const today = new Date();
             const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
             document.getElementById('reportStartDate').value = firstDayOfMonth;
@@ -595,8 +593,6 @@
             if (document.getElementById('emptyStateAddBtn')) {
                 document.getElementById('emptyStateAddBtn').classList.add('hidden');
             }
-
-            // Hide action and edit columns
             document.querySelectorAll('.edit-column').forEach(el => el.classList.add('hidden'));
         }
 
@@ -630,16 +626,14 @@
             }
         }
 
-        // Initialize Real-time Firebase Cloud Listener
         function initCloudSync() {
             const cloudBadge = document.getElementById('cloudBadge');
             const cloudStatus = document.getElementById('cloudStatus');
             const cloudIcon = document.getElementById('cloudIcon');
 
-            // 1. Fetch Groups list from cloud
             db.collection("attendance_groups").doc("list").onSnapshot((doc) => {
                 if (doc.exists && doc.data().groups && doc.data().groups.length > 0) {
-                    groups = doc.data().groups;
+                    groups = doc.data().groups.map(g => g.trim());
                 } else {
                     groups = ['أول - أول', 'أول - ثاني', 'ثاني - أول'];
                     db.collection("attendance_groups").doc("list").set({ groups: groups });
@@ -650,13 +644,12 @@
                 updateGroupDropdowns();
             });
 
-            // 2. Fetch Preset Allowed Students from allowed_students collection
             db.collection("allowed_students").onSnapshot((snapshot) => {
                 allowedStudentsPreset = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data && data.name) {
-                        allowedStudentsPreset.push(data.name);
+                        allowedStudentsPreset.push(data.name.trim());
                     }
                 });
                 populatePresetDropdown();
@@ -664,19 +657,17 @@
                 console.error("Allowed students fetch error:", error);
             });
 
-            // 3. Fetch Active Attendance Students List from Firestore
             db.collection("attendance_students").onSnapshot((snapshot) => {
                 students = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     students.push({
                         id: doc.id,
-                        name: data.name || "طالب بدون اسم",
-                        group: data.group ? data.group.trim() : (groups[0] || 'أول - أول')
+                        name: (data.name || "طالب بدون اسم").trim(),
+                        group: (data.group || groups[0] || 'أول - أول').trim()
                     });
                 });
 
-                // ترتيب الطلاب أبجدياً
                 students.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
 
                 cloudStatus.textContent = "السحابة: متصل ومزامن (aaaa)";
@@ -689,7 +680,6 @@
                 cloudIcon.className = "fa-solid fa-cloud text-rose-400";
             });
 
-            // 4. Listen to all attendance records for comprehensive analytics
             db.collection("attendance_records").onSnapshot((snapshot) => {
                 allAttendanceRecords = {};
                 snapshot.forEach(doc => {
@@ -700,7 +690,6 @@
         }
 
         function updateGroupDropdowns() {
-            // Main selector
             classSelector.innerHTML = '<option value="الجميع">جميع الفصول والمجموعات</option>';
             groups.forEach(grp => {
                 const opt = document.createElement('option');
@@ -710,7 +699,6 @@
                 classSelector.appendChild(opt);
             });
 
-            // Modal selector
             modalGroupSelector.innerHTML = '';
             groups.forEach(grp => {
                 const opt = document.createElement('option');
@@ -724,7 +712,7 @@
         }
 
         function changeActiveGroup(groupName) {
-            activeGroup = groupName;
+            activeGroup = groupName.trim();
             updateShareUrl();
             renderTable();
             if (!document.getElementById('reportsSection').classList.contains('hidden')) {
@@ -863,7 +851,6 @@
             });
         }
 
-        // Render detailed report for a single selected day
         function renderSingleDayReport() {
             const targetDate = document.getElementById('singleReportDate').value;
             const dayRecords = allAttendanceRecords[targetDate] || {};
@@ -1025,7 +1012,7 @@
 
             const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
 
-            let csvContent = "\uFEFF"; // UTF-8 BOM
+            let csvContent = "\uFEFF"; 
             csvContent += `تقرير الحضور والغياب - الفصل: (${activeGroup}) من ${start} إلى ${end}\n`;
             csvContent += `اسم الطالب,الفصل/المجموعة,أيام الحضور,أيام الغياب,أيام التأخر,بعذر,نسبة الحضور\n`;
 
@@ -1081,7 +1068,6 @@
         function renderTable() {
             const searchTerm = searchInput.value.trim().toLowerCase();
 
-            // Filter by active Group & search term with strict trimming
             const filteredStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
