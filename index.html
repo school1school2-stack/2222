@@ -96,7 +96,6 @@
             </div>
 
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-                <!-- أزرار التحكم الجديدة الخاصة بالفصل -->
                 <button onclick="copyCurrentClassData()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 border border-indigo-200">
                     <i class="fa-solid fa-copy"></i>
                     نسخ الفصل كامل
@@ -135,7 +134,6 @@
 
                     <!-- Add Student Batch / Dropdown Controls -->
                     <div class="flex flex-wrap items-center gap-2">
-                        <!-- Dropdown Quick Add with Search Input -->
                         <div id="quickAddControls" class="relative flex items-center gap-1">
                             <div class="relative">
                                 <input type="text" id="quickStudentInput" list="presetStudentsList" placeholder="ابحث أو اكتب اسم طالب..." class="bg-slate-50 border border-slate-300 text-slate-800 font-medium px-3 py-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none w-[200px]" autocomplete="off">
@@ -602,9 +600,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('quickAddControls').classList.add('hidden');
             document.getElementById('openAddModalBtn').classList.add('hidden');
             document.getElementById('shareManagerBtn').classList.add('hidden');
-            document.getElementById('tabsContainer').classList.add('hidden'); // إخفاء أزرار التبويبات بالكامل عن المدير
+            document.getElementById('tabsContainer').classList.add('hidden');
             
-            // إخفاء قسم الحضور اليومي تماماً وجعل قسم التقارير هو الظهور الوحيد
             document.getElementById('dailySection').classList.add('hidden');
             document.getElementById('reportsSection').classList.remove('hidden');
         }
@@ -637,6 +634,22 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 generateReport();
                 renderSingleDayReport();
             }
+        }
+
+        // تحسين دالة استخراج وتوليد البريد الإلكتروني للطلاب السابقين
+        function getStudentEmail(data, docId) {
+            if (data.email && data.email.trim() !== '') {
+                // إذا كان البريد يحتوي على الاسم مُكررًا داخل الإيميل يتم تنظيفه وإظهار الجزء الخاص بالإيميل فقط
+                let cleanEmail = data.email.trim();
+                if (cleanEmail.includes('@')) {
+                    let parts = cleanEmail.split(/\s+/);
+                    let emailPart = parts.find(p => p.includes('@'));
+                    if (emailPart) return emailPart;
+                }
+                return cleanEmail;
+            }
+            // إذا كان الطالب مضافاً سابقاً بدون بريد إلكتروني، يتم إظهار بريد وزارة التعليم الافتراضي
+            return `s${docId.substring(0, 6)}@rb.moe.gov.sa`;
         }
 
         function initCloudSync() {
@@ -677,7 +690,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     students.push({
                         id: doc.id,
                         name: (data.name || "طالب بدون اسم").trim(),
-                        email: (data.email || data.id || "").trim(), // دعم الإيميل من الوثيقة أو المعرف
+                        email: getStudentEmail(data, doc.id),
                         group: (data.group || groups[0] || 'أول - أول').trim()
                     });
                 });
@@ -745,7 +758,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('groupsModal').classList.add('hidden');
         }
 
-        // دوام أزرار الفصل الكامل الجديدة
         function copyCurrentClassData() {
             if (activeGroup === 'الجميع') {
                 showToast('يرجى تحديد فصل معين لنسخه', 'warning');
@@ -1339,7 +1351,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 try {
                     await db.collection("attendance_students").add({
                         name: name,
-                        email: name + "@rb.moe.gov.sa",
+                        email: "s" + Math.floor(100000 + Math.random() * 900000) + "@rb.moe.gov.sa",
                         group: targetGroup.trim(),
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
@@ -1392,26 +1404,27 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 try {
                     const batch = db.batch();
                     
-                    // تحليل السطور المزدوجة (اسم في سطر وإيميل في سطر)
                     for (let i = 0; i < lines.length; i++) {
                         let line1 = lines[i];
                         let line2 = lines[i+1];
-                        if (!line2) break;
 
                         let name = "", email = "";
-                        if (!line1.includes('@') && line2.includes('@')) {
-                            name = line1; email = line2.toLowerCase();
-                            i++;
-                        } else if (line1.includes('@') && !line2.includes('@')) {
-                            email = line1.toLowerCase(); name = line2;
+                        if (line2 && line2.includes('@')) {
+                            name = line1.replace(/@\S+/g, '').trim();
+                            email = line2.trim().toLowerCase();
                             i++;
                         } else {
-                            name = line1;
-                            email = line2.toLowerCase();
-                            i++;
+                            if (line1.includes('@')) {
+                                let parts = line1.split(/\s+/);
+                                email = parts.find(p => p.includes('@')) || '';
+                                name = parts.filter(p => !p.includes('@')).join(' ');
+                            } else {
+                                name = line1;
+                                email = `s${Math.floor(100000 + Math.random() * 900000)}@rb.moe.gov.sa`;
+                            }
                         }
 
-                        if (name && email) {
+                        if (name) {
                             const exists = students.some(s => s.name === name && s.group.trim() === selectedGroup);
                             if (!exists) {
                                 const newDocRef = db.collection("attendance_students").doc();
