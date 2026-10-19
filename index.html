@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<heحسب
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كشف حضور وغياب الطلاب حسحسبب الفصول - سحابة aaaa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .tab-active {
+            border-bottom: 3px solid #4f46e5;
+            color: #4f46e5;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <header class="bg-indigo-800 text-white shadow-lg border-b border-indigo-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="p-3 bg-indigo-700 rounded-xl shadow-inner">
+                    <i class="fa-solid fa-graduation-cap text-2xl text-yellow-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide">كشف حضور وغياب الطلاب حسب الفصول</h1>
+                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي - إدارة الفصول والمجموعات بالسحابة</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div id="cloudBadge" class="bg-indigo-900/80 px-4 py-2 rounded-lg border border-indigo-500/30 flex items-center gap-2 text-sm">
+                    <i id="cloudIcon" class="fa-solid fa-cloud text-emerald-400 animate-pulse"></i>
+                    <span id="cloudStatus" class="font-medium text-indigo-100">السحابة: متصل جاري التحميل...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
+            <button id="dailyTabBtn" onclick="switchTab('daily')" class="tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check text-indigo-600"></i>
+                كشف الحضور اليومي
+            </button>
+            <button id="reportsTabBtn" onclick="switchTab('reports')" class="text-slate-500 hover:text-indigo-600 py-3 px-6 text-sm font-medium transition flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-indigo-600"></i>
+                التقارير والإحصائيات
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="p-2.5 bg-indigo-50 rounded-xl text-indigo-600 font-bold flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-door-open text-indigo-600"></i>
+                    الفصل / المجموعة الحالية:
+                </div>
+                <select id="classSelector" onchange="changeActiveGroup(this.value)" class="bg-indigo-900 text-white font-bold px-4 py-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition flex-grow sm:flex-grow-0">
+                    <option value="الجميع">جميع الفصول والمجموعات</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button onclick="openManageGroupsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 border border-slate-300">
+                    <i class="fa-solid fa-folder-plus text-indigo-600"></i>
+                    إدارة وإضافة الفصول
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== DAILY ATTENDANCE SECTION ==================== -->
+        <div id="dailySection">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+                <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+                    
+                    <!-- Date Picker & Quick Navigator -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <label class="font-bold text-slate-700 flex items-center gap-2">
+                            <i class="fa-regular fa-calendar-days text-indigo-600"></i>
+                            تاريخ اليوم:
+                        </label>
+                        <input type="date" id="selectedDate" class="bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                        <button id="todayBtn" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-3 py-2 rounded-xl text-sm transition">
+                            اليوم
+                        </button>
+                    </div>
+
+                    <!-- Add Student Batch / Dropdown Controls -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Dropdown Quick Add with Search Input -->
+                        <div class="relative flex items-center gap-1">
+                            <div class="relative">
+                                <input type="text" id="quickStudentInput" list="presetStudentsList" placeholder="ابحث أو اكتب اسم طالب..." class="bg-slate-50 border border-slate-300 text-slate-800 font-medium px-3 py-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none w-[200px]" autocomplete="off">
+                                <datalist id="presetStudentsList">
+                                    <!-- Options injected dynamically -->
+                                </datalist>
+                            </div>
+                            <button id="addQuickStudentBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl text-sm transition shadow-sm flex items-center justify-center w-9 h-9" title="إضافة الطالب المحدد للفصل الحالي">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <button id="openAddModalBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-user-plus"></i>
+                            إدراج أسماء (دفعة واحدة)
+                        </button>
+                        <button id="exportExcelBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-file-excel"></i>
+                            تصدير Excel / CSV
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-500 font-bold mb-1">إجمالي الطلاب في الفصل</p>
+                        <h3 id="statTotal" class="text-2xl font-black text-slate-800">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 text-xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-emerald-600 font-bold mb-1">حاضر</p>
+                        <h3 id="statPresent" class="text-2xl font-black text-emerald-600">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-rose-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-rose-600 font-bold mb-1">غائب</p>
+                        <h3 id="statAbsent" class="text-2xl font-black text-rose-600">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 text-xl">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-amber-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-amber-600 font-bold mb-1">متأخر / بعذر</p>
+                        <h3 id="statOther" class="text-2xl font-black text-amber-600">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-xl">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-3">
+                    <div class="relative w-full md:w-72">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchInput" placeholder="بحث عن اسم طالب..." class="w-full pr-9 pl-4 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div class="text-xs text-slate-500 font-medium">
+                        تعديل الحالة يحفظ فورا وسحابيا للفصل المحدد
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-right border-collapse min-w-[650px]">
+                        <thead>
+                            <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
+                                <th class="p-4 w-12 text-center">#</th>
+                                <th class="p-4">اسم الطالب</th>
+                                <th class="p-4 text-center w-28">الفصل/المجموعة</th>
+                                <th class="p-4 text-center">الحالة اليوم</th>
+                                <th class="p-4 text-center">تحديد الحالة (اضغط لاختيار الخيار)</th>
+                                <th class="p-4 text-center w-28">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Student Rows dynamically injected here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State Container -->
+                <div id="emptyState" class="hidden p-12 text-center">
+                    <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i class="fa-solid fa-user-slash"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-700 mb-1">لا يوجد طلاب في هذا الفصل حتى الآن</h3>
+                    <p class="text-slate-500 text-sm max-w-md mx-auto mb-4">قم بإضافة قائمة أسماء الطلاب لهذا الفصل بالضغط على زر "إدراج أسماء" أو اختر من القائمة المنسدلة.</p>
+                    <button onclick="document.getElementById('openAddModalBtn').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition">
+                        إضافة قائمة الأسماء الآن
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="reportsSection" class="hidden space-y-6">
+            
+            <!-- Day Specific Lookup Card -->
+            <div class="bg-indigo-900 text-white rounded-2xl shadow-md p-6 border border-indigo-800">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold flex items-center gap-2 text-amber-300">
+                            <i class="fa-solid fa-calendar-day"></i>
+                            استعلام الحضور والغياب ليوم محدد
+                        </h3>
+                        <p class="text-indigo-200 text-xs mt-1">عرض تفاصيل الحضور والغياب للفصل المحدد أو لجميع الفصول</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-indigo-800/80 p-2 rounded-xl border border-indigo-700">
+                        <label class="font-bold text-sm text-indigo-100">اختر اليوم:</label>
+                        <input type="date" id="singleReportDate" onchange="renderSingleDayReport()" class="bg-indigo-950 text-white border border-indigo-600 rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-amber-400 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Daily Breakdown Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                    <!-- Present List -->
+                    <div class="bg-emerald-950/50 border border-emerald-500/30 rounded-xl p-4">
+                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-emerald-500/30">
+                            <span class="font-bold text-emerald-300 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check"></i> الحاضرون
+                            </span>
+                            <span id="dayPresentCount" class="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                        </div>
+                        <ul id="dayPresentList" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar text-xs text-emerald-100">
+                            <!-- Injected dynamically -->
+                        </ul>
+                    </div>
+
+                    <!-- Absent List -->
+                    <div class="bg-rose-950/50 border border-rose-500/30 rounded-xl p-4">
+                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-rose-500/30">
+                            <span class="font-bold text-rose-300 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-xmark"></i> الغائبون
+                            </span>
+                            <span id="dayAbsentCount" class="bg-rose-500/20 text-rose-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                        </div>
+                        <ul id="dayAbsentList" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar text-xs text-rose-100">
+                            <!-- Injected dynamically -->
+                        </ul>
+                    </div>
+
+                    <!-- Late List -->
+                    <div class="bg-amber-950/50 border border-amber-500/30 rounded-xl p-4">
+                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-amber-500/30">
+                            <span class="font-bold text-amber-300 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-clock"></i> المتأخرون
+                            </span>
+                            <span id="dayLateCount" class="bg-amber-500/20 text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                        </div>
+                        <ul id="dayLateList" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar text-xs text-amber-100">
+                            <!-- Injected dynamically -->
+                        </ul>
+                    </div>
+
+                    <!-- Excused / Unmarked List -->
+                    <div class="bg-slate-800/80 border border-slate-600 rounded-xl p-4">
+                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-600">
+                            <span class="font-bold text-slate-300 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-signature"></i> بعذر / لم يحدد
+                            </span>
+                            <span id="dayOtherCount" class="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                        </div>
+                        <ul id="dayOtherList" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-200">
+                            <!-- Injected dynamically -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Filter for Cumulative Reports -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-filter text-indigo-600"></i>
+                            نطاق تقرير الإحصائيات التراكمي:
+                        </span>
+                        <div class="flex items-center gap-2 text-sm">
+                            <label class="text-slate-500">من:</label>
+                            <input type="date" id="reportStartDate" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <label class="text-slate-500">إلى:</label>
+                            <input type="date" id="reportEndDate" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <button onclick="generateReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-1.5 rounded-xl text-sm transition">
+                            عرض التقرير
+                        </button>
+                    </div>
+
+                    <button onclick="exportReportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-file-csv"></i>
+                        تصدير التقرير كـ CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overview Statistics Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-xs text-slate-500 font-bold mb-1">إجمالي أيام الرصد</p>
+                    <h3 id="repTotalDays" class="text-2xl font-black text-slate-800">0 يوم</h3>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-emerald-200 shadow-sm">
+                    <p class="text-xs text-emerald-600 font-bold mb-1">نسبة الحضور العامة</p>
+                    <h3 id="repAvgPresenceRate" class="text-2xl font-black text-emerald-600">0%</h3>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-rose-200 shadow-sm">
+                    <p class="text-xs text-rose-600 font-bold mb-1">إجمالي حالات الغياب</p>
+                    <h3 id="repTotalAbsences" class="text-2xl font-black text-rose-600">0</h3>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-amber-200 shadow-sm">
+                    <p class="text-xs text-amber-600 font-bold mb-1">إجمالي التأخر والحياد</p>
+                    <h3 id="repTotalLate" class="text-2xl font-black text-amber-600">0</h3>
+                </div>
+            </div>
+
+            <!-- Detailed Student Statistics Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-users-viewfinder text-indigo-600"></i>
+                        تقرير إحصائيات حضور الطلاب التراكمي
+                    </h3>
+                    <span id="reportStatusText" class="text-xs text-slate-500">جاري تحميل البيانات...</span>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-right border-collapse min-w-[700px]">
+                        <thead>
+                            <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
+                                <th class="p-4 w-12 text-center">#</th>
+                                <th class="p-4">اسم الطالب</th>
+                                <th class="p-4 text-center">الفصل/المجموعة</th>
+                                <th class="p-4 text-center text-emerald-700">أيام الحضور</th>
+                                <th class="p-4 text-center text-rose-700">أيام الغياب</th>
+                                <th class="p-4 text-center text-amber-700">أيام التأخر</th>
+                                <th class="p-4 text-center text-blue-700">بعذر</th>
+                                <th class="p-4 text-center">نسبة الحضور</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Report rows inserted dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all">
+            <div class="p-5 bg-indigo-800 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-users-rectangle"></i>
+                    إضافة أسماء الطلاب إلى الفصل والسحابة
+                </h3>
+                <button id="closeModalBtn" class="text-indigo-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">اختر الفصل / المجموعة المستهدفة:</label>
+                    <select id="modalGroupSelector" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm font-bold bg-slate-50 text-indigo-900 mb-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <!-- Populated dynamically -->
+                    </select>
+
+                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                        ألصق أو اكتب أسماء الطلاب هنا (كل اسم في سطر مستقل):
+                    </label>
+                    <textarea id="bulkNamesInput" rows="6" placeholder="أحمد محمد علي
+خالد عبد الله
+عمر يوسف
+سعد إبراهيم" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none leading-relaxed"></textarea>
+                    <p class="text-xs text-slate-500 mt-1">يمكنك نسخ الأسماء مباشرة من ملف Excel أو قائمة الطلاب ولصقها هنا.</p>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex items-start gap-2">
+                    <i class="fa-solid fa-cloud text-amber-600 text-base mt-0.5"></i>
+                    <span>سيتم تخزين وإدراج هذه الأسماء في الفصل المحدد بالسحابة مباشرة.</span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                <button id="cancelModalBtn" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-200 font-semibold text-sm transition">
+                    إلغاء
+                </button>
+                <button id="saveNamesBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-semibold text-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    حفظ وإدراج في السحابة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="groupsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
+            <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus"></i>
+                    إدارة الفصول والمجموعات
+                </h3>
+                <button onclick="closeManageGroupsModal()" class="text-indigo-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div class="flex gap-2">
+                    <input type="text" id="newGroupNameInput" placeholder="اسم الفصل الجديد (مثلاً: فصل 1/1)..." class="flex-grow border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <button onclick="createNewGroup()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition">
+                        إضافة
+                    </button>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2">الفصول الحالية (يمكنك تعديل الاسم أو الحذف):</label>
+                    <ul id="groupsListContainer" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+                        <!-- Injected dynamically -->
+                    </ul>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeManageGroupsModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 left-5 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 text-sm flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none translate-y-2 z-50">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastText">تم الحفظ بنجاح</span>
+    </div>
+
+    <script>
+        // Firebase Cloud Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBkCO7FDQXd89YDf843J4_AtvEFvzzt-R0",
+            authDomain: "aztlg-494c3.firebaseapp.com",
+            projectId: "aztlg-494c3",
+            storageBucket: "aztlg-494c3.firebasestorage.app",
+            messagingSenderId: "597051893949",
+            appId: "1:597051893949:web:de5554ac900317a92b2fd4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Application State
+        let activeGroup = 'الجميع'; // 'الجميع' or specific group name
+        let groups = ['أول - أول', 'أول - ثاني', 'ثاني - أول']; // Default target groups
+        let students = []; // List of { id, name, group }
+        let allowedStudentsPreset = []; // Pre-populated list from allowed_students collection
+        let attendanceData = {}; // Format: { "studentDocId": "present" | "absent" | "late" | "excused" }
+        let currentDate = new Date().toISOString().split('T')[0];
+        let allAttendanceRecords = {}; // For analytics report calculation { dateStr: { records: {} } }
+
+        // DOM Elements
+        const selectedDateInput = document.getElementById('selectedDate');
+        const studentsTableBody = document.getElementById('studentsTableBody');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const addModal = document.getElementById('addModal');
+        const bulkNamesInput = document.getElementById('bulkNamesInput');
+        const quickStudentInput = document.getElementById('quickStudentInput');
+        const presetStudentsList = document.getElementById('presetStudentsList');
+        const addQuickStudentBtn = document.getElementById('addQuickStudentBtn');
+        const classSelector = document.getElementById('classSelector');
+        const modalGroupSelector = document.getElementById('modalGroupSelector');
+
+        // Initializer
+        window.addEventListener('DOMContentLoaded', () => {
+            selectedDateInput.value = currentDate;
+            document.getElementById('singleReportDate').value = currentDate;
+
+            // Set default date bounds for report (current month)
+            const today = new Date();
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+            document.getElementById('reportStartDate').value = firstDayOfMonth;
+            document.getElementById('reportEndDate').value = currentDate;
+
+            initCloudSync();
+            setupEventListeners();
+        });
+
+        function switchTab(tab) {
+            const dailySec = document.getElementById('dailySection');
+            const reportsSec = document.getElementById('reportsSection');
+            const dailyBtn = document.getElementById('dailyTabBtn');
+            const reportsBtn = document.getElementById('reportsTabBtn');
+
+            if (tab === 'daily') {
+                dailySec.classList.remove('hidden');
+                reportsSec.classList.add('hidden');
+                dailyBtn.className = "tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2";
+                reportsBtn.className = "text-slate-500 hover:text-indigo-600 py-3 px-6 text-sm font-medium transition flex items-center gap-2";
+            } else {
+                dailySec.classList.add('hidden');
+                reportsSec.classList.remove('hidden');
+                reportsBtn.className = "tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2";
+                dailyBtn.className = "text-slate-500 hover:text-indigo-600 py-3 px-6 text-sm font-medium transition flex items-center gap-2";
+                generateReport();
+                renderSingleDayReport();
+            }
+        }
+
+        // Initialize Real-time Firebase Cloud Listener
+        function initCloudSync() {
+            const cloudBadge = document.getElementById('cloudBadge');
+            const cloudStatus = document.getElementById('cloudStatus');
+            const cloudIcon = document.getElementById('cloudIcon');
+
+            // 1. Fetch Groups list from cloud (fallback to user's specified default 3 groups if empty)
+            db.collection("attendance_groups").doc("list").onSnapshot((doc) => {
+                if (doc.exists && doc.data().groups && doc.data().groups.length > 0) {
+                    groups = doc.data().groups;
+                } else {
+                    groups = ['أول - أول', 'أول - ثاني', 'ثاني - أول'];
+                    db.collection("attendance_groups").doc("list").set({ groups: groups });
+                }
+                updateGroupDropdowns();
+            }, (error) => {
+                console.error("Groups fetch error:", error);
+                updateGroupDropdowns();
+            });
+
+            // 2. Fetch Preset Allowed Students from allowed_students collection
+            db.collection("allowed_students").onSnapshot((snapshot) => {
+                allowedStudentsPreset = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data && data.name) {
+                        allowedStudentsPreset.push(data.name);
+                    }
+                });
+                populatePresetDropdown();
+            }, (error) => {
+                console.error("Allowed students fetch error:", error);
+            });
+
+            // 3. Fetch Active Attendance Students List from Firestore
+            db.collection("attendance_students").onSnapshot((snapshot) => {
+                students = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    students.push({
+                        id: doc.id,
+                        name: data.name || "طالب بدون اسم",
+                        group: data.group || groups[0] || 'أول - أول'
+                    });
+                });
+
+                // ترتيب الطلاب أبجدياً
+                students.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+                cloudStatus.textContent = "السحابة: متصل ومزامن (aaaa)";
+                cloudIcon.className = "fa-solid fa-cloud text-emerald-400";
+                
+                fetchAttendanceForDate(currentDate);
+            }, (error) => {
+                console.error("Students fetch error:", error);
+                cloudStatus.textContent = "خطأ في الاتصال بالسحابة";
+                cloudIcon.className = "fa-solid fa-cloud text-rose-400";
+            });
+
+            // 4. Listen to all attendance records for comprehensive analytics
+            db.collection("attendance_records").onSnapshot((snapshot) => {
+                allAttendanceRecords = {};
+                snapshot.forEach(doc => {
+                    allAttendanceRecords[doc.id] = doc.data().records || {};
+                });
+                renderSingleDayReport();
+            });
+        }
+
+        function updateGroupDropdowns() {
+            // Main selector
+            classSelector.innerHTML = '<option value="الجميع">جميع الفصول والمجموعات</option>';
+            groups.forEach(grp => {
+                const opt = document.createElement('option');
+                opt.value = grp;
+                opt.textContent = grp;
+                if (grp === activeGroup) opt.selected = true;
+                classSelector.appendChild(opt);
+            });
+
+            // Modal selector
+            modalGroupSelector.innerHTML = '';
+            groups.forEach(grp => {
+                const opt = document.createElement('option');
+                opt.value = grp;
+                opt.textContent = grp;
+                if (activeGroup !== 'الجميع' && grp === activeGroup) opt.selected = true;
+                modalGroupSelector.appendChild(opt);
+            });
+
+            renderGroupsManageList();
+        }
+
+        function changeActiveGroup(groupName) {
+            activeGroup = groupName;
+            renderTable();
+            if (!document.getElementById('reportsSection').classList.contains('hidden')) {
+                generateReport();
+                renderSingleDayReport();
+            }
+        }
+
+        function openManageGroupsModal() {
+            renderGroupsManageList();
+            document.getElementById('groupsModal').classList.remove('hidden');
+        }
+
+        function closeManageGroupsModal() {
+            document.getElementById('groupsModal').classList.add('hidden');
+        }
+
+        async function createNewGroup() {
+            const input = document.getElementById('newGroupNameInput');
+            const newName = input.value.trim();
+            if (!newName) return;
+
+            if (groups.includes(newName)) {
+                showToast('هذا الفصل موجود بالفعل', 'warning');
+                return;
+            }
+
+            groups.push(newName);
+            input.value = '';
+
+            try {
+                await db.collection("attendance_groups").doc("list").set({ groups: groups });
+                showToast('تمت إضافة الفصل بنجاح ☁️', 'cloud');
+                updateGroupDropdowns();
+            } catch (err) {
+                console.error("Group creation error:", err);
+                showToast('حدث خطأ أثناء حفظ الفصل', 'warning');
+            }
+        }
+
+        async function deleteGroup(groupName) {
+            if (groups.length <= 1) {
+                showToast('يجب الاحتفاظ بفصل واحد على الأقل', 'warning');
+                return;
+            }
+
+            if (!confirm(`هل أنت متأكد من حذف ${groupName}؟`)) return;
+
+            groups = groups.filter(g => g !== groupName);
+            if (activeGroup === groupName) activeGroup = 'الجميع';
+
+            try {
+                await db.collection("attendance_groups").doc("list").set({ groups: groups });
+                showToast('تم حذف الفصل بنجاح', 'info');
+                updateGroupDropdowns();
+            } catch (err) {
+                console.error("Group deletion error:", err);
+                showToast('حدث خطأ أثناء الحذف', 'warning');
+            }
+        }
+
+        async function renameGroup(oldName) {
+            const newName = prompt(`أدخل الاسم الجديد للفصل (${oldName}):`, oldName);
+            if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
+
+            const trimmedNewName = newName.trim();
+
+            if (groups.includes(trimmedNewName)) {
+                showToast('يوجد فصل بنفس هذا الاسم بالفعل', 'warning');
+                return;
+            }
+
+            // Update local groups array
+            groups = groups.map(g => g === oldName ? trimmedNewName : g);
+            if (activeGroup === oldName) activeGroup = trimmedNewName;
+
+            try {
+                // 1. Update groups list in Firestore
+                await db.collection("attendance_groups").doc("list").set({ groups: groups });
+
+                // 2. Update group name for all students in this group
+                const studentsToUpdate = students.filter(s => s.group === oldName);
+                if (studentsToUpdate.length > 0) {
+                    const batch = db.batch();
+                    studentsToUpdate.forEach(student => {
+                        const ref = db.collection("attendance_students").doc(student.id);
+                        batch.update(ref, { group: trimmedNewName });
+                    });
+                    await batch.commit();
+                }
+
+                showToast(`تم تغيير اسم الفصل إلى (${trimmedNewName}) بنجاح ☁️`, 'cloud');
+                updateGroupDropdowns();
+            } catch (err) {
+                console.error("Rename group error:", err);
+                showToast('حدث خطأ أثناء إعادة تسمية الفصل', 'warning');
+            }
+        }
+
+        function renderGroupsManageList() {
+            const container = document.getElementById('groupsListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            groups.forEach(grp => {
+                const count = students.filter(s => s.group === grp).length;
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold';
+                
+                const groupTitle = document.createElement('div');
+                groupTitle.className = 'flex items-center gap-2';
+                groupTitle.innerHTML = `
+                    <i class="fa-solid fa-door-closed text-indigo-600"></i>
+                    <span class="text-slate-800">${escapeHtml(grp)}</span>
+                    <span class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">${count} طالب</span>
+                `;
+
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'flex items-center gap-1';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'text-indigo-600 hover:text-indigo-800 p-1.5 hover:bg-indigo-50 rounded-lg transition';
+                editBtn.title = 'تعديل اسم الفصل';
+                editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+                editBtn.onclick = () => renameGroup(grp);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'text-rose-500 hover:text-rose-700 p-1.5 hover:bg-rose-50 rounded-lg transition';
+                deleteBtn.title = 'حذف الفصل';
+                deleteBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+                deleteBtn.onclick = () => deleteGroup(grp);
+
+                btnContainer.appendChild(editBtn);
+                btnContainer.appendChild(deleteBtn);
+
+                li.appendChild(groupTitle);
+                li.appendChild(btnContainer);
+                container.appendChild(li);
+            });
+        }
+
+        // Render detailed report for a single selected day
+        function renderSingleDayReport() {
+            const targetDate = document.getElementById('singleReportDate').value;
+            const dayRecords = allAttendanceRecords[targetDate] || {};
+
+            const presentList = document.getElementById('dayPresentList');
+            const absentList = document.getElementById('dayAbsentList');
+            const lateList = document.getElementById('dayLateList');
+            const otherList = document.getElementById('dayOtherList');
+
+            presentList.innerHTML = '';
+            absentList.innerHTML = '';
+            lateList.innerHTML = '';
+            otherList.innerHTML = '';
+
+            let pCount = 0, aCount = 0, lCount = 0, oCount = 0;
+
+            const filteredForReport = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+
+            filteredForReport.forEach(s => {
+                const status = dayRecords[s.id];
+                const li = document.createElement('li');
+                li.className = 'py-1 px-2 bg-white/10 rounded flex items-center justify-between';
+                li.innerHTML = `<span>${escapeHtml(s.name)}</span><span class="text-[10px] text-indigo-200 font-normal">(${escapeHtml(s.group)})</span>`;
+
+                if (status === 'present') {
+                    presentList.appendChild(li);
+                    pCount++;
+                } else if (status === 'absent') {
+                    absentList.appendChild(li);
+                    aCount++;
+                } else if (status === 'late') {
+                    lateList.appendChild(li);
+                    lCount++;
+                } else {
+                    if (status === 'excused') {
+                        li.innerHTML = `<span>${escapeHtml(s.name)}</span> <span class="text-[10px] text-blue-300 font-bold">(بعذر)</span>`;
+                    } else {
+                        li.innerHTML = `<span>${escapeHtml(s.name)}</span> <span class="text-[10px] text-slate-400">(غير محدد)</span>`;
+                    }
+                    otherList.appendChild(li);
+                    oCount++;
+                }
+            });
+
+            document.getElementById('dayPresentCount').textContent = pCount;
+            document.getElementById('dayAbsentCount').textContent = aCount;
+            document.getElementById('dayLateCount').textContent = lCount;
+            document.getElementById('dayOtherCount').textContent = oCount;
+
+            if (pCount === 0) presentList.innerHTML = '<li class="text-slate-400 py-1">لا يوجد طلاب</li>';
+            if (aCount === 0) absentList.innerHTML = '<li class="text-slate-400 py-1">لا يوجد طلاب</li>';
+            if (lCount === 0) lateList.innerHTML = '<li class="text-slate-400 py-1">لا يوجد طلاب</li>';
+            if (oCount === 0) otherList.innerHTML = '<li class="text-slate-400 py-1">لا يوجد طلاب</li>';
+        }
+
+        function generateReport() {
+            const start = document.getElementById('reportStartDate').value;
+            const end = document.getElementById('reportEndDate').value;
+            const reportTableBody = document.getElementById('reportTableBody');
+            const reportStatusText = document.getElementById('reportStatusText');
+
+            if (!start || !end) return;
+
+            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
+            const totalRecordedDays = relevantDates.length;
+
+            document.getElementById('repTotalDays').textContent = `${totalRecordedDays} يوم`;
+            reportStatusText.textContent = `تم تحليل ${totalRecordedDays} يوم رصد خلال هذه الفترة`;
+
+            let overallPresent = 0;
+            let overallAbsent = 0;
+            let overallLate = 0;
+
+            const activeStudents = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+
+            let studentStats = {};
+            activeStudents.forEach(s => {
+                studentStats[s.id] = { name: s.name, group: s.group, present: 0, absent: 0, late: 0, excused: 0 };
+            });
+
+            relevantDates.forEach(date => {
+                const dayRecords = allAttendanceRecords[date] || {};
+                Object.keys(dayRecords).forEach(studentId => {
+                    if (studentStats[studentId]) {
+                        const st = dayRecords[studentId];
+                        if (st === 'present') { studentStats[studentId].present++; overallPresent++; }
+                        else if (st === 'absent') { studentStats[studentId].absent++; overallAbsent++; }
+                        else if (st === 'late') { studentStats[studentId].late++; overallLate++; }
+                        else if (st === 'excused') { studentStats[studentId].excused++; }
+                    }
+                });
+            });
+
+            const grandTotalEntries = overallPresent + overallAbsent + overallLate;
+            const avgRate = grandTotalEntries > 0 ? Math.round((overallPresent / grandTotalEntries) * 100) : 0;
+
+            document.getElementById('repAvgPresenceRate').textContent = `${avgRate}%`;
+            document.getElementById('repTotalAbsences').textContent = overallAbsent;
+            document.getElementById('repTotalLate').textContent = overallLate;
+
+            reportTableBody.innerHTML = '';
+
+            if (activeStudents.length === 0) {
+                reportTableBody.innerHTML = `<tr><td colspan="8" class="text-center p-6 text-slate-400">لا يوجد طلاب في هذا الفصل لحساب التقرير</td></tr>`;
+                return;
+            }
+
+            activeStudents.forEach((student, idx) => {
+                const stat = studentStats[student.id];
+                const totalEvaluated = stat.present + stat.absent + stat.late;
+                const attendanceRate = totalEvaluated > 0 ? Math.round(((stat.present + stat.late) / totalEvaluated) * 100) : 0;
+
+                let rateBadgeClass = "bg-emerald-100 text-emerald-800";
+                if (attendanceRate < 75) rateBadgeClass = "bg-rose-100 text-rose-800";
+                else if (attendanceRate < 90) rateBadgeClass = "bg-amber-100 text-amber-800";
+
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                row.innerHTML = `
+                    <td class="p-4 text-center font-mono font-bold text-slate-400">${idx + 1}</td>
+                    <td class="p-4 font-bold text-slate-800">${escapeHtml(student.name)}</td>
+                    <td class="p-4 text-center font-semibold text-slate-600">${escapeHtml(student.group)}</td>
+                    <td class="p-4 text-center font-semibold text-emerald-600">${stat.present}</td>
+                    <td class="p-4 text-center font-semibold text-rose-600">${stat.absent}</td>
+                    <td class="p-4 text-center font-semibold text-amber-600">${stat.late}</td>
+                    <td class="p-4 text-center font-semibold text-blue-600">${stat.excused}</td>
+                    <td class="p-4 text-center">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${rateBadgeClass}">
+                            ${attendanceRate}%
+                        </span>
+                    </td>
+                `;
+                reportTableBody.appendChild(row);
+            });
+        }
+
+        function exportReportCSV() {
+            const start = document.getElementById('reportStartDate').value;
+            const end = document.getElementById('reportEndDate').value;
+
+            const activeStudents = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+
+            if (activeStudents.length === 0) {
+                showToast('لا توجد بيانات للتصدير!', 'warning');
+                return;
+            }
+
+            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
+
+            let csvContent = "\uFEFF"; // UTF-8 BOM
+            csvContent += `تقرير الحضور والغياب - الفصل: (${activeGroup}) من ${start} إلى ${end}\n`;
+            csvContent += `اسم الطالب,الفصل/المجموعة,أيام الحضور,أيام الغياب,أيام التأخر,بعذر,نسبة الحضور\n`;
+
+            activeStudents.forEach(student => {
+                let present = 0, absent = 0, late = 0, excused = 0;
+                relevantDates.forEach(date => {
+                    const st = (allAttendanceRecords[date] || {})[student.id];
+                    if (st === 'present') present++;
+                    else if (st === 'absent') absent++;
+                    else if (st === 'late') late++;
+                    else if (st === 'excused') excused++;
+                });
+
+                const totalEval = present + absent + late;
+                const rate = totalEval > 0 ? Math.round(((present + late) / totalEval) * 100) : 0;
+
+                csvContent += `"${student.name.replace(/"/g, '""')}","${student.group}",${present},${absent},${late},${excused},"${rate}%"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `تقرير_الحضور_${activeGroup}_${start}_إلى_${end}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Fetch Attendance Status for Given Date
+        function fetchAttendanceForDate(dateStr) {
+            db.collection("attendance_records").doc(dateStr).onSnapshot((doc) => {
+                if (doc.exists) {
+                    attendanceData = doc.data().records || {};
+                } else {
+                    attendanceData = {};
+                }
+                renderTable();
+            }, (error) => {
+                console.error("Attendance fetch error:", error);
+            });
+        }
+
+        function populatePresetDropdown() {
+            presetStudentsList.innerHTML = '';
+            // ترتيب قائمة الأسماء المقترحة أبجدياً أيضاً
+            const sortedPreset = [...allowedStudentsPreset].sort((a, b) => a.localeCompare(b, 'ar'));
+            sortedPreset.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                presetStudentsList.appendChild(opt);
+            });
+        }
+
+        function renderTable() {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+
+            // Filter by active Group & search term
+            const filteredStudents = students.filter(s => {
+                const matchesGroup = (activeGroup === 'الجميع' || s.group === activeGroup);
+                const matchesSearch = s.name.toLowerCase().includes(searchTerm);
+                return matchesGroup && matchesSearch;
+            });
+
+            // ضمان ترتيب القائمة المفلترة أبجدياً
+            filteredStudents.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+            if (filteredStudents.length === 0) {
+                studentsTableBody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                updateStats();
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            studentsTableBody.innerHTML = '';
+
+            filteredStudents.forEach((student, index) => {
+                const status = attendanceData[student.id] || 'unmarked';
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+                // Status Badge rendering
+                let statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">غير محدد</span>`;
+                if (status === 'present') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-check text-emerald-600"></i> حاضر</span>`;
+                } else if (status === 'absent') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800"><i class="fa-solid fa-xmark text-rose-600"></i> غائب</span>`;
+                } else if (status === 'late') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800"><i class="fa-solid fa-clock text-amber-600"></i> متأخر</span>`;
+                } else if (status === 'excused') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800"><i class="fa-solid fa-file-signature text-blue-600"></i> بعذر</span>`;
+                }
+
+                row.innerHTML = `
+                    <td class="p-4 text-center text-slate-400 font-mono font-bold">${index + 1}</td>
+                    <td class="p-4 font-bold text-slate-800">${escapeHtml(student.name)}</td>
+                    <td class="p-4 text-center font-semibold text-slate-600">
+                        <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
+                            ${escapeHtml(student.group)}
+                        </span>
+                    </td>
+                    <td class="p-4 text-center">${statusBadge}</td>
+                    <td class="p-4">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="setStatus('${student.id}', 'present')" class="flex-1 max-w-[85px] py-1.5 px-2 rounded-lg text-xs font-bold border transition ${status === 'present' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}">
+                                <i class="fa-solid fa-check"></i> حاضر
+                            </button>
+                            <button onclick="setStatus('${student.id}', 'absent')" class="flex-1 max-w-[85px] py-1.5 px-2 rounded-lg text-xs font-bold border transition ${status === 'absent' ? 'bg-rose-600 text-white border-rose-600 shadow-sm' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'}">
+                                <i class="fa-solid fa-xmark"></i> غائب
+                            </button>
+                            <select onchange="setStatus('${student.id}', this.value)" class="py-1.5 px-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                <option value="" ${status === 'unmarked' ? 'selected' : ''}>خيارات أكثر...</option>
+                                <option value="late" ${status === 'late' ? 'selected' : ''}>متأخر</option>
+                                <option value="excused" ${status === 'excused' ? 'selected' : ''}>بعذر</option>
+                                <option value="unmarked">مسح الإجراء</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td class="p-4 text-center">
+                        <button onclick="deleteStudent('${student.id}')" class="text-slate-400 hover:text-rose-600 transition p-1 rounded-lg hover:bg-rose-50" title="حذف الطالب من السجل والسحابة">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+
+                studentsTableBody.appendChild(row);
+            });
+
+            updateStats();
+        }
+
+        window.setStatus = async function(studentId, status) {
+            const updatedRecords = { ...attendanceData };
+
+            if (status === 'unmarked' || status === '') {
+                delete updatedRecords[studentId];
+            } else {
+                updatedRecords[studentId] = status;
+            }
+
+            try {
+                await db.collection("attendance_records").doc(currentDate).set({
+                    records: updatedRecords,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                showToast('تم حفظ الحالة سحابياً ☁️', 'cloud');
+            } catch (error) {
+                console.error("Error saving status:", error);
+                showToast('فشل الحفظ السحابي', 'warning');
+            }
+        };
+
+        window.deleteStudent = async function(studentId) {
+            if (!confirm("هل أنت متأكد من حذف الطالب من سجل السحابة؟")) return;
+
+            try {
+                await db.collection("attendance_students").doc(studentId).delete();
+                showToast('تم حذف الطالب من السحابة', 'info');
+            } catch (error) {
+                console.error("Error deleting student:", error);
+                showToast('حدث خطأ أثناء الحذف', 'warning');
+            }
+        };
+
+        function updateStats() {
+            let presentCount = 0;
+            let absentCount = 0;
+            let otherCount = 0;
+
+            const activeStudents = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+
+            activeStudents.forEach(student => {
+                const status = attendanceData[student.id];
+                if (status === 'present') presentCount++;
+                else if (status === 'absent') absentCount++;
+                else if (status === 'late' || status === 'excused') otherCount++;
+            });
+
+            document.getElementById('statTotal').textContent = activeStudents.length;
+            document.getElementById('statPresent').textContent = presentCount;
+            document.getElementById('statAbsent').textContent = absentCount;
+            document.getElementById('statOther').textContent = otherCount;
+        }
+
+        function setupEventListeners() {
+            // Date Picker Change
+            selectedDateInput.addEventListener('change', (e) => {
+                currentDate = e.target.value;
+                fetchAttendanceForDate(currentDate);
+            });
+
+            // Today Button
+            document.getElementById('todayBtn').addEventListener('click', () => {
+                currentDate = new Date().toISOString().split('T')[0];
+                selectedDateInput.value = currentDate;
+                fetchAttendanceForDate(currentDate);
+            });
+
+            // Search Filter
+            searchInput.addEventListener('input', renderTable);
+
+            // Quick Add Functionality (From Search Input)
+            async function addStudentFromInput() {
+                const name = quickStudentInput.value.trim();
+                if (!name) {
+                    showToast('يرجى اختيار أو كتابة اسم الطالب أولاً', 'warning');
+                    return;
+                }
+
+                const targetGroup = activeGroup === 'الجميع' ? (groups[0] || 'عام') : activeGroup;
+
+                // Check if already in active list
+                if (students.some(s => s.name === name && s.group === targetGroup)) {
+                    showToast('الطالب موجود مسبقاً في هذا الفصل', 'warning');
+                    quickStudentInput.value = '';
+                    return;
+                }
+
+                try {
+                    await db.collection("attendance_students").add({
+                        name: name,
+                        group: targetGroup,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    showToast(`تم إضافة ${name} إلى (${targetGroup})`, 'success');
+                    quickStudentInput.value = '';
+                } catch (err) {
+                    showToast('حدث خطأ في الإضافة للسحابة', 'warning');
+                }
+            }
+
+            // Quick Add via Button or Enter Key
+            addQuickStudentBtn.addEventListener('click', addStudentFromInput);
+            quickStudentInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addStudentFromInput();
+                }
+            });
+
+            // Modal Trigger Open
+            document.getElementById('openAddModalBtn').addEventListener('click', () => {
+                updateGroupDropdowns();
+                const activeInGroup = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+                bulkNamesInput.value = activeInGroup.map(s => s.name).join('\n');
+                addModal.classList.remove('hidden');
+            });
+
+            // Modal Close Controls
+            const closeModal = () => addModal.classList.add('hidden');
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+
+            // Save Batch Names to Cloud
+            document.getElementById('saveNamesBtn').addEventListener('click', async () => {
+                const rawText = bulkNamesInput.value.trim();
+                const selectedGroup = modalGroupSelector.value;
+                const lines = rawText ? rawText.split('\n').map(line => line.trim()).filter(line => line.length > 0) : [];
+
+                if (!selectedGroup) {
+                    showToast('يرجى تحديد الفصل أولاً', 'warning');
+                    return;
+                }
+
+                try {
+                    const batch = db.batch();
+                    
+                    // Add new students
+                    lines.forEach(name => {
+                        const exists = students.some(s => s.name === name && s.group === selectedGroup);
+                        if (!exists) {
+                            const newDocRef = db.collection("attendance_students").doc();
+                            batch.set(newDocRef, {
+                                name: name,
+                                group: selectedGroup,
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        }
+                    });
+
+                    await batch.commit();
+                    showToast(`تم حفظ الأسماء في فصل (${selectedGroup}) بالسحابة! ☁️`, 'cloud');
+                    closeModal();
+                } catch (err) {
+                    console.error("Batch save error:", err);
+                    showToast('حدث خطأ أثناء حفظ الأسماء', 'warning');
+                }
+            });
+
+            // Export CSV Excel
+            document.getElementById('exportExcelBtn').addEventListener('click', exportToCSV);
+        }
+
+        function exportToCSV() {
+            const activeStudents = students.filter(s => activeGroup === 'الجميع' || s.group === activeGroup);
+
+            if (activeStudents.length === 0) {
+                showToast('لا توجد بيانات للتصدير!', 'warning');
+                return;
+            }
+
+            let csvContent = "\uFEFF"; // UTF-8 BOM for Arabic support
+            csvContent += `اسم الطالب,الفصل/المجموعة,حالة الحضور - تاريخ: ${currentDate}\n`;
+
+            activeStudents.forEach(student => {
+                const status = attendanceData[student.id] || 'غير محدد';
+                let translatedStatus = 'غير محدد';
+                if (status === 'present') translatedStatus = 'حاضر';
+                if (status === 'absent') translatedStatus = 'غائب';
+                if (status === 'late') translatedStatus = 'متأخر';
+                if (status === 'excused') translatedStatus = 'بعذر';
+
+                csvContent += `"${student.name.replace(/"/g, '""')}","${student.group}","${translatedStatus}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `كشف_حضور_${activeGroup}_${currentDate}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toastText');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastText.textContent = message;
+
+            if (type === 'cloud') {
+                toastIcon.className = 'fa-solid fa-cloud-arrow-up text-indigo-400';
+            } else if (type === 'warning') {
+                toastIcon.className = 'fa-solid fa-triangle-exclamation text-amber-400';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400';
+            }
+
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 2500);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+    </script>
+</body>
+</html>
