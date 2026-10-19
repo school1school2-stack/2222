@@ -52,9 +52,9 @@
             </div>
             
             <div class="flex items-center gap-3">
-                <button onclick="shareWithManager()" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold px-3 py-2 rounded-lg border border-amber-300 shadow flex items-center gap-2 text-sm transition">
+                <button onclick="shareReportWithManager()" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold px-3 py-2 rounded-lg border border-amber-300 shadow flex items-center gap-2 text-sm transition">
                     <i class="fa-solid fa-share-nodes text-indigo-900"></i>
-                    <span>مشاركة للمدير</span>
+                    <span>مشاركة التقرير للمدير</span>
                 </button>
                 <div id="cloudBadge" class="bg-indigo-900/80 px-4 py-2 rounded-lg border border-indigo-500/30 flex items-center gap-2 text-sm">
                     <i id="cloudIcon" class="fa-solid fa-cloud text-emerald-400 animate-pulse"></i>
@@ -488,7 +488,7 @@
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
                 <h3 class="text-lg font-bold flex items-center gap-2">
                     <i class="fa-solid fa-paper-plane text-amber-300"></i>
-                    مشاركة التقرير والكشف مع المدير
+                    مشاركة التقرير مع المدير
                 </h3>
                 <button onclick="closeShareModal()" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -497,7 +497,7 @@
             
             <div class="p-6 space-y-4">
                 <p class="text-xs text-slate-600 leading-relaxed font-semibold">
-                    يمكنك إرسال رابط الكشف المباشر للمدير لمتابعة الحضور والغياب (وضع القراءة والعرض فقط) أو نسخ الرابط لإرساله عبر أي وسيلة أخرى:
+                    يمكنك إرسال رابط التقرير والإحصائيات التراكمية مباشرة للمدير (وضع العرض والقراءة فقط) أو نسخ الرابط لإرساله عبر أي وسيلة أخرى:
                 </p>
 
                 <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
@@ -509,9 +509,9 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-2 pt-2">
-                    <button onclick="sendToWhatsAppManager()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow">
+                    <button onclick="sendReportToWhatsAppManager()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow">
                         <i class="fa-brands fa-whatsapp text-lg"></i>
-                        إرسال رابط العرض والقراءة للمدير عبر واتساب
+                        إرسال رابط التقرير والإحصائيات للمدير عبر واتساب
                     </button>
                 </div>
             </div>
@@ -601,7 +601,8 @@
             if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
                 baseUrl = window.location.origin + window.location.pathname;
             }
-            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}`;
+            // إضافة معامل تبويب التقارير ليفتح مباشرة على صفحة التقرير عند المدير
+            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}&tab=reports`;
             document.getElementById('shareUrlInput').value = shareUrl;
         }
 
@@ -686,6 +687,12 @@
                     allAttendanceRecords[doc.id] = doc.data().records || {};
                 });
                 renderSingleDayReport();
+                
+                // إذا كان المدير يفتح الرابط، يتم توجيهه تلقائياً لتبويب التقرير مباشرة
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('tab') === 'reports') {
+                    switchTab('reports');
+                }
             });
         }
 
@@ -1356,7 +1363,7 @@
             document.body.removeChild(link);
         }
 
-        function shareWithManager() {
+        function shareReportWithManager() {
             updateShareUrl();
             document.getElementById('shareModal').classList.remove('hidden');
         }
@@ -1369,27 +1376,38 @@
             const shareInput = document.getElementById('shareUrlInput');
             shareInput.select();
             document.execCommand('copy');
-            showToast('تم نسخ رابط العرض والقراءة بنجاح 📋', 'success');
+            showToast('تم نسخ رابط التقرير والإحصائيات بنجاح 📋', 'success');
         }
 
-        function sendToWhatsAppManager() {
+        function sendReportToWhatsAppManager() {
             const shareUrl = document.getElementById('shareUrlInput').value;
             
-            let p = 0, a = 0, l = 0;
+            // حساب نسبة الحضور العامة الحالية للفصل المحدد
+            const start = document.getElementById('reportStartDate').value;
+            const end = document.getElementById('reportEndDate').value;
+            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
+            
+            let overallPresent = 0, overallAbsent = 0, overallLate = 0;
             const activeStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
                 return actGroup === 'الجميع' || sGroup === actGroup;
             });
-            
-            activeStudents.forEach(s => {
-                const st = attendanceData[s.id];
-                if (st === 'present') p++;
-                else if (st === 'absent') a++;
-                else if (st === 'late' || st === 'excused') l++;
+
+            relevantDates.forEach(date => {
+                const dayRecords = allAttendanceRecords[date] || {};
+                activeStudents.forEach(s => {
+                    const st = dayRecords[s.id];
+                    if (st === 'present') overallPresent++;
+                    else if (st === 'absent') overallAbsent++;
+                    else if (st === 'late') overallLate++;
+                });
             });
 
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك كشف الحضور والغياب ليوم (${currentDate}) - الفصل: (${activeGroup}):%0A- إجمالي الطلاب: ${activeStudents.length}%0A- الحاضرون: ${p}%0A- الغائبون: ${a}%0A- المتأخرون/بعذر: ${l}%0A%0Aيمكنكم الاطلاع المباشر والتقرير للفصل عبر الرابط:%0A${shareUrl}`;
+            const grandTotal = overallPresent + overallAbsent + overallLate;
+            const avgRate = grandTotal > 0 ? Math.round((overallPresent / grandTotal) * 100) : 0;
+
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقرير الحضور والإحصائيات التراكمي للفصل: (${activeGroup})%0A- إجمالي أيام الرصد: ${relevantDates.length} يوم%0A- نسبة الحضور العامة: ${avgRate}%%%0A- إجمالي حالات الغياب: ${overallAbsent}%0A- إجمالي التأخر: ${overallLate}%0A%0Aيمكنكم الاطلاع المباشر على صفحة التقارير الكاملة عبر الرابط:%0A${shareUrl}`;
 
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
