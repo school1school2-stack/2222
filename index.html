@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كشف حضور وغياب الطلاب حسب الفصول - سحابة aaaa</title>
+    <title>كشف الحضور والسلوكيات الطلابية - سحابة aaaa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -46,8 +46,8 @@
                     <i class="fa-solid fa-graduation-cap text-2xl text-yellow-300"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-wide">كشف حضور وغياب الطلاب حسب الفصول</h1>
-                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي[span_1](start_span)[span_1](end_span) - إدارة الفصول والمجموعات بالسحابة</p>
+                    <h1 class="text-2xl font-bold tracking-wide">كشف الحضور والسلوكيات والمشاركات</h1>
+                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي[span_2](start_span)[span_2](end_span) - إدارة الفصول والمجموعات بالسحابة</p>
                 </div>
             </div>
             
@@ -71,14 +71,14 @@
     <!-- Read-Only Mode Banner -->
     <div id="readOnlyBanner" class="hidden bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md flex items-center justify-center gap-2">
         <i class="fa-solid fa-eye text-lg"></i>
-        <span id="bannerText">أنت الآن في لوحة "تقارير الحضور والإحصائيات" (عرض فقط للمدير)</span>
+        <span id="bannerText">أنت الآن في لوحة تقارير الحضور والإحصائيات (عرض للمدير)</span>
     </div>
 
     <!-- Student Portal View Container (Shows when ?student=ID is in URL) -->
     <main id="studentPortalContainer" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
         <div class="bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md rounded-xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-id-badge text-lg"></i>
-            <span>لوحة متابعة الطالب الفردية المعتمدة</span>
+            <span>لوحة متابعة الطالب الفردية (الحضور، الواجبات، والمشاركات والسلوكيات)</span>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -95,6 +95,10 @@
                 <div>
                     <span class="text-xs text-slate-500 font-bold block">معدل الحضور العام</span>
                     <span id="portalRateBadge" class="text-lg font-black text-emerald-600">0%</span>
+                </div>
+                <div class="border-r border-slate-200 pr-4">
+                    <span class="text-xs text-slate-500 font-bold block">إجمالي نقاط السلوك والمشاركات</span>
+                    <span id="portalBehaviorPoints" class="text-lg font-black text-indigo-600">0</span>
                 </div>
             </div>
         </div>
@@ -141,11 +145,35 @@
             </div>
         </div>
 
+        <!-- Student Behaviors & Participations History -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-star text-amber-500"></i>
+                    سجل المشاركات، الواجبات، والسلوكيات المسجلة
+                </h3>
+            </div>
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-right border-collapse min-w-[500px]">
+                    <thead>
+                        <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
+                            <th class="p-4">تاريخ الحدث ووقت الرصد</th>
+                            <th class="p-4">نوع المشاركة / السلوك</th>
+                            <th class="p-4 text-center">النقاط</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portalBehaviorsTableBody" class="divide-y divide-slate-100 text-sm">
+                        <tr><td colspan="3" class="text-center p-6 text-slate-400">جاري تحميل السجل...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
-                    سجل الحضور والغياب التفصيلي للطالب
+                    سجل الحضور والغياب التفصيلي
                 </h3>
             </div>
             <div class="overflow-x-auto custom-scrollbar">
@@ -171,7 +199,7 @@
         <div id="tabsContainer" class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
             <button id="dailyTabBtn" onclick="switchTab('daily')" class="tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2">
                 <i class="fa-solid fa-calendar-check text-indigo-600"></i>
-                كشف الحضور اليومي
+                كشف الحضور اليومي والمشاركات
             </button>
             <button id="reportsTabBtn" onclick="switchTab('reports')" class="text-slate-500 hover:text-indigo-600 py-3 px-6 text-sm font-medium transition flex items-center gap-2">
                 <i class="fa-solid fa-chart-pie text-indigo-600"></i>
@@ -308,14 +336,15 @@
                 </div>
 
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-right border-collapse min-w-[700px]">
+                    <table class="w-full text-right border-collapse min-w-[850px]">
                         <thead>
                             <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
                                 <th class="p-4">بيانات الطالب (الاسم والبريد)</th>
                                 <th class="p-4 text-center w-28">الفصل/المجموعة</th>
                                 <th class="p-4 text-center">الحالة اليوم ووقت الرصد</th>
-                                <th class="p-4 text-center edit-column">تحديد الحالة (اضغط لاختيار الخيار)</th>
-                                <th class="p-4 text-center w-32 edit-column">إجراءات وروابط</th>
+                                <th class="p-4 text-center edit-column">تحديد الحالة (حاضر / غائب / أخرى)</th>
+                                <th class="p-4 text-center edit-column">تسجيل مشاركة / سلوك</th>
+                                <th class="p-4 text-center w-28 edit-column">روابط وإجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTableBody" class="divide-y divide-slate-100 text-sm">
@@ -679,6 +708,21 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // Default Actions List
+        const defaultActions = [
+            { icon: '✅', name: 'إجابة صحيحة', score: 1.0, color: '#28a745' },
+            { icon: '❌', name: 'إجابة خاطئة', score: -1.0, color: '#dc3545' },
+            { icon: '💡', name: 'مشاركة', score: 1.0, color: '#17a2b8' },
+            { icon: '📘', name: 'حل الواجب', score: 3.0, color: '#20c997' },
+            { icon: '📕', name: 'لم يحل الواجب', score: -3.0, color: '#e83e8c' },
+            { icon: '📁', name: 'نسيان ملف', score: -5.0, color: '#dc3545' },
+            { icon: '📂', name: 'إنجاز ملف', score: 5.0, color: '#ffc107' },
+            { icon: '💤', name: 'النوم في الحصة', score: -1.0, color: '#6610f2' },
+            { icon: '🗣️', name: 'التحدث أثناء الدرس', score: -1.0, color: '#6f42c1' },
+            { icon: '📱', name: 'استخدام الهاتف', score: -1.0, color: '#d9534f' },
+            { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
+        ];
+
         // Application State
         let isReadOnly = false; 
         let isStudentPortal = false;
@@ -688,8 +732,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         let students = []; 
         let allowedStudentsPreset = []; 
         let attendanceData = {}; 
+        let studentBehaviorsData = {};
         let currentDate = new Date().toISOString().split('T')[0];
         let allAttendanceRecords = {}; 
+        let allBehaviorsRecords = {};
 
         // DOM Elements
         const selectedDateInput = document.getElementById('selectedDate');
@@ -844,6 +890,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 }
 
                 fetchAttendanceForDate(currentDate);
+                fetchBehaviorsForDate(currentDate);
             }, (error) => {
                 console.error("Students fetch error:", error);
                 cloudStatus.textContent = "خطأ في الاتصال بالسحابة";
@@ -859,6 +906,16 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (isReadOnly) {
                     generateReport();
                 }
+                if (isStudentPortal) {
+                    renderStudentPortalView();
+                }
+            });
+
+            db.collection("student_behaviors_records").onSnapshot((snapshot) => {
+                allBehaviorsRecords = {};
+                snapshot.forEach(doc => {
+                    allBehaviorsRecords[doc.id] = doc.data().records || {};
+                });
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
@@ -925,12 +982,18 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('portalStudentDetails').textContent = `الفصل: ${student.group} | البريد: ${student.email}`;
 
             let present = 0, absent = 0, late = 0, excused = 0;
+            let totalBehaviorScore = 0;
             const historyBody = document.getElementById('portalHistoryTableBody');
+            const behaviorsBody = document.getElementById('portalBehaviorsTableBody');
             historyBody.innerHTML = '';
+            behaviorsBody.innerHTML = '';
 
             let hasHistory = false;
+            let hasBehaviors = false;
             const sortedDates = Object.keys(allAttendanceRecords).sort().reverse();
+            const sortedBehaviorDates = Object.keys(allBehaviorsRecords).sort().reverse();
 
+            // Render Attendance History
             sortedDates.forEach(date => {
                 const dayRecords = allAttendanceRecords[date] || {};
                 const recordObj = dayRecords[targetStudentId];
@@ -962,13 +1025,45 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
 
             if (!hasHistory) {
-                historyBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد سجلات رصد مسجلة حتى الآن</td></tr>`;
+                historyBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد سجلات رصد حضور حتى الآن</td></tr>`;
+            }
+
+            // Render Behaviors History
+            sortedBehaviorDates.forEach(date => {
+                const dayBehaviorsList = (allBehaviorsRecords[date] || {})[targetStudentId] || [];
+                dayBehaviorsList.forEach(item => {
+                    hasBehaviors = true;
+                    totalBehaviorScore += Number(item.score);
+
+                    let scoreBadgeClass = item.score > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-rose-600 bg-rose-50 border-rose-200";
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                    tr.innerHTML = `
+                        <td class="p-4 font-medium text-slate-700 text-xs">${date} (${item.time})</td>
+                        <td class="p-4 font-bold text-slate-800 flex items-center gap-2">
+                            <span class="text-lg">${item.icon}</span>
+                            <span>${escapeHtml(item.name)}</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}">
+                                ${item.score > 0 ? '+' + item.score : item.score}
+                            </span>
+                        </td>
+                    `;
+                    behaviorsBody.appendChild(tr);
+                });
+            });
+
+            if (!hasBehaviors) {
+                behaviorsBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد مشاركات أو سلوكيات مسجلة حتى الآن</td></tr>`;
             }
 
             document.getElementById('portalPresent').textContent = present;
             document.getElementById('portalAbsent').textContent = absent;
             document.getElementById('portalLate').textContent = late;
             document.getElementById('portalExcused').textContent = excused;
+            document.getElementById('portalBehaviorPoints').textContent = totalBehaviorScore;
 
             const totalEval = present + absent + late;
             const rate = totalEval > 0 ? Math.round(((present + late) / totalEval) * 100) : 0;
@@ -1435,6 +1530,19 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
+        function fetchBehaviorsForDate(dateStr) {
+            db.collection("student_behaviors_records").doc(dateStr).onSnapshot((doc) => {
+                if (doc.exists) {
+                    studentBehaviorsData = doc.data().records || {};
+                } else {
+                    studentBehaviorsData = {};
+                }
+                if(!isStudentPortal) renderTable();
+            }, (error) => {
+                console.error("Behaviors fetch error:", error);
+            });
+        }
+
         function populatePresetDropdown() {
             presetStudentsList.innerHTML = '';
             const sortedPreset = [...allowedStudentsPreset].sort((a, b) => a.localeCompare(b, 'ar'));
@@ -1512,6 +1620,27 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>`;
                 }
 
+                // Build behavior dropdown options
+                let behaviorOptionsHTML = `<option value="">+ اختر مشاركة أو سلوك...</option>`;
+                defaultActions.forEach((act, idx) => {
+                    behaviorOptionsHTML += `<option value="${idx}">${act.icon} ${act.name} (${act.score > 0 ? '+' + act.score : act.score})</option>`;
+                });
+
+                // Render student logged behaviors for today
+                const studentLogs = studentBehaviorsData[student.id] || [];
+                let logsHTML = `<div class="flex flex-wrap gap-1 mt-1 max-w-[220px]">`;
+                studentLogs.forEach((log, logIdx) => {
+                    let badgeColor = log.score > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200";
+                    logsHTML += `
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${badgeColor}" title="${log.time}">
+                            <span>${log.icon}</span>
+                            <span>${escapeHtml(log.name)}</span>
+                            <button onclick="removeBehaviorLog('${student.id}', ${logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5">×</button>
+                        </span>
+                    `;
+                });
+                logsHTML += `</div>`;
+
                 let baseUrl = "https://school1school2-stack.github.io/2222/";
                 if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
                     baseUrl = window.location.origin + window.location.pathname;
@@ -1552,11 +1681,19 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                     <i class="fa-solid fa-xmark"></i> غائب
                                 </button>
                                 <select onchange="setStatus('${student.id}', this.value)" class="py-1.5 px-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                    <option value="" ${status === 'unmarked' ? 'selected' : ''}>خيارات أكثر...</option>
+                                    <option value="" ${status === 'unmarked' ? 'selected' : ''}>أخرى...</option>
                                     <option value="late" ${status === 'late' ? 'selected' : ''}>متأخر</option>
                                     <option value="excused" ${status === 'excused' ? 'selected' : ''}>بعذر</option>
-                                    <option value="unmarked">مسح الإجراء</option>
+                                    <option value="unmarked">مسح الحضور</option>
                                 </select>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex flex-col gap-1">
+                                <select onchange="addBehaviorLog('${student.id}', this.value)" class="py-1.5 px-2 text-xs border border-indigo-200 rounded-lg bg-indigo-50/50 text-indigo-900 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                    ${behaviorOptionsHTML}
+                                </select>
+                                ${studentLogs.length > 0 ? logsHTML : ''}
                             </div>
                         </td>
                         <td class="p-4 text-center">
@@ -1606,6 +1743,63 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         };
 
+        window.addBehaviorLog = async function(studentId, actionIndexStr) {
+            if (isReadOnly || isStudentPortal || actionIndexStr === "") return;
+            const actionIdx = parseInt(actionIndexStr);
+            const action = defaultActions[actionIdx];
+            if (!action) return;
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+
+            const updatedBehaviors = { ...studentBehaviorsData };
+            if (!updatedBehaviors[studentId]) {
+                updatedBehaviors[studentId] = [];
+            }
+
+            updatedBehaviors[studentId].push({
+                icon: action.icon,
+                name: action.name,
+                score: action.score,
+                time: timeString
+            });
+
+            try {
+                await db.collection("student_behaviors_records").doc(currentDate).set({
+                    records: updatedBehaviors,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                showToast(`تم تسجيل (${action.name}) للطالب بنجاح ☁️`, 'cloud');
+            } catch (error) {
+                console.error("Error saving behavior:", error);
+                showToast('فشل الحفظ السحابي', 'warning');
+            }
+        };
+
+        window.removeBehaviorLog = async function(studentId, logIndex) {
+            if (isReadOnly || isStudentPortal) return;
+            const updatedBehaviors = { ...studentBehaviorsData };
+            if (!updatedBehaviors[studentId]) return;
+
+            updatedBehaviors[studentId].splice(logIndex, 1);
+            if (updatedBehaviors[studentId].length === 0) {
+                delete updatedBehaviors[studentId];
+            }
+
+            try {
+                await db.collection("student_behaviors_records").doc(currentDate).set({
+                    records: updatedBehaviors,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                showToast('تم حذف السجل بنجاح', 'info');
+            } catch (error) {
+                console.error("Error removing behavior:", error);
+                showToast('فشل الحذف السحابي', 'warning');
+            }
+        };
+
         window.deleteStudent = async function(studentId) {
             if (isReadOnly || isStudentPortal) return;
             if (!confirm("هل أنت متأكد من حذف الطالب من سجل السحابة؟")) return;
@@ -1650,12 +1844,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             selectedDateInput.addEventListener('change', (e) => {
                 currentDate = e.target.value;
                 fetchAttendanceForDate(currentDate);
+                fetchBehaviorsForDate(currentDate);
             });
 
             document.getElementById('todayBtn').addEventListener('click', () => {
                 currentDate = new Date().toISOString().split('T')[0];
                 selectedDateInput.value = currentDate;
                 fetchAttendanceForDate(currentDate);
+                fetchBehaviorsForDate(currentDate);
             });
 
             searchInput.addEventListener('input', renderTable);
@@ -1791,7 +1987,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             let csvContent = "\uFEFF"; 
-            csvContent += `تقرير الحضور والغياب - الفصل: (${activeGroup}) من ${currentDate}\n`;
             csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,حالة الحضور ووقت الرصد\n`;
 
             activeStudents.forEach(student => {
