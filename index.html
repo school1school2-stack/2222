@@ -47,11 +47,15 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide">كشف حضور وغياب الطلاب حسب الفصول</h1>
-                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي[span_0](start_span)[span_0](end_span) - إدارة الفصول والمجموعات بالسحابة</p>
+                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي[span_1](start_span)[span_1](end_span) - إدارة الفصول والمجموعات بالسحابة</p>
                 </div>
             </div>
             
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-wrap">
+                <button onclick="openStudentShareModal()" class="bg-indigo-700 hover:bg-indigo-600 text-indigo-100 font-bold px-3.5 py-2 rounded-lg border border-indigo-600 shadow flex items-center gap-2 text-sm transition">
+                    <i class="fa-solid fa-link text-yellow-300"></i>
+                    <span>إصدار رابط تقرير طالب</span>
+                </button>
                 <button id="shareManagerBtn" onclick="shareReportWithManager()" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold px-3 py-2 rounded-lg border border-amber-300 shadow flex items-center gap-2 text-sm transition">
                     <i class="fa-solid fa-share-nodes text-indigo-900"></i>
                     <span>مشاركة التقرير للمدير</span>
@@ -67,10 +71,101 @@
     <!-- Read-Only Mode Banner -->
     <div id="readOnlyBanner" class="hidden bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md flex items-center justify-center gap-2">
         <i class="fa-solid fa-eye text-lg"></i>
-        <span>أنت الآن في لوحة "تقارير الحضور والإحصائيات" (عرض فقط للمدير)</span>
+        <span id="bannerText">أنت الآن في لوحة "تقارير الحضور والإحصائيات" (عرض فقط للمدير)</span>
     </div>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+    <!-- Student Portal View Container (Shows when ?student=ID is in URL) -->
+    <main id="studentPortalContainer" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
+        <div class="bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md rounded-xl flex items-center justify-center gap-2">
+            <i class="fa-solid fa-id-badge text-lg"></i>
+            <span>لوحة متابعة الطالب الفردية المعتمدة</span>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-3.5 bg-indigo-50 rounded-2xl text-indigo-600 text-2xl">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div>
+                    <h2 id="portalStudentName" class="text-xl font-black text-slate-900">جاري تحميل اسم الطالب...</h2>
+                    <p id="portalStudentDetails" class="text-xs text-slate-500 mt-0.5 font-medium"></p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 bg-slate-50 px-4 py-3 rounded-xl border border-slate-200">
+                <div>
+                    <span class="text-xs text-slate-500 font-bold block">معدل الحضور العام</span>
+                    <span id="portalRateBadge" class="text-lg font-black text-emerald-600">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-emerald-600 font-bold mb-1">أيام الحضور</p>
+                    <h3 id="portalPresent" class="text-2xl font-black text-emerald-600">0</h3>
+                </div>
+                <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-rose-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-rose-600 font-bold mb-1">أيام الغياب</p>
+                    <h3 id="portalAbsent" class="text-2xl font-black text-rose-600">0</h3>
+                </div>
+                <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 text-xl">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-amber-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-amber-600 font-bold mb-1">أيام التأخر</p>
+                    <h3 id="portalLate" class="text-2xl font-black text-amber-600">0</h3>
+                </div>
+                <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-xl">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-blue-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-blue-600 font-bold mb-1">أيام بعذر</p>
+                    <h3 id="portalExcused" class="text-2xl font-black text-blue-600">0</h3>
+                </div>
+                <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-xl">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+                    سجل الحضور والغياب التفصيلي للطالب
+                </h3>
+            </div>
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-right border-collapse min-w-[500px]">
+                    <thead>
+                        <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
+                            <th class="p-4">تاريخ اليوم</th>
+                            <th class="p-4 text-center">الحالة المرصودة</th>
+                            <th class="p-4 text-center">وقت الرصد</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portalHistoryTableBody" class="divide-y divide-slate-100 text-sm">
+                        <tr><td colspan="3" class="text-center p-6 text-slate-400">جاري تحميل السجل...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <main id="mainDashboardContainer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
 
         <!-- Navigation Tabs (Will be hidden for manager) -->
         <div id="tabsContainer" class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
@@ -213,14 +308,14 @@
                 </div>
 
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-right border-collapse min-w-[650px]">
+                    <table class="w-full text-right border-collapse min-w-[700px]">
                         <thead>
                             <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
                                 <th class="p-4">بيانات الطالب (الاسم والبريد)</th>
                                 <th class="p-4 text-center w-28">الفصل/المجموعة</th>
                                 <th class="p-4 text-center">الحالة اليوم ووقت الرصد</th>
                                 <th class="p-4 text-center edit-column">تحديد الحالة (اضغط لاختيار الخيار)</th>
-                                <th class="p-4 text-center w-28 edit-column">إجراءات</th>
+                                <th class="p-4 text-center w-32 edit-column">إجراءات وروابط</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTableBody" class="divide-y divide-slate-100 text-sm">
@@ -485,6 +580,44 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         </div>
     </div>
 
+    <!-- Modal Share Single Student URL -->
+    <div id="studentShareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-lg overflow-hidden transform transition-all">
+            <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-link text-yellow-300"></i> إصدار رابط تقرير طالب مخصص
+                </h3>
+                <button onclick="closeStudentShareModal()" class="text-indigo-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">اختر الطالب لإصدار رابطه الخاص:</label>
+                    <select id="selectShareStudent" onchange="generateStudentPortalUrl()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="">-- اختر الطالب --</option>
+                    </select>
+                </div>
+
+                <div id="studentUrlBox" class="hidden space-y-2 pt-2">
+                    <label class="block text-xs font-bold text-slate-700">رابط المتابعة الفردي الخاص بالطالب:</label>
+                    <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
+                        <input type="text" id="studentGeneratedUrlInput" readonly value="" class="bg-transparent text-xs font-mono font-bold text-slate-700 w-full focus:outline-none">
+                        <button onclick="copyGeneratedStudentUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0">
+                            <i class="fa-regular fa-copy"></i> نسخ
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-500">قم بمشاركة هذا الرابط مع الطالب أو ولي الأمر ليطلع على تقريره وحضوره.</p>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeStudentShareModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-5 left-5 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 text-sm flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none translate-y-2 z-50">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
@@ -548,6 +681,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         // Application State
         let isReadOnly = false; 
+        let isStudentPortal = false;
+        let targetStudentId = null;
         let activeGroup = 'الجميع'; 
         let groups = ['أول - أول', 'أول - ثاني', 'ثاني - أول']; 
         let students = []; 
@@ -572,10 +707,18 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         // Initializer
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mode') === 'view') {
+            targetStudentId = urlParams.get('student');
+
+            if (targetStudentId) {
+                isStudentPortal = true;
+                document.getElementById('mainDashboardContainer').classList.add('hidden');
+                document.querySelector('header').classList.add('hidden');
+                document.getElementById('studentPortalContainer').classList.remove('hidden');
+            } else if (urlParams.get('mode') === 'view') {
                 isReadOnly = true;
                 applyReadOnlyMode();
             }
+
             const paramGroup = urlParams.get('group');
             if (paramGroup) {
                 activeGroup = decodeURIComponent(paramGroup).trim();
@@ -596,6 +739,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function applyReadOnlyMode() {
             document.getElementById('readOnlyBanner').classList.remove('hidden');
+            document.getElementById('bannerText').textContent = 'أنت الآن في لوحة تقارير الحضور والإحصائيات (عرض للمدير)';
             document.getElementById('manageGroupsBtn').classList.add('hidden');
             document.getElementById('quickAddControls').classList.add('hidden');
             document.getElementById('openAddModalBtn').classList.add('hidden');
@@ -694,6 +838,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 cloudStatus.textContent = "السحابة: متصل ومزامن (aaaa)";
                 cloudIcon.className = "fa-solid fa-cloud text-emerald-400";
                 
+                populateStudentShareDropdown();
+                if (isStudentPortal && students.length > 0) {
+                    renderStudentPortalView();
+                }
+
                 fetchAttendanceForDate(currentDate);
             }, (error) => {
                 console.error("Students fetch error:", error);
@@ -710,7 +859,123 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (isReadOnly) {
                     generateReport();
                 }
+                if (isStudentPortal) {
+                    renderStudentPortalView();
+                }
             });
+        }
+
+        function populateStudentShareDropdown() {
+            const select = document.getElementById('selectShareStudent');
+            if(!select) return;
+            select.innerHTML = '<option value="">-- اختر الطالب --</option>';
+            students.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.name} (${s.group})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function openStudentShareModal() {
+            populateStudentShareDropdown();
+            document.getElementById('selectShareStudent').value = "";
+            document.getElementById('studentUrlBox').classList.add('hidden');
+            document.getElementById('studentShareModal').classList.remove('hidden');
+        }
+
+        function closeStudentShareModal() {
+            document.getElementById('studentShareModal').classList.add('hidden');
+        }
+
+        function generateStudentPortalUrl() {
+            const studentId = document.getElementById('selectShareStudent').value;
+            const urlBox = document.getElementById('studentUrlBox');
+
+            if (!studentId) {
+                urlBox.classList.add('hidden');
+                return;
+            }
+
+            let baseUrl = "https://school1school2-stack.github.io/2222/";
+            if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
+                baseUrl = window.location.origin + window.location.pathname;
+            }
+            const studentUrl = `${baseUrl}?student=${studentId}`;
+            
+            document.getElementById('studentGeneratedUrlInput').value = studentUrl;
+            urlBox.classList.remove('hidden');
+        }
+
+        function copyGeneratedStudentUrl() {
+            const input = document.getElementById('studentGeneratedUrlInput');
+            input.select();
+            document.execCommand('copy');
+            showToast('تم نسخ رابط الطالب الفردي بنجاح 📋', 'success');
+        }
+
+        function renderStudentPortalView() {
+            const student = students.find(s => s.id === targetStudentId);
+            if (!student) {
+                document.getElementById('portalStudentName').textContent = "عذراً، الطالب غير موجود أو تم حذفه";
+                return;
+            }
+
+            document.getElementById('portalStudentName').textContent = student.name;
+            document.getElementById('portalStudentDetails').textContent = `الفصل: ${student.group} | البريد: ${student.email}`;
+
+            let present = 0, absent = 0, late = 0, excused = 0;
+            const historyBody = document.getElementById('portalHistoryTableBody');
+            historyBody.innerHTML = '';
+
+            let hasHistory = false;
+            const sortedDates = Object.keys(allAttendanceRecords).sort().reverse();
+
+            sortedDates.forEach(date => {
+                const dayRecords = allAttendanceRecords[date] || {};
+                const recordObj = dayRecords[targetStudentId];
+                if (recordObj) {
+                    hasHistory = true;
+                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
+
+                    if (st === 'present') present++;
+                    else if (st === 'absent') absent++;
+                    else if (st === 'late') late++;
+                    else if (st === 'excused') excused++;
+
+                    let statusBadge = '<span class="px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600">مسجل</span>';
+                    if (st === 'present') statusBadge = '<span class="px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800 text-[11px]">حاضر</span>';
+                    else if (st === 'absent') statusBadge = '<span class="px-2.5 py-1 rounded-full font-bold bg-rose-100 text-rose-800 text-[11px]">غائب</span>';
+                    else if (st === 'late') statusBadge = '<span class="px-2.5 py-1 rounded-full font-bold bg-amber-100 text-amber-800 text-[11px]">متأخر</span>';
+                    else if (st === 'excused') statusBadge = '<span class="px-2.5 py-1 rounded-full font-bold bg-blue-100 text-blue-800 text-[11px]">بعذر</span>';
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                    tr.innerHTML = `
+                        <td class="p-4 font-medium text-slate-700">${date}</td>
+                        <td class="p-4 text-center">${statusBadge}</td>
+                        <td class="p-4 text-center font-mono text-slate-500">${timeStr}</td>
+                    `;
+                    historyBody.appendChild(tr);
+                }
+            });
+
+            if (!hasHistory) {
+                historyBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد سجلات رصد مسجلة حتى الآن</td></tr>`;
+            }
+
+            document.getElementById('portalPresent').textContent = present;
+            document.getElementById('portalAbsent').textContent = absent;
+            document.getElementById('portalLate').textContent = late;
+            document.getElementById('portalExcused').textContent = excused;
+
+            const totalEval = present + absent + late;
+            const rate = totalEval > 0 ? Math.round(((present + late) / totalEval) * 100) : 0;
+
+            const rateBadge = document.getElementById('portalRateBadge');
+            rateBadge.textContent = `${rate}%`;
+            rateBadge.className = rate >= 75 ? "text-lg font-black text-emerald-600" : "text-lg font-black text-rose-600";
         }
 
         function updateGroupDropdowns() {
@@ -943,6 +1208,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function renderSingleDayReport() {
+            if (isStudentPortal) return;
             const targetDate = document.getElementById('singleReportDate').value;
             const dayRecords = allAttendanceRecords[targetDate] || {};
 
@@ -1019,6 +1285,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function generateReport() {
+            if (isStudentPortal) return;
             const start = document.getElementById('reportStartDate').value;
             const end = document.getElementById('reportEndDate').value;
             const reportTableBody = document.getElementById('reportTableBody');
@@ -1162,7 +1429,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 } else {
                     attendanceData = {};
                 }
-                renderTable();
+                if(!isStudentPortal) renderTable();
             }, (error) => {
                 console.error("Attendance fetch error:", error);
             });
@@ -1179,6 +1446,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function renderTable() {
+            if (isStudentPortal) return;
             const searchTerm = searchInput.value.trim().toLowerCase();
 
             const filteredStudents = students.filter(s => {
@@ -1244,6 +1512,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>`;
                 }
 
+                let baseUrl = "https://school1school2-stack.github.io/2222/";
+                if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
+                    baseUrl = window.location.origin + window.location.pathname;
+                }
+                let studentPortalLink = `${baseUrl}?student=${student.id}`;
+
                 if (isReadOnly) {
                     row.innerHTML = `
                         <td class="p-4">
@@ -1286,9 +1560,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             </div>
                         </td>
                         <td class="p-4 text-center">
-                            <button onclick="deleteStudent('${student.id}')" class="text-slate-400 hover:text-rose-600 transition p-1 rounded-lg hover:bg-rose-50" title="حذف الطالب من السجل والسحابة">
-                                <i class="fa-regular fa-trash-can"></i>
-                            </button>
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="${studentPortalLink}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-2 rounded-lg text-xs font-bold transition" title="فتح رابط التقرير الخاص بالطالب">
+                                    <i class="fa-solid fa-link"></i>
+                                </a>
+                                <button onclick="deleteStudent('${student.id}')" class="text-slate-400 hover:text-rose-600 transition p-1 rounded-lg hover:bg-rose-50" title="حذف الطالب من السجل والسحابة">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </div>
                         </td>
                     `;
                 }
@@ -1300,7 +1579,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         window.setStatus = async function(studentId, status) {
-            if (isReadOnly) return;
+            if (isReadOnly || isStudentPortal) return;
             const updatedRecords = { ...attendanceData };
 
             if (status === 'unmarked' || status === '') {
@@ -1328,7 +1607,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         };
 
         window.deleteStudent = async function(studentId) {
-            if (isReadOnly) return;
+            if (isReadOnly || isStudentPortal) return;
             if (!confirm("هل أنت متأكد من حذف الطالب من سجل السحابة؟")) return;
 
             try {
@@ -1341,6 +1620,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         };
 
         function updateStats() {
+            if (isStudentPortal) return;
             let presentCount = 0;
             let absentCount = 0;
             let otherCount = 0;
@@ -1366,6 +1646,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function setupEventListeners() {
+            if (isStudentPortal) return;
             selectedDateInput.addEventListener('change', (e) => {
                 currentDate = e.target.value;
                 fetchAttendanceForDate(currentDate);
@@ -1510,7 +1791,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             let csvContent = "\uFEFF"; 
-            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,حالة الحضور ووقت الرصد - تاريخ: ${currentDate}\n`;
+            csvContent += `تقرير الحضور والغياب - الفصل: (${activeGroup}) من ${currentDate}\n`;
+            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,حالة الحضور ووقت الرصد\n`;
 
             activeStudents.forEach(student => {
                 const recordObj = attendanceData[student.id];
@@ -1554,7 +1836,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function sendReportToWhatsAppManager() {
             const shareUrl = document.getElementById('shareUrlInput').value;
-            
             const start = document.getElementById('reportStartDate').value;
             const end = document.getElementById('reportEndDate').value;
             const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
