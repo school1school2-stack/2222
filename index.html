@@ -47,7 +47,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide">كشف الحضور والسلوكيات والمشاركات</h1>
-                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي[span_2](start_span)[span_2](end_span) - إدارة الفصول والمجموعات بالسحابة</p>
+                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي[span_3](start_span)[span_3](end_span) - إدارة الفصول والمجموعات بالسحابة</p>
                 </div>
             </div>
             
@@ -331,7 +331,7 @@
                         <input type="text" id="searchInput" placeholder="بحث عن اسم طالب..." class="w-full pr-9 pl-4 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div class="text-xs text-slate-500 font-medium">
-                        تعديل الحالة يحفظ فورا وسحابيا للفصل المحدد مع وقت الرصد
+                        (يعرض مشاركات وسلوكيات اليوم المحدد فقط لتجنب الازدحام مع إمكانية الحذف الفوري)
                     </div>
                 </div>
 
@@ -343,7 +343,7 @@
                                 <th class="p-4 text-center w-28">الفصل/المجموعة</th>
                                 <th class="p-4 text-center">الحالة اليوم ووقت الرصد</th>
                                 <th class="p-4 text-center edit-column">تحديد الحالة (حاضر / غائب / أخرى)</th>
-                                <th class="p-4 text-center edit-column">تسجيل مشاركة / سلوك</th>
+                                <th class="p-4 text-center edit-column">تسجيل مشاركة / سلوك (اليوم)</th>
                                 <th class="p-4 text-center w-28 edit-column">روابط وإجراءات</th>
                             </tr>
                         </thead>
@@ -1626,16 +1626,16 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     behaviorOptionsHTML += `<option value="${idx}">${act.icon} ${act.name} (${act.score > 0 ? '+' + act.score : act.score})</option>`;
                 });
 
-                // Render student logged behaviors for today
+                // Render student logged behaviors for today with scrollable clean view
                 const studentLogs = studentBehaviorsData[student.id] || [];
-                let logsHTML = `<div class="flex flex-wrap gap-1 mt-1 max-w-[220px]">`;
+                let logsHTML = `<div class="flex flex-wrap gap-1 mt-1 max-w-[220px] max-h-[80px] overflow-y-auto custom-scrollbar p-0.5">`;
                 studentLogs.forEach((log, logIdx) => {
                     let badgeColor = log.score > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200";
                     logsHTML += `
                         <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${badgeColor}" title="${log.time}">
                             <span>${log.icon}</span>
                             <span>${escapeHtml(log.name)}</span>
-                            <button onclick="removeBehaviorLog('${student.id}', ${logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5">×</button>
+                            <button onclick="removeBehaviorLog('${student.id}', ${logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5 font-bold" title="حذف هذا السلوك">×</button>
                         </span>
                     `;
                 });
