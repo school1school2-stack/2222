@@ -85,7 +85,7 @@
     <main id="studentPortalContainer" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
         <div class="bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md rounded-xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-id-badge text-lg"></i>
-            <span>لوحة متابعة الطالب الفردية (يمكنك حذف أي سلوك أو واجب من هنا مباشرة وسيحذف من السحابة)</span>
+            <span>لوحة متابعة الطالب الفردية (يمكنك حذف أي سلوك حتى لو كان الأخير وستتحدث الشاشة فوراً)</span>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -156,7 +156,7 @@
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-star text-amber-500"></i>
-                    سجل المشاركات والواجبات والسلوكيات (يمكنك الضغط على علامة الحذف × لإزالتها فوراً)
+                    سجل المشاركات والواجبات والسلوكيات
                 </h3>
             </div>
             <div class="overflow-x-auto custom-scrollbar">
@@ -165,7 +165,7 @@
                         <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
                             <th class="p-4">تاريخ الحدث ووقت الرصد</th>
                             <th class="p-4">نوع المشاركة / السلوك</th>
-                            <th class="p-4 text-center">النقاط والتنبيه والإجراء</th>
+                            <th class="p-4 text-center">النقاط والإجراء</th>
                         </tr>
                     </thead>
                     <tbody id="portalBehaviorsTableBody" class="divide-y divide-slate-100 text-sm">
@@ -1130,7 +1130,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 <span class="px-2.5 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}${pulseClass}">
                                     ${item.score > 0 ? '+' + item.score : item.score} ${!isParticipation ? '⚠️ تنبيه' : ''}
                                 </span>
-                                <button onclick="removeBehaviorLogFromDate('${targetStudentId}', '${date}', ${itemIdx})" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-2 py-1 rounded-lg text-xs font-bold transition" title="حذف هذا السلوك نهائياً">
+                                <button onclick="removeBehaviorLogFromDate('${targetStudentId}', '${date}', ${itemIdx})" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm" title="حذف هذا السلوك نهائياً">
                                     <i class="fa-solid fa-trash-can"></i> حذف
                                 </button>
                             </td>
@@ -2026,7 +2026,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         };
 
-        // دالة الحذف المحدثة لتعمل بكفاءة مطلقة من الجدول الرئيسي ومن لوحة تقرير الطالب الفردي
+        // دالة الحذف المصلحة نهائياً للتعامل مع أي عدد من السلوكيات بمرونة وبدون أخطاء
         window.removeBehaviorLogFromDate = async function(studentId, dateStr, logIndex) {
             try {
                 const docRef = db.collection("student_behaviors_records").doc(dateStr);
@@ -2039,19 +2039,23 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                 if (studentLogs.length <= logIndex) return;
 
+                // 1. حذف السلوك المطلوب
                 studentLogs.splice(logIndex, 1);
 
+                // 2. تحديث هيكل البيانات سحابياً
                 if (studentLogs.length === 0) {
                     delete targetDateBehaviors[studentId];
                 } else {
                     targetDateBehaviors[studentId] = studentLogs;
                 }
 
+                // 3. كتابة التعديل كاملاً بالسحابة
                 await docRef.set({
                     records: targetDateBehaviors,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                });
 
+                // 4. تحديث الذاكرة المحلية
                 if (allBehaviorsRecords[dateStr]) {
                     if (studentLogs.length === 0) {
                         delete allBehaviorsRecords[dateStr][studentId];
@@ -2060,13 +2064,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     }
                 }
 
+                // 5. إعادة بناء الواجهة
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 } else {
                     renderTable();
                 }
 
-                showToast('تم حذف السلوك من السحابة بنجاح ☁️', 'info');
+                showToast('تم حذف السلوك بنجاح ☁️', 'info');
 
             } catch (error) {
                 console.error("Error removing behavior:", error);
