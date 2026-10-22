@@ -35,7 +35,6 @@
             color: #4f46e5;
             font-weight: 700;
         }
-        /* تأثير النبض الهادئ والواضح للواجبات والملفات والسلوكيات الدائمة */
         @keyframes softPulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.65; transform: scale(1.04); }
@@ -77,13 +76,11 @@
         </div>
     </header>
 
-    <!-- Read-Only Mode Banner -->
     <div id="readOnlyBanner" class="hidden bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md flex items-center justify-center gap-2">
         <i class="fa-solid fa-eye text-lg"></i>
         <span id="bannerText">أنت الآن في لوحة تقارير الحضور والإحصائيات (عرض للمدير)</span>
     </div>
 
-    <!-- Student Portal View Container -->
     <main id="studentPortalContainer" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
         <div class="bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md rounded-xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-id-badge text-lg"></i>
@@ -203,7 +200,6 @@
 
     <main id="mainDashboardContainer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
 
-        <!-- Navigation Tabs -->
         <div id="tabsContainer" class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
             <button id="dailyTabBtn" onclick="switchTab('daily')" class="tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2">
                 <i class="fa-solid fa-calendar-check text-indigo-600"></i>
@@ -246,7 +242,6 @@
             </div>
         </div>
 
-        <!-- ==================== DAILY ATTENDANCE SECTION ==================== -->
         <div id="dailySection">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
                 <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
@@ -368,10 +363,8 @@
             </div>
         </div>
 
-        <!-- ==================== REPORTS & STATISTICS SECTION ==================== -->
         <div id="reportsSection" class="hidden space-y-6">
             
-            <!-- 1. Day Specific Lookup Card (الحضور والغياب ليوم محدد) -->
             <div class="bg-indigo-900 text-white rounded-2xl shadow-md p-6 border border-indigo-800">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
@@ -430,7 +423,6 @@
                 </div>
             </div>
 
-            <!-- 2. Day Specific Behavior & Participation Lookup Card -->
             <div class="bg-sky-50 text-slate-800 rounded-2xl shadow-md p-6 border border-sky-200">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
@@ -443,7 +435,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                    <!-- Participations -->
                     <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
@@ -454,7 +445,6 @@
                         <ul id="dayParticipationsList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
                     </div>
 
-                    <!-- Homework -->
                     <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
@@ -465,7 +455,6 @@
                         <ul id="dayHomeworkList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
                     </div>
 
-                    <!-- Files & Research -->
                     <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
@@ -476,7 +465,6 @@
                         <ul id="dayResearchList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
                     </div>
 
-                    <!-- Behaviors / Negatives -->
                     <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
@@ -489,7 +477,6 @@
                 </div>
             </div>
 
-            <!-- Date Filter for Cumulative Reports -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div class="flex flex-wrap items-center gap-3">
@@ -517,7 +504,6 @@
                 </div>
             </div>
 
-            <!-- Overview Statistics Cards (الحضور التراكمي) -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <p class="text-xs text-slate-500 font-bold mb-1">إجمالي أيام الرصد</p>
@@ -540,7 +526,6 @@
                 </div>
             </div>
 
-            <!-- Cumulative Behaviors Statistics Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                 <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-award text-amber-500"></i>
@@ -599,7 +584,6 @@
                 </div>
             </div>
 
-            <!-- Detailed Student Statistics Table -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                     <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
@@ -634,7 +618,6 @@
 
     </main>
 
-    <!-- Modals & Toasts -->
     <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-800 text-white flex justify-between items-center">
@@ -1122,13 +1105,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 historyBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد سجلات رصد حضور حتى الآن</td></tr>`;
             }
 
-            // عرض المشاركات اليومية، والواجبات والملفات والسلوكيات الدائمة مع النبض
             sortedBehaviorDates.forEach(date => {
                 const dayBehaviorsList = (allBehaviorsRecords[date] || {})[targetStudentId] || [];
                 dayBehaviorsList.forEach((item, itemIdx) => {
                     const isParticipation = item.name.includes('مشاركة') || item.name.includes('إجابة');
                     
-                    // إظهار الواجبات والملفات والسلبيات دائماً عبر جميع الأيام بأسلوب النبض
                     if (!isParticipation || date === currentDate) {
                         hasBehaviors = true;
                         totalBehaviorScore += Number(item.score);
@@ -1402,13 +1383,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
-        // إدراج وحساب الواجبات والملفات والسلوكيات بشكل عابر للأيام
         function renderSingleDayReport() {
             if (isStudentPortal) return;
             const targetDate = document.getElementById('singleReportDate').value;
             const dayRecords = allAttendanceRecords[targetDate] || {};
 
-            // 1. Attendance Lists
             const presentList = document.getElementById('dayPresentList');
             const absentList = document.getElementById('dayAbsentList');
             const lateList = document.getElementById('dayLateList');
@@ -1480,7 +1459,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (lCount === 0) lateList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
             if (oCount === 0) otherList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
 
-            // 2. Behavior & Participation Breakdown Lists
             const participationsList = document.getElementById('dayParticipationsList');
             const homeworkList = document.getElementById('dayHomeworkList');
             const researchList = document.getElementById('dayResearchList');
@@ -1494,7 +1472,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             let partCount = 0, hwCount = 0, resCount = 0, behCount = 0;
 
             filteredForReport.forEach(s => {
-                // تجميع البيانات: المشاركات من اليوم المختار فقط، أما باقي المخالفات تظهر بغض النظر عن التاريخ
                 Object.keys(allBehaviorsRecords).forEach(d => {
                     const logs = (allBehaviorsRecords[d] || {})[s.id] || [];
                     logs.forEach((item, logIdx) => {
@@ -1806,7 +1783,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
-        // عرض جدول المتابعة اليومي للمعلم وتثبيت الواجبات والسلبيات السابقة بأسلوب النبض
         function renderTable() {
             if (isStudentPortal) return;
             const searchTerm = searchInput.value.trim().toLowerCase();
@@ -1879,7 +1855,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     behaviorOptionsHTML += `<option value="${idx}">${act.icon} ${act.name} (${act.score > 0 ? '+' + act.score : act.score})</option>`;
                 });
 
-                // تجميع السجلات الحالية + السجلات الدائمة من الأيام السابقة (الواجبات، الملفات، والسلبيات)
                 let combinedLogs = [];
                 Object.keys(allBehaviorsRecords).forEach(d => {
                     const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
@@ -1905,7 +1880,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${badgeColor}${pulseStyle}" title="التاريخ: ${log.originDate} - ${log.time}">
                             <span>${log.icon}</span>
                             <span>${escapeHtml(log.name)}</span>
-                            <button onclick="removeBehaviorLogFromDate('${student.id}', '${log.originDate}', ${log.logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5 font-bold" title="حذف هذا السلوك">×</button>
+                            <button onclick="event.stopPropagation(); removeBehaviorLogFromDate('${student.id}', '${log.originDate}', ${log.logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5 font-bold" title="حذف هذا السلوك">×</button>
                         </span>
                     `;
                 });
@@ -2047,31 +2022,48 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         };
 
+        // دالة الحذف المحدثة والمصححة نهائياً لتحديث السحابة والشاشة بشكل فوري
         window.removeBehaviorLogFromDate = async function(studentId, dateStr, logIndex) {
             if (isReadOnly || isStudentPortal) return;
-            
-            const targetDateBehaviors = (allBehaviorsRecords[dateStr] || {});
-            const studentLogs = targetDateBehaviors[studentId] || [];
-
-            if (studentLogs.length <= logIndex) return;
-
-            studentLogs.splice(logIndex, 1);
-            if (studentLogs.length === 0) {
-                delete targetDateBehaviors[studentId];
-            } else {
-                targetDateBehaviors[studentId] = studentLogs;
-            }
 
             try {
-                await db.collection("student_behaviors_records").doc(dateStr).set({
+                const docRef = db.collection("student_behaviors_records").doc(dateStr);
+                const doc = await docRef.get();
+
+                if (!doc.exists) return;
+
+                let targetDateBehaviors = doc.data().records || {};
+                let studentLogs = targetDateBehaviors[studentId] || [];
+
+                if (studentLogs.length <= logIndex) return;
+
+                studentLogs.splice(logIndex, 1);
+
+                if (studentLogs.length === 0) {
+                    delete targetDateBehaviors[studentId];
+                } else {
+                    targetDateBehaviors[studentId] = studentLogs;
+                }
+
+                await docRef.set({
                     records: targetDateBehaviors,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
-                showToast('تم حذف الملاحظة بنجاح ☁️', 'info');
+                if (allBehaviorsRecords[dateStr]) {
+                    if (studentLogs.length === 0) {
+                        delete allBehaviorsRecords[dateStr][studentId];
+                    } else {
+                        allBehaviorsRecords[dateStr][studentId] = studentLogs;
+                    }
+                }
+
+                renderTable();
+                showToast('تم حذف السلوك وتحديث الشاشة بنجاح ☁️', 'info');
+
             } catch (error) {
                 console.error("Error removing behavior:", error);
-                showToast('فشل الحذف السحابي', 'warning');
+                showToast('فشل الحذف من السحابة', 'warning');
             }
         };
 
