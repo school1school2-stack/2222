@@ -81,10 +81,11 @@
         <span id="bannerText">أنت الآن في لوحة تقارير الحضور والإحصائيات (عرض للمدير)</span>
     </div>
 
+    <!-- Student Portal View Container -->
     <main id="studentPortalContainer" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
         <div class="bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md rounded-xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-id-badge text-lg"></i>
-            <span>لوحة متابعة الطالب الفردية (الحضور، الواجبات، والمشاركات والسلوكيات)</span>
+            <span>لوحة متابعة الطالب الفردية (يمكنك حذف أي سلوك أو واجب من هنا مباشرة وسيحذف من السحابة)</span>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -155,7 +156,7 @@
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-star text-amber-500"></i>
-                    سجل المشاركات (اليومية) والواجبات والملفات والسلوكيات (دائمة وثابتة مع نبض تنبيهي)
+                    سجل المشاركات والواجبات والسلوكيات (يمكنك الضغط على علامة الحذف × لإزالتها فوراً)
                 </h3>
             </div>
             <div class="overflow-x-auto custom-scrollbar">
@@ -164,7 +165,7 @@
                         <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
                             <th class="p-4">تاريخ الحدث ووقت الرصد</th>
                             <th class="p-4">نوع المشاركة / السلوك</th>
-                            <th class="p-4 text-center">النقاط والتنبيه</th>
+                            <th class="p-4 text-center">النقاط والتنبيه والإجراء</th>
                         </tr>
                     </thead>
                     <tbody id="portalBehaviorsTableBody" class="divide-y divide-slate-100 text-sm">
@@ -1125,10 +1126,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 <span class="text-lg">${item.icon}</span>
                                 <span>${escapeHtml(item.name)}</span>
                             </td>
-                            <td class="p-4 text-center">
+                            <td class="p-4 text-center flex items-center justify-center gap-2">
                                 <span class="px-2.5 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}${pulseClass}">
                                     ${item.score > 0 ? '+' + item.score : item.score} ${!isParticipation ? '⚠️ تنبيه' : ''}
                                 </span>
+                                <button onclick="removeBehaviorLogFromDate('${targetStudentId}', '${date}', ${itemIdx})" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-2 py-1 rounded-lg text-xs font-bold transition" title="حذف هذا السلوك نهائياً">
+                                    <i class="fa-solid fa-trash-can"></i> حذف
+                                </button>
                             </td>
                         `;
                         behaviorsBody.appendChild(tr);
@@ -2022,10 +2026,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         };
 
-        // دالة الحذف المحدثة والمصححة نهائياً لتحديث السحابة والشاشة بشكل فوري
+        // دالة الحذف المحدثة لتعمل بكفاءة مطلقة من الجدول الرئيسي ومن لوحة تقرير الطالب الفردي
         window.removeBehaviorLogFromDate = async function(studentId, dateStr, logIndex) {
-            if (isReadOnly || isStudentPortal) return;
-
             try {
                 const docRef = db.collection("student_behaviors_records").doc(dateStr);
                 const doc = await docRef.get();
@@ -2058,8 +2060,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     }
                 }
 
-                renderTable();
-                showToast('تم حذف السلوك وتحديث الشاشة بنجاح ☁️', 'info');
+                if (isStudentPortal) {
+                    renderStudentPortalView();
+                } else {
+                    renderTable();
+                }
+
+                showToast('تم حذف السلوك من السحابة بنجاح ☁️', 'info');
 
             } catch (error) {
                 console.error("Error removing behavior:", error);
