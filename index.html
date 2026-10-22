@@ -373,7 +373,7 @@
                             <i class="fa-solid fa-calendar-day"></i>
                             استعلام الحضور والغياب ليوم محدد
                         </h3>
-                        <p class="text-indigo-200 text-xs mt-1">عرض تفاصيل الحضور والغياب مع أوقات الرصد للفصل المحدد أو لجميع الفصول</p>
+                        <p class="text-indigo-200 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر بدلاً من الشريط</p>
                     </div>
                     <div class="flex items-center gap-3 bg-indigo-800/80 p-2 rounded-xl border border-indigo-700">
                         <label class="font-bold text-sm text-indigo-100">اختر اليوم:</label>
@@ -382,7 +382,8 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                    <div class="bg-emerald-950/50 border border-emerald-500/30 rounded-xl p-4">
+                    <!-- الحاضرون -->
+                    <div onclick="openCategoryFullModal('present')" class="bg-emerald-950/50 hover:bg-emerald-900/60 transition cursor-pointer border border-emerald-500/30 rounded-xl p-4 shadow-sm">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-emerald-500/30">
                             <span class="font-bold text-emerald-300 text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-circle-check"></i> الحاضرون
@@ -390,9 +391,13 @@
                             <span id="dayPresentCount" class="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
                         <ul id="dayPresentList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-emerald-100"></ul>
+                        <div class="mt-2 text-center text-[11px] text-emerald-300/70 font-bold border-t border-emerald-500/20 pt-2">
+                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
+                        </div>
                     </div>
 
-                    <div class="bg-rose-950/50 border border-rose-500/30 rounded-xl p-4">
+                    <!-- الغائبون -->
+                    <div onclick="openCategoryFullModal('absent')" class="bg-rose-950/50 hover:bg-rose-900/60 transition cursor-pointer border border-rose-500/30 rounded-xl p-4 shadow-sm">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-rose-500/30">
                             <span class="font-bold text-rose-300 text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-circle-xmark"></i> الغائبون
@@ -400,9 +405,13 @@
                             <span id="dayAbsentCount" class="bg-rose-500/20 text-rose-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
                         <ul id="dayAbsentList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-rose-100"></ul>
+                        <div class="mt-2 text-center text-[11px] text-rose-300/70 font-bold border-t border-rose-500/20 pt-2">
+                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
+                        </div>
                     </div>
 
-                    <div class="bg-amber-950/50 border border-amber-500/30 rounded-xl p-4">
+                    <!-- المتأخرون -->
+                    <div onclick="openCategoryFullModal('late')" class="bg-amber-950/50 hover:bg-amber-900/60 transition cursor-pointer border border-amber-500/30 rounded-xl p-4 shadow-sm">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-amber-500/30">
                             <span class="font-bold text-amber-300 text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-clock"></i> المتأخرون
@@ -410,9 +419,13 @@
                             <span id="dayLateCount" class="bg-amber-500/20 text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
                         <ul id="dayLateList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-amber-100"></ul>
+                        <div class="mt-2 text-center text-[11px] text-amber-300/70 font-bold border-t border-amber-500/20 pt-2">
+                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
+                        </div>
                     </div>
 
-                    <div class="bg-slate-800/80 border border-slate-600 rounded-xl p-4">
+                    <!-- بعذر -->
+                    <div onclick="openCategoryFullModal('excused')" class="bg-slate-800/80 hover:bg-slate-800 transition cursor-pointer border border-slate-600 rounded-xl p-4 shadow-sm">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-600">
                             <span class="font-bold text-slate-300 text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-file-signature"></i> بعذر / لم يحدد
@@ -420,6 +433,9 @@
                             <span id="dayOtherCount" class="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
                         <ul id="dayOtherList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-200"></ul>
+                        <div class="mt-2 text-center text-[11px] text-slate-400 font-bold border-t border-slate-700 pt-2">
+                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
+                        </div>
                     </div>
                 </div>
             </div>
@@ -618,6 +634,37 @@
         </div>
 
     </main>
+
+    <!-- Modal Report Full Category View -->
+    <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all">
+            <div id="fullModalHeader" class="p-5 text-white flex justify-between items-center bg-indigo-900">
+                <div class="flex items-center gap-3">
+                    <div id="fullModalIcon" class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 id="fullModalTitle" class="text-lg font-bold">تقرير تفصيلي</h3>
+                        <p id="fullModalSubtitle" class="text-xs opacity-80">تاريخ اليوم المحدد</p>
+                    </div>
+                </div>
+                <button onclick="closeCategoryFullModal()" class="text-white/80 hover:text-white transition p-2 text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-grow space-y-3" id="fullModalContent">
+                <!-- الطلاب سيظهرون هنا كاملاً في شكل كروت أو قائمة مرتبة -->
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+                <span id="fullModalCountBadge" class="text-xs font-bold bg-slate-200 text-slate-700 px-3 py-1 rounded-full">العدد الإجمالي: 0</span>
+                <button onclick="closeCategoryFullModal()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition">
+                    إغلاق التقرير
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all">
@@ -1535,6 +1582,97 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (behCount === 0) behaviorsList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
         }
 
+        // دالة عرض النافذة المنبثقة الكاملة
+        function openCategoryFullModal(categoryType) {
+            const targetDate = document.getElementById('singleReportDate').value;
+            const dayRecords = allAttendanceRecords[targetDate] || {};
+
+            const modal = document.getElementById('fullCategoryModal');
+            const header = document.getElementById('fullModalHeader');
+            const title = document.getElementById('fullModalTitle');
+            const subtitle = document.getElementById('fullModalSubtitle');
+            const icon = document.getElementById('fullModalIcon');
+            const content = document.getElementById('fullModalContent');
+            const countBadge = document.getElementById('fullModalCountBadge');
+
+            content.innerHTML = '';
+            let listCount = 0;
+
+            let headerBgClass = "bg-indigo-900";
+            let typeTitle = "";
+            let statusName = "";
+
+            if (categoryType === 'present') {
+                typeTitle = "تقرير الطلاب الحاضرين كاملاً";
+                headerBgClass = "bg-emerald-700";
+                icon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+                statusName = "present";
+            } else if (categoryType === 'absent') {
+                typeTitle = "تقرير الطلاب الغائبين كاملاً";
+                headerBgClass = "bg-rose-700";
+                icon.innerHTML = `<i class="fa-solid fa-circle-xmark"></i>`;
+                statusName = "absent";
+            } else if (categoryType === 'late') {
+                typeTitle = "تقرير الطلاب المتأخرين كاملاً";
+                headerBgClass = "bg-amber-600";
+                icon.innerHTML = `<i class="fa-solid fa-clock"></i>`;
+                statusName = "late";
+            } else if (categoryType === 'excused') {
+                typeTitle = "تقرير الطلاب (بعذر / أخرى) كاملاً";
+                headerBgClass = "bg-slate-700";
+                icon.innerHTML = `<i class="fa-solid fa-file-signature"></i>`;
+                statusName = "excused";
+            }
+
+            header.className = `p-5 text-white flex justify-between items-center ${headerBgClass}`;
+            title.textContent = typeTitle;
+            subtitle.textContent = `التاريخ: ${targetDate} | الفصل: ${activeGroup}`;
+
+            const filteredStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
+
+            filteredStudents.forEach((student, index) => {
+                const recordObj = dayRecords[student.id];
+                if (!recordObj) return;
+
+                const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
+
+                if (status === statusName) {
+                    listCount++;
+                    const card = document.createElement('div');
+                    card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
+                                <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                            </div>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700">⏰ ${timeStr}</span>
+                        </div>
+                    `;
+                    content.appendChild(card);
+                }
+            });
+
+            if (listCount === 0) {
+                content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold">لا يوجد طلاب مسجلون تحت هذه الفئة اليوم</div>`;
+            }
+
+            countBadge.textContent = `العدد الإجمالي: ${listCount} طالب`;
+            modal.classList.remove('hidden');
+        }
+
+        function closeCategoryFullModal() {
+            document.getElementById('fullCategoryModal').classList.add('hidden');
+        }
+
         function generateReport() {
             if (isStudentPortal) return;
             const start = document.getElementById('reportStartDate').value;
@@ -2026,7 +2164,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         };
 
-        // دالة الحذف المصلحة نهائياً للتعامل مع أي عدد من السلوكيات بمرونة وبدون أخطاء
         window.removeBehaviorLogFromDate = async function(studentId, dateStr, logIndex) {
             try {
                 const docRef = db.collection("student_behaviors_records").doc(dateStr);
@@ -2039,23 +2176,19 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                 if (studentLogs.length <= logIndex) return;
 
-                // 1. حذف السلوك المطلوب
                 studentLogs.splice(logIndex, 1);
 
-                // 2. تحديث هيكل البيانات سحابياً
                 if (studentLogs.length === 0) {
                     delete targetDateBehaviors[studentId];
                 } else {
                     targetDateBehaviors[studentId] = studentLogs;
                 }
 
-                // 3. كتابة التعديل كاملاً بالسحابة
                 await docRef.set({
                     records: targetDateBehaviors,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                // 4. تحديث الذاكرة المحلية
                 if (allBehaviorsRecords[dateStr]) {
                     if (studentLogs.length === 0) {
                         delete allBehaviorsRecords[dateStr][studentId];
@@ -2064,7 +2197,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     }
                 }
 
-                // 5. إعادة بناء الواجهة
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 } else {
