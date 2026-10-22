@@ -1497,21 +1497,16 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>
                     `;
 
-                    // تم التعديل هنا: توجيه أي عنصر يخص "واجب" إلى الواجبات بغض النظر عن درجته الموجبة أو السالبة
                     if (name.includes('واجب')) {
                         hwCount++;
                         homeworkList.appendChild(li);
+                    } else if (name.includes('ملف') || name.includes('بحث')) {
+                        // تم التعديل هنا: توجيه أي عنصر يخص الملفات (سواء إنجاز ملف أو نسيان ملف) إلى قسم الملف والبحوث حصرًا
+                        resCount++;
+                        researchList.appendChild(li);
                     } else if (name.includes('مشاركة') || name.includes('إجابة')) {
                         partCount++;
                         participationsList.appendChild(li);
-                    } else if (name.includes('ملف') || name.includes('بحث') || name.includes('إنجاز')) {
-                        if (item.score > 0) {
-                            resCount++;
-                            researchList.appendChild(li);
-                        } else {
-                            behCount++;
-                            behaviorsList.appendChild(li);
-                        }
                     } else if (item.score < 0) {
                         behCount++;
                         behaviorsList.appendChild(li);
@@ -1603,21 +1598,16 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         const logs = dayBehaviors[studentId] || [];
                         logs.forEach(item => {
                             const name = item.name || '';
-                            // تم التعديل هنا لضمان فرز الواجبات بغض النظر عن النتيجة (حسابها كواجبات)
                             if (name.includes('واجب')) {
                                 studentStats[studentId].homework++;
                                 totalHomeworkCount++;
+                            } else if (name.includes('ملف') || name.includes('بحث')) {
+                                // تم التعديل هنا لتضمين إنجاز ونسيان الملفات ضمن قسم البحوث والملفات التراكمي
+                                studentStats[studentId].research++;
+                                totalResearchCount++;
                             } else if (name.includes('مشاركة') || name.includes('إجابة')) {
                                 studentStats[studentId].participations++;
                                 totalParticipationsCount++;
-                            } else if (name.includes('ملف') || name.includes('بحث') || name.includes('إنجاز')) {
-                                if (item.score > 0) {
-                                    studentStats[studentId].research++;
-                                    totalResearchCount++;
-                                } else {
-                                    studentStats[studentId].negatives++;
-                                    totalNegativesCount++;
-                                }
                             } else if (item.score < 0) {
                                 studentStats[studentId].negatives++;
                                 totalNegativesCount++;
@@ -1724,8 +1714,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     logs.forEach(item => {
                         const name = item.name || '';
                         if (name.includes('واجب')) { homework++; }
+                        else if (name.includes('ملف') || name.includes('بحث')) { research++; }
                         else if (name.includes('مشاركة') || name.includes('إجابة')) participations++;
-                        else if (name.includes('ملف') || name.includes('بحث') || name.includes('إنجاز')) { item.score > 0 ? research++ : negatives++; }
                         else if (item.score < 0) negatives++;
                         else participations++;
                     });
