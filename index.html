@@ -47,7 +47,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide">كشف الحضور والسلوكيات والمشاركات</h1>
-                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي[span_3](start_span)[span_3](end_span) - إدارة الفصول والمجموعات بالسحابة</p>
+                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي - إدارة الفصول والمجموعات بالسحابة</p>
                 </div>
             </div>
             
@@ -469,7 +469,7 @@
                 </div>
             </div>
 
-            <!-- Overview Statistics Cards -->
+            <!-- Overview Statistics Cards (الحضور) -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <p class="text-xs text-slate-500 font-bold mb-1">إجمالي أيام الرصد</p>
@@ -492,26 +492,93 @@
                 </div>
             </div>
 
+            <!-- قسم جديد: إحصائيات السلوكيات والمشاركات التراكمية -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-award text-amber-500"></i>
+                    إحصائيات السلوكيات والمشاركات للفصل خلال الفترة
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                    <!-- مربع الحضور -->
+                    <div class="bg-emerald-50/60 p-4 rounded-xl border border-emerald-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-emerald-700 font-bold mb-1">الحضور</p>
+                            <h4 id="repBehaviorPresent" class="text-xl font-black text-emerald-800">0</h4>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                    </div>
+
+                    <!-- مربع المشاركات -->
+                    <div class="bg-cyan-50/60 p-4 rounded-xl border border-cyan-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-cyan-700 font-bold mb-1">المشاركات</p>
+                            <h4 id="repBehaviorParticipations" class="text-xl font-black text-cyan-800">0</h4>
+                        </div>
+                        <div class="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center text-cyan-600">
+                            <i class="fa-solid fa-lightbulb"></i>
+                        </div>
+                    </div>
+
+                    <!-- مربع الواجبات -->
+                    <div class="bg-indigo-50/60 p-4 rounded-xl border border-indigo-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-indigo-700 font-bold mb-1">الواجبات</p>
+                            <h4 id="repBehaviorHomework" class="text-xl font-black text-indigo-800">0</h4>
+                        </div>
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                        </div>
+                    </div>
+
+                    <!-- مربع البحوث/الملفات -->
+                    <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-amber-700 font-bold mb-1">البحوث والملفات</p>
+                            <h4 id="repBehaviorResearch" class="text-xl font-black text-amber-800">0</h4>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                    </div>
+
+                    <!-- مربع السلبيات -->
+                    <div class="bg-rose-50/60 p-4 rounded-xl border border-rose-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-rose-700 font-bold mb-1">السلبيات والملاحظات</p>
+                            <h4 id="repBehaviorNegatives" class="text-xl font-black text-rose-800">0</h4>
+                        </div>
+                        <div class="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center text-rose-600">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Detailed Student Statistics Table -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                     <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                         <i class="fa-solid fa-users-viewfinder text-indigo-600"></i>
-                        تقرير إحصائيات حضور الطلاب التراكمي
+                        تقرير إحصائيات حضور الطلاب والسلوكيات التراكمي
                     </h3>
                     <span id="reportStatusText" class="text-xs text-slate-500">جاري تحميل البيانات...</span>
                 </div>
 
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-right border-collapse min-w-[700px]">
+                    <table class="w-full text-right border-collapse min-w-[850px]">
                         <thead>
                             <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
                                 <th class="p-4">بيانات الطالب (الاسم والبريد)</th>
                                 <th class="p-4 text-center">الفصل/المجموعة</th>
                                 <th class="p-4 text-center text-emerald-700">أيام الحضور</th>
+                                <th class="p-4 text-center text-cyan-700">المشاركات</th>
+                                <th class="p-4 text-center text-indigo-700">الواجبات</th>
+                                <th class="p-4 text-center text-amber-700">البحوث/الملفات</th>
+                                <th class="p-4 text-center text-rose-700">السلبيات</th>
                                 <th class="p-4 text-center text-rose-700">أيام الغياب</th>
                                 <th class="p-4 text-center text-amber-700">أيام التأخر</th>
-                                <th class="p-4 text-center text-blue-700">بعذر</th>
                                 <th class="p-4 text-center">نسبة الحضور</th>
                             </tr>
                         </thead>
@@ -903,7 +970,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     allAttendanceRecords[doc.id] = doc.data().records || {};
                 });
                 renderSingleDayReport();
-                if (isReadOnly) {
+                if (isReadOnly || !document.getElementById('reportsSection').classList.contains('hidden')) {
                     generateReport();
                 }
                 if (isStudentPortal) {
@@ -916,6 +983,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 snapshot.forEach(doc => {
                     allBehaviorsRecords[doc.id] = doc.data().records || {};
                 });
+                if (!document.getElementById('reportsSection').classList.contains('hidden')) {
+                    generateReport();
+                }
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
@@ -1398,6 +1468,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             let overallAbsent = 0;
             let overallLate = 0;
 
+            // متغيرات إحصائيات السلوك التراكمية للفصل
+            let totalParticipationsCount = 0;
+            let totalHomeworkCount = 0;
+            let totalResearchCount = 0;
+            let totalNegativesCount = 0;
+
             const activeStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
@@ -1406,9 +1482,22 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             let studentStats = {};
             activeStudents.forEach(s => {
-                studentStats[s.id] = { name: s.name, email: s.email, group: s.group, present: 0, absent: 0, late: 0, excused: 0 };
+                studentStats[s.id] = { 
+                    name: s.name, 
+                    email: s.email, 
+                    group: s.group, 
+                    present: 0, 
+                    absent: 0, 
+                    late: 0, 
+                    excused: 0,
+                    participations: 0,
+                    homework: 0,
+                    research: 0,
+                    negatives: 0
+                };
             });
 
+            // حساب الحضور والغياب
             relevantDates.forEach(date => {
                 const dayRecords = allAttendanceRecords[date] || {};
                 Object.keys(dayRecords).forEach(studentId => {
@@ -1424,6 +1513,46 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 });
             });
 
+            // حساب السلوكيات والمشاركات ضمن النطاق الزمني
+            const relevantBehaviorDates = Object.keys(allBehaviorsRecords).filter(date => date >= start && date <= end);
+            relevantBehaviorDates.forEach(date => {
+                const dayBehaviors = allBehaviorsRecords[date] || {};
+                Object.keys(dayBehaviors).forEach(studentId => {
+                    if (studentStats[studentId]) {
+                        const logs = dayBehaviors[studentId] || [];
+                        logs.forEach(item => {
+                            const name = item.name || '';
+                            if (name.includes('مشاركة') || name.includes('إجابة')) {
+                                studentStats[studentId].participations++;
+                                totalParticipationsCount++;
+                            } else if (name.includes('واجب')) {
+                                if (item.score > 0) {
+                                    studentStats[studentId].homework++;
+                                    totalHomeworkCount++;
+                                } else {
+                                    studentStats[studentId].negatives++;
+                                    totalNegativesCount++;
+                                }
+                            } else if (name.includes('ملف') || name.includes('بحث') || name.includes('إنجاز')) {
+                                if (item.score > 0) {
+                                    studentStats[studentId].research++;
+                                    totalResearchCount++;
+                                } else {
+                                    studentStats[studentId].negatives++;
+                                    totalNegativesCount++;
+                                }
+                            } else if (item.score < 0) {
+                                studentStats[studentId].negatives++;
+                                totalNegativesCount++;
+                            } else {
+                                studentStats[studentId].participations++;
+                                totalParticipationsCount++;
+                            }
+                        });
+                    }
+                });
+            });
+
             const grandTotalEntries = overallPresent + overallAbsent + overallLate;
             const avgRate = grandTotalEntries > 0 ? Math.round((overallPresent / grandTotalEntries) * 100) : 0;
 
@@ -1431,10 +1560,17 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('repTotalAbsences').textContent = overallAbsent;
             document.getElementById('repTotalLate').textContent = overallLate;
 
+            // تحديث كروت السلوكيات للفصل
+            document.getElementById('repBehaviorPresent').textContent = overallPresent;
+            document.getElementById('repBehaviorParticipations').textContent = totalParticipationsCount;
+            document.getElementById('repBehaviorHomework').textContent = totalHomeworkCount;
+            document.getElementById('repBehaviorResearch').textContent = totalResearchCount;
+            document.getElementById('repBehaviorNegatives').textContent = totalNegativesCount;
+
             reportTableBody.innerHTML = '';
 
             if (activeStudents.length === 0) {
-                reportTableBody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-slate-400">لا يوجد طلاب في هذا الفصل لحساب التقرير</td></tr>`;
+                reportTableBody.innerHTML = `<tr><td colspan="10" class="text-center p-6 text-slate-400">لا يوجد طلاب في هذا الفصل لحساب التقرير</td></tr>`;
                 return;
             }
 
@@ -1455,10 +1591,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         <div class="text-xs font-medium mt-0.5 px-2 py-0.5 rounded-md inline-block" style="color: #c53030; background-color: #fdf8f2; box-shadow: 0 1px 2px rgba(217, 119, 6, 0.1);">${escapeHtml(student.email)}</div>
                     </td>
                     <td class="p-4 text-center font-semibold text-slate-600">${escapeHtml(student.group)}</td>
-                    <td class="p-4 text-center font-semibold text-emerald-600">${stat.present}</td>
+                    <td class="p-4 text-center font-bold text-emerald-600">${stat.present}</td>
+                    <td class="p-4 text-center font-bold text-cyan-600">${stat.participations}</td>
+                    <td class="p-4 text-center font-bold text-indigo-600">${stat.homework}</td>
+                    <td class="p-4 text-center font-bold text-amber-600">${stat.research}</td>
+                    <td class="p-4 text-center font-bold text-rose-600">${stat.negatives}</td>
                     <td class="p-4 text-center font-semibold text-rose-600">${stat.absent}</td>
                     <td class="p-4 text-center font-semibold text-amber-600">${stat.late}</td>
-                    <td class="p-4 text-center font-semibold text-blue-600">${stat.excused}</td>
                     <td class="p-4 text-center">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${rateBadgeClass}">
                             ${attendanceRate}%
@@ -1485,13 +1624,16 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
+            const relevantBehaviorDates = Object.keys(allBehaviorsRecords).filter(date => date >= start && date <= end);
 
             let csvContent = "\uFEFF"; 
-            csvContent += `تقرير الحضور والغياب - الفصل: (${activeGroup}) من ${start} إلى ${end}\n`;
-            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,أيام الحضور,أيام الغياب,أيام التأخر,بعذر,نسبة الحضور\n`;
+            csvContent += `تقرير الحضور والسلوكيات التراكمي - الفصل: (${activeGroup}) من ${start} إلى ${end}\n`;
+            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,أيام الحضور,المشاركات,الواجبات,البحوث والملفات,السلبيات,أيام الغياب,أيام التأخر,بعذر,نسبة الحضور\n`;
 
             activeStudents.forEach(student => {
                 let present = 0, absent = 0, late = 0, excused = 0;
+                let participations = 0, homework = 0, research = 0, negatives = 0;
+
                 relevantDates.forEach(date => {
                     const recordObj = (allAttendanceRecords[date] || {})[student.id];
                     const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
@@ -1501,17 +1643,29 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     else if (st === 'excused') excused++;
                 });
 
+                relevantBehaviorDates.forEach(date => {
+                    const logs = (allBehaviorsRecords[date] || {})[student.id] || [];
+                    logs.forEach(item => {
+                        const name = item.name || '';
+                        if (name.includes('مشاركة') || name.includes('إجابة')) participations++;
+                        else if (name.includes('واجب')) { item.score > 0 ? homework++ : negatives++; }
+                        else if (name.includes('ملف') || name.includes('بحث') || name.includes('إنجاز')) { item.score > 0 ? research++ : negatives++; }
+                        else if (item.score < 0) negatives++;
+                        else participations++;
+                    });
+                });
+
                 const totalEval = present + absent + late;
                 const rate = totalEval > 0 ? Math.round(((present + late) / totalEval) * 100) : 0;
 
-                csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}",${present},${absent},${late},${excused},"${rate}%"\n`;
+                csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}",${present},${participations},${homework},${research},${negatives},${absent},${late},${excused},"${rate}%"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", `تقرير_الحضور_${activeGroup}_${start}_إلى_${end}.csv`);
+            link.setAttribute("download", `تقرير_الحضور_والسلوكيات_${activeGroup}_${start}_إلى_${end}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
