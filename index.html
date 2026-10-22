@@ -421,7 +421,7 @@
                 </div>
             </div>
 
-            <!-- 2. NEW: Day Specific Behavior & Participation Lookup Card (لون مميز: أزرق عميق / Slate Dark مميز عن الحضور) -->
+            <!-- 2. Day Specific Behavior & Participation Lookup Card (لون مميز: أزرق عميق / Slate Dark مميز عن الحضور) -->
             <div class="bg-slate-900 text-white rounded-2xl shadow-md p-6 border border-slate-800">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
@@ -1497,17 +1497,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>
                     `;
 
-                    if (name.includes('مشاركة') || name.includes('إجابة')) {
+                    // تم التعديل هنا: توجيه أي عنصر يخص "واجب" إلى الواجبات بغض النظر عن درجته الموجبة أو السالبة
+                    if (name.includes('واجب')) {
+                        hwCount++;
+                        homeworkList.appendChild(li);
+                    } else if (name.includes('مشاركة') || name.includes('إجابة')) {
                         partCount++;
                         participationsList.appendChild(li);
-                    } else if (name.includes('واجب')) {
-                        if (item.score > 0) {
-                            hwCount++;
-                            homeworkList.appendChild(li);
-                        } else {
-                            behCount++;
-                            behaviorsList.appendChild(li);
-                        }
                     } else if (name.includes('ملف') || name.includes('بحث') || name.includes('إنجاز')) {
                         if (item.score > 0) {
                             resCount++;
@@ -1607,17 +1603,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         const logs = dayBehaviors[studentId] || [];
                         logs.forEach(item => {
                             const name = item.name || '';
-                            if (name.includes('مشاركة') || name.includes('إجابة')) {
+                            // تم التعديل هنا لضمان فرز الواجبات بغض النظر عن النتيجة (حسابها كواجبات)
+                            if (name.includes('واجب')) {
+                                studentStats[studentId].homework++;
+                                totalHomeworkCount++;
+                            } else if (name.includes('مشاركة') || name.includes('إجابة')) {
                                 studentStats[studentId].participations++;
                                 totalParticipationsCount++;
-                            } else if (name.includes('واجب')) {
-                                if (item.score > 0) {
-                                    studentStats[studentId].homework++;
-                                    totalHomeworkCount++;
-                                } else {
-                                    studentStats[studentId].negatives++;
-                                    totalNegativesCount++;
-                                }
                             } else if (name.includes('ملف') || name.includes('بحث') || name.includes('إنجاز')) {
                                 if (item.score > 0) {
                                     studentStats[studentId].research++;
@@ -1731,8 +1723,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     const logs = (allBehaviorsRecords[date] || {})[student.id] || [];
                     logs.forEach(item => {
                         const name = item.name || '';
-                        if (name.includes('مشاركة') || name.includes('إجابة')) participations++;
-                        else if (name.includes('واجب')) { item.score > 0 ? homework++ : negatives++; }
+                        if (name.includes('واجب')) { homework++; }
+                        else if (name.includes('مشاركة') || name.includes('إجابة')) participations++;
                         else if (name.includes('ملف') || name.includes('بحث') || name.includes('إنجاز')) { item.score > 0 ? research++ : negatives++; }
                         else if (item.score < 0) negatives++;
                         else participations++;
