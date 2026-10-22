@@ -149,7 +149,7 @@
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-star text-amber-500"></i>
-                    سجل المشاركات، الواجبات، والسلوكيات المسجلة
+                    سجل المشاركات (اليومية) والواجبات والملفات والسلوكيات (الثابتة حتى التعديل أو الحذف)
                 </h3>
             </div>
             <div class="overflow-x-auto custom-scrollbar">
@@ -326,7 +326,7 @@
                         <input type="text" id="searchInput" placeholder="بحث عن اسم طالب..." class="w-full pr-9 pl-4 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div class="text-xs text-slate-500 font-medium">
-                        (يعرض مشاركات وسلوكيات اليوم المحدد فقط لتجنب الازدحام مع إمكانية الحذف الفوري)
+                        (المشاركات تتغير يومياً، بينما الواجبات والملفات والسلوكيات تظل ثابتة للطالب حتى تقوم بحذفها أو تعديلها)
                     </div>
                 </div>
 
@@ -421,7 +421,7 @@
                 </div>
             </div>
 
-            <!-- 2. Day Specific Behavior & Participation Lookup Card (مُعدل بالكامل: خلفية سماوية فاتحة وكتابات واضحة داكنة) -->
+            <!-- 2. Day Specific Behavior & Participation Lookup Card -->
             <div class="bg-sky-50 text-slate-800 rounded-2xl shadow-md p-6 border border-sky-200">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
@@ -429,7 +429,7 @@
                             <i class="fa-solid fa-star text-sky-600"></i>
                             استعلام السلوكيات والمشاركات اليومية
                         </h3>
-                        <p class="text-sky-700 text-xs mt-1">عرض تفاصيل المشاركات، الواجبات، الملفات، والسلوكيات المرصودة ليوم محدد</p>
+                        <p class="text-sky-700 text-xs mt-1">عرض تفاصيل المشاركات (اليومية)، الواجبات، الملفات، والسلوكيات المرصودة ليوم محدد</p>
                     </div>
                 </div>
 
@@ -1110,34 +1110,41 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 historyBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد سجلات رصد حضور حتى الآن</td></tr>`;
             }
 
+            // تعديل العرض: المشاركات تظهر حسب أيامها، بينما الواجبات، الملفات، والسلوكيات تظهر بشكل دائم وثابت للطالب
             sortedBehaviorDates.forEach(date => {
                 const dayBehaviorsList = (allBehaviorsRecords[date] || {})[targetStudentId] || [];
-                dayBehaviorsList.forEach(item => {
-                    hasBehaviors = true;
-                    totalBehaviorScore += Number(item.score);
+                dayBehaviorsList.forEach((item, itemIdx) => {
+                    const isParticipation = item.name.includes('مشاركة') || item.name.includes('إجابة');
+                    
+                    // إذا لم تكن مشاركة (أي واجب، ملف، أو سلوك/ملاحظة)، نظهرها دائماً (نلغي شرط التاريخ اليومي لتثبيتها)
+                    // أما إذا كانت مشاركة فنبقيها تابعة لتاريخها اليومي
+                    if (!isParticipation || date === currentDate) {
+                        hasBehaviors = true;
+                        totalBehaviorScore += Number(item.score);
 
-                    let scoreBadgeClass = item.score > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-rose-600 bg-rose-50 border-rose-200";
+                        let scoreBadgeClass = item.score > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-rose-600 bg-rose-50 border-rose-200";
 
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
-                    tr.innerHTML = `
-                        <td class="p-4 font-medium text-slate-700 text-xs">${date} (${item.time})</td>
-                        <td class="p-4 font-bold text-slate-800 flex items-center gap-2">
-                            <span class="text-lg">${item.icon}</span>
-                            <span>${escapeHtml(item.name)}</span>
-                        </td>
-                        <td class="p-4 text-center">
-                            <span class="px-2.5 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}">
-                                ${item.score > 0 ? '+' + item.score : item.score}
-                            </span>
-                        </td>
-                    `;
-                    behaviorsBody.appendChild(tr);
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                        tr.innerHTML = `
+                            <td class="p-4 font-medium text-slate-700 text-xs">${date} (${item.time})</td>
+                            <td class="p-4 font-bold text-slate-800 flex items-center gap-2">
+                                <span class="text-lg">${item.icon}</span>
+                                <span>${escapeHtml(item.name)}</span>
+                            </td>
+                            <td class="p-4 text-center">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}">
+                                    ${item.score > 0 ? '+' + item.score : item.score}
+                                </span>
+                            </td>
+                        `;
+                        behaviorsBody.appendChild(tr);
+                    }
                 });
             });
 
             if (!hasBehaviors) {
-                behaviorsBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد مشاركات أو سلوكيات مسجلة حتى الآن</td></tr>`;
+                behaviorsBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد مشاركات أو ملاحظات مسجلة حتى الآن</td></tr>`;
             }
 
             document.getElementById('portalPresent').textContent = present;
