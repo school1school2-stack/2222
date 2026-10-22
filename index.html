@@ -35,6 +35,14 @@
             color: #4f46e5;
             font-weight: 700;
         }
+        /* تأثير النبض الهادئ للواجبات والملفات والسلوكيات الثابتة */
+        @keyframes softPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.75; transform: scale(1.02); }
+        }
+        .pulse-badge {
+            animation: softPulse 2.5s infinite ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -149,7 +157,7 @@
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-star text-amber-500"></i>
-                    سجل المشاركات (اليومية) والواجبات والملفات والسلوكيات (الثابتة حتى التعديل أو الحذف)
+                    سجل المشاركات (اليومية) والواجبات والملفات والسلوكيات (الثابتة مع نبض تنبيهي مستمر)
                 </h3>
             </div>
             <div class="overflow-x-auto custom-scrollbar">
@@ -326,7 +334,7 @@
                         <input type="text" id="searchInput" placeholder="بحث عن اسم طالب..." class="w-full pr-9 pl-4 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div class="text-xs text-slate-500 font-medium">
-                        (المشاركات تتغير يومياً، بينما الواجبات والملفات والسلوكيات تظل ثابتة للطالب حتى تقوم بحذفها أو تعديلها)
+                        (المشاركات تتغير يومياً، بينما الواجبات والملفات والسلوكيات تظل ثابتة مع نبض تنبيهي للطالب حتى تقوم بحذفها أو تعديلها)
                     </div>
                 </div>
 
@@ -1110,19 +1118,20 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 historyBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد سجلات رصد حضور حتى الآن</td></tr>`;
             }
 
-            // تعديل العرض: المشاركات تظهر حسب أيامها، بينما الواجبات، الملفات، والسلوكيات تظهر بشكل دائم وثابت للطالب
+            // عرض المشاركات اليومية، والواجبات والملفات والسلوكيات الدائمة مع تطبيق تأثير النبض الهادئ (pulse-badge)
             sortedBehaviorDates.forEach(date => {
                 const dayBehaviorsList = (allBehaviorsRecords[date] || {})[targetStudentId] || [];
                 dayBehaviorsList.forEach((item, itemIdx) => {
                     const isParticipation = item.name.includes('مشاركة') || item.name.includes('إجابة');
                     
-                    // إذا لم تكن مشاركة (أي واجب، ملف، أو سلوك/ملاحظة)، نظهرها دائماً (نلغي شرط التاريخ اليومي لتثبيتها)
-                    // أما إذا كانت مشاركة فنبقيها تابعة لتاريخها اليومي
                     if (!isParticipation || date === currentDate) {
                         hasBehaviors = true;
                         totalBehaviorScore += Number(item.score);
 
                         let scoreBadgeClass = item.score > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-rose-600 bg-rose-50 border-rose-200";
+                        
+                        // إذا كان السجل ثابتاً (واجب، ملف، أو ملاحظة/سلوك)، نضيف كلاس النبض (pulse-badge) ليلفت الانتباه
+                        let extraClass = !isParticipation ? " pulse-badge shadow-sm" : "";
 
                         const tr = document.createElement('tr');
                         tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
@@ -1133,7 +1142,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 <span>${escapeHtml(item.name)}</span>
                             </td>
                             <td class="p-4 text-center">
-                                <span class="px-2.5 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}${extraClass}">
                                     ${item.score > 0 ? '+' + item.score : item.score}
                                 </span>
                             </td>
