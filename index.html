@@ -35,13 +35,14 @@
             color: #4f46e5;
             font-weight: 700;
         }
-        /* تأثير النبض الهادئ للواجبات والملفات والسلوكيات الثابتة */
+        /* تأثير النبض الهادئ والواضح للواجبات والملفات والسلوكيات الدائمة */
         @keyframes softPulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.03); }
+            50% { opacity: 0.65; transform: scale(1.04); }
         }
         .pulse-badge {
-            animation: softPulse 2s infinite ease-in-out;
+            animation: softPulse 1.8s infinite ease-in-out;
+            display: inline-block;
         }
     </style>
 </head>
@@ -166,7 +167,7 @@
                         <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
                             <th class="p-4">تاريخ الحدث ووقت الرصد</th>
                             <th class="p-4">نوع المشاركة / السلوك</th>
-                            <th class="p-4 text-center">النقاط</th>
+                            <th class="p-4 text-center">النقاط والتنبيه</th>
                         </tr>
                     </thead>
                     <tbody id="portalBehaviorsTableBody" class="divide-y divide-slate-100 text-sm">
@@ -334,7 +335,7 @@
                         <input type="text" id="searchInput" placeholder="بحث عن اسم طالب..." class="w-full pr-9 pl-4 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div class="text-xs text-slate-500 font-medium">
-                        (المشاركات تتغير يومياً، بينما الواجبات والملفات والسلوكيات تظل ثابتة وبارزة بنبض تنبيهي للطالب حتى تقوم بحذفها أو تعديلها)
+                        (المشاركات تتغير يومياً، بينما الواجبات والملفات والسلوكيات تظل ثابتة وبارزة بنبض تنبيهي للطالب عبر كل الأيام حتى تقوم بحذفها)
                     </div>
                 </div>
 
@@ -370,7 +371,7 @@
         <!-- ==================== REPORTS & STATISTICS SECTION ==================== -->
         <div id="reportsSection" class="hidden space-y-6">
             
-            <!-- 1. Day Specific Lookup Card (الحضور والغياب ليوم محدد - لون كحلي أساسي) -->
+            <!-- 1. Day Specific Lookup Card (الحضور والغياب ليوم محدد) -->
             <div class="bg-indigo-900 text-white rounded-2xl shadow-md p-6 border border-indigo-800">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
@@ -437,7 +438,7 @@
                             <i class="fa-solid fa-star text-sky-600"></i>
                             استعلام السلوكيات والمشاركات اليومية
                         </h3>
-                        <p class="text-sky-700 text-xs mt-1">عرض تفاصيل المشاركات (اليومية)، الواجبات، الملفات، والسلوكيات المرصودة ليوم محدد</p>
+                        <p class="text-sky-700 text-xs mt-1">عرض تفاصيل المشاركات (الخاصة باليوم المحدد)، بالإضافة للواجبات والملفات والسلوكيات الدائمة المرصودة</p>
                     </div>
                 </div>
 
@@ -1010,6 +1011,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
+                if (!isStudentPortal) {
+                    renderTable();
+                }
             });
         }
 
@@ -1118,19 +1122,19 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 historyBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد سجلات رصد حضور حتى الآن</td></tr>`;
             }
 
-            // تعديل نهائي: المشاركات تتبع تاريخ اليوم المختار، بينما الواجبات والملفات والسلوكيات تظهر بشكل دائم ومستمر لجميع الأيام مع نبض تنبيهي
+            // عرض المشاركات اليومية، والواجبات والملفات والسلوكيات الدائمة مع النبض
             sortedBehaviorDates.forEach(date => {
                 const dayBehaviorsList = (allBehaviorsRecords[date] || {})[targetStudentId] || [];
                 dayBehaviorsList.forEach((item, itemIdx) => {
                     const isParticipation = item.name.includes('مشاركة') || item.name.includes('إجابة');
                     
-                    // إذا لم تكن مشاركة (أي واجب، ملف، أو ملاحظة/سلوك)، نظهرها دائماً بغض النظر عن التاريخ المختار مع تفعيل النبض
+                    // إظهار الواجبات والملفات والسلبيات دائماً عبر جميع الأيام بأسلوب النبض
                     if (!isParticipation || date === currentDate) {
                         hasBehaviors = true;
                         totalBehaviorScore += Number(item.score);
 
                         let scoreBadgeClass = item.score > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-rose-600 bg-rose-50 border-rose-200";
-                        let extraClass = !isParticipation ? " pulse-badge shadow-sm" : "";
+                        let pulseClass = !isParticipation ? " pulse-badge shadow-sm" : "";
 
                         const tr = document.createElement('tr');
                         tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
@@ -1141,8 +1145,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 <span>${escapeHtml(item.name)}</span>
                             </td>
                             <td class="p-4 text-center">
-                                <span class="px-2.5 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}${extraClass}">
-                                    ${item.score > 0 ? '+' + item.score : item.score}
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}${pulseClass}">
+                                    ${item.score > 0 ? '+' + item.score : item.score} ${!isParticipation ? '⚠️ تنبيه' : ''}
                                 </span>
                             </td>
                         `;
@@ -1398,12 +1402,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
-        // Render Single Day Report (Attendance & Behaviors/Participations breakdown)
+        // إدراج وحساب الواجبات والملفات والسلوكيات بشكل عابر للأيام
         function renderSingleDayReport() {
             if (isStudentPortal) return;
             const targetDate = document.getElementById('singleReportDate').value;
             const dayRecords = allAttendanceRecords[targetDate] || {};
-            const dayBehaviors = allBehaviorsRecords[targetDate] || {};
 
             // 1. Attendance Lists
             const presentList = document.getElementById('dayPresentList');
@@ -1477,7 +1480,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (lCount === 0) lateList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
             if (oCount === 0) otherList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
 
-            // 2. Behavior & Participation Breakdown Lists for the Day
+            // 2. Behavior & Participation Breakdown Lists
             const participationsList = document.getElementById('dayParticipationsList');
             const homeworkList = document.getElementById('dayHomeworkList');
             const researchList = document.getElementById('dayResearchList');
@@ -1491,43 +1494,52 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             let partCount = 0, hwCount = 0, resCount = 0, behCount = 0;
 
             filteredForReport.forEach(s => {
-                const logs = dayBehaviors[s.id] || [];
-                logs.forEach(item => {
-                    const name = item.name || '';
-                    const timeStr = item.time || '';
-                    const icon = item.icon || '⭐';
+                // تجميع البيانات: المشاركات من اليوم المختار فقط، أما باقي المخالفات تظهر بغض النظر عن التاريخ
+                Object.keys(allBehaviorsRecords).forEach(d => {
+                    const logs = (allBehaviorsRecords[d] || {})[s.id] || [];
+                    logs.forEach((item, logIdx) => {
+                        const name = item.name || '';
+                        const timeStr = item.time || '';
+                        const icon = item.icon || '⭐';
+                        const isParticipation = name.includes('مشاركة') || name.includes('إجابة');
 
-                    const li = document.createElement('li');
-                    li.className = 'py-2 px-3 bg-sky-50 rounded-xl flex flex-col gap-1 border border-sky-200 shadow-sm';
-                    li.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold text-slate-900 text-xs">${escapeHtml(s.name)}</span>
-                            <span class="text-[10px] text-slate-500 font-normal">(${escapeHtml(s.group)})</span>
-                        </div>
-                        <div class="flex items-center justify-between mt-1">
-                            <span class="text-[11px] font-bold text-sky-900 flex items-center gap-1">
-                                <span>${icon}</span> <span>${escapeHtml(name)}</span>
-                            </span>
-                            ${timeStr ? `<span class="text-[10px] text-slate-600 font-mono bg-sky-200/60 px-1.5 py-0.5 rounded">⏰ ${timeStr}</span>` : ''}
-                        </div>
-                    `;
+                        if (isParticipation && d !== targetDate) return;
 
-                    if (name.includes('واجب')) {
-                        hwCount++;
-                        homeworkList.appendChild(li);
-                    } else if (name.includes('ملف') || name.includes('بحث')) {
-                        resCount++;
-                        researchList.appendChild(li);
-                    } else if (name.includes('مشاركة') || name.includes('إجابة')) {
-                        partCount++;
-                        participationsList.appendChild(li);
-                    } else if (item.score < 0) {
-                        behCount++;
-                        behaviorsList.appendChild(li);
-                    } else {
-                        partCount++;
-                        participationsList.appendChild(li);
-                    }
+                        const li = document.createElement('li');
+                        li.className = 'py-2 px-3 bg-sky-50 rounded-xl flex flex-col gap-1 border border-sky-200 shadow-sm';
+                        
+                        let pulseHTML = !isParticipation ? '<span class="pulse-badge text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-bold">دائم ⚠️</span>' : '';
+
+                        li.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-900 text-xs">${escapeHtml(s.name)}</span>
+                                <span class="text-[10px] text-slate-500 font-normal">(${escapeHtml(s.group)})</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="text-[11px] font-bold text-sky-900 flex items-center gap-1">
+                                    <span>${icon}</span> <span>${escapeHtml(name)}</span> ${pulseHTML}
+                                </span>
+                                ${timeStr ? `<span class="text-[10px] text-slate-600 font-mono bg-sky-200/60 px-1.5 py-0.5 rounded">${d} ⏰ ${timeStr}</span>` : ''}
+                            </div>
+                        `;
+
+                        if (name.includes('واجب')) {
+                            hwCount++;
+                            homeworkList.appendChild(li);
+                        } else if (name.includes('ملف') || name.includes('بحث')) {
+                            resCount++;
+                            researchList.appendChild(li);
+                        } else if (isParticipation) {
+                            partCount++;
+                            participationsList.appendChild(li);
+                        } else if (item.score < 0) {
+                            behCount++;
+                            behaviorsList.appendChild(li);
+                        } else {
+                            partCount++;
+                            participationsList.appendChild(li);
+                        }
+                    });
                 });
             });
 
@@ -1604,7 +1616,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 });
             });
 
-            const relevantBehaviorDates = Object.keys(allBehaviorsRecords).filter(date => date >= start && date <= end);
+            const relevantBehaviorDates = Object.keys(allBehaviorsRecords);
             relevantBehaviorDates.forEach(date => {
                 const dayBehaviors = allBehaviorsRecords[date] || {};
                 Object.keys(dayBehaviors).forEach(studentId => {
@@ -1619,14 +1631,18 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 studentStats[studentId].research++;
                                 totalResearchCount++;
                             } else if (name.includes('مشاركة') || name.includes('إجابة')) {
-                                studentStats[studentId].participations++;
-                                totalParticipationsCount++;
+                                if (date >= start && date <= end) {
+                                    studentStats[studentId].participations++;
+                                    totalParticipationsCount++;
+                                }
                             } else if (item.score < 0) {
                                 studentStats[studentId].negatives++;
                                 totalNegativesCount++;
                             } else {
-                                studentStats[studentId].participations++;
-                                totalParticipationsCount++;
+                                if (date >= start && date <= end) {
+                                    studentStats[studentId].participations++;
+                                    totalParticipationsCount++;
+                                }
                             }
                         });
                     }
@@ -1703,7 +1719,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
-            const relevantBehaviorDates = Object.keys(allBehaviorsRecords).filter(date => date >= start && date <= end);
+            const relevantBehaviorDates = Object.keys(allBehaviorsRecords);
 
             let csvContent = "\uFEFF"; 
             csvContent += `تقرير الحضور والسلوكيات التراكمي - الفصل: (${activeGroup}) من ${start} إلى ${end}\n`;
@@ -1728,9 +1744,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         const name = item.name || '';
                         if (name.includes('واجب')) { homework++; }
                         else if (name.includes('ملف') || name.includes('بحث')) { research++; }
-                        else if (name.includes('مشاركة') || name.includes('إجابة')) participations++;
+                        else if (name.includes('مشاركة') || name.includes('إجابة')) {
+                            if (date >= start && date <= end) participations++;
+                        }
                         else if (item.score < 0) negatives++;
-                        else participations++;
+                        else {
+                            if (date >= start && date <= end) participations++;
+                        }
                     });
                 });
 
@@ -1786,6 +1806,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
+        // عرض جدول المتابعة اليومي للمعلم وتثبيت الواجبات والسلبيات السابقة بأسلوب النبض
         function renderTable() {
             if (isStudentPortal) return;
             const searchTerm = searchInput.value.trim().toLowerCase();
@@ -1858,15 +1879,33 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     behaviorOptionsHTML += `<option value="${idx}">${act.icon} ${act.name} (${act.score > 0 ? '+' + act.score : act.score})</option>`;
                 });
 
-                const studentLogs = studentBehaviorsData[student.id] || [];
-                let logsHTML = `<div class="flex flex-wrap gap-1 mt-1 max-w-[220px] max-h-[80px] overflow-y-auto custom-scrollbar p-0.5">`;
-                studentLogs.forEach((log, logIdx) => {
+                // تجميع السجلات الحالية + السجلات الدائمة من الأيام السابقة (الواجبات، الملفات، والسلبيات)
+                let combinedLogs = [];
+                Object.keys(allBehaviorsRecords).forEach(d => {
+                    const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
+                    logs.forEach((log, logIdx) => {
+                        const isParticipation = log.name.includes('مشاركة') || log.name.includes('إجابة');
+                        if (d === currentDate || !isParticipation) {
+                            combinedLogs.push({
+                                ...log,
+                                originDate: d,
+                                logIdx: logIdx,
+                                isPermanent: !isParticipation && d !== currentDate
+                            });
+                        }
+                    });
+                });
+
+                let logsHTML = `<div class="flex flex-wrap gap-1 mt-1 max-w-[220px] max-h-[85px] overflow-y-auto custom-scrollbar p-0.5">`;
+                combinedLogs.forEach((log) => {
                     let badgeColor = log.score > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200";
+                    let pulseStyle = log.isPermanent ? " pulse-badge" : "";
+                    
                     logsHTML += `
-                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${badgeColor}" title="${log.time}">
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${badgeColor}${pulseStyle}" title="التاريخ: ${log.originDate} - ${log.time}">
                             <span>${log.icon}</span>
                             <span>${escapeHtml(log.name)}</span>
-                            <button onclick="removeBehaviorLog('${student.id}', ${logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5 font-bold" title="حذف هذا السلوك">×</button>
+                            <button onclick="removeBehaviorLogFromDate('${student.id}', '${log.originDate}', ${log.logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5 font-bold" title="حذف هذا السلوك">×</button>
                         </span>
                     `;
                 });
@@ -1924,7 +1963,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 <select onchange="addBehaviorLog('${student.id}', this.value)" class="py-1.5 px-2 text-xs border border-indigo-200 rounded-lg bg-indigo-50/50 text-indigo-900 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                     ${behaviorOptionsHTML}
                                 </select>
-                                ${studentLogs.length > 0 ? logsHTML : ''}
+                                ${combinedLogs.length > 0 ? logsHTML : ''}
                             </div>
                         </td>
                         <td class="p-4 text-center">
@@ -2008,23 +2047,28 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         };
 
-        window.removeBehaviorLog = async function(studentId, logIndex) {
+        window.removeBehaviorLogFromDate = async function(studentId, dateStr, logIndex) {
             if (isReadOnly || isStudentPortal) return;
-            const updatedBehaviors = { ...studentBehaviorsData };
-            if (!updatedBehaviors[studentId]) return;
+            
+            const targetDateBehaviors = (allBehaviorsRecords[dateStr] || {});
+            const studentLogs = targetDateBehaviors[studentId] || [];
 
-            updatedBehaviors[studentId].splice(logIndex, 1);
-            if (updatedBehaviors[studentId].length === 0) {
-                delete updatedBehaviors[studentId];
+            if (studentLogs.length <= logIndex) return;
+
+            studentLogs.splice(logIndex, 1);
+            if (studentLogs.length === 0) {
+                delete targetDateBehaviors[studentId];
+            } else {
+                targetDateBehaviors[studentId] = studentLogs;
             }
 
             try {
-                await db.collection("student_behaviors_records").doc(currentDate).set({
-                    records: updatedBehaviors,
+                await db.collection("student_behaviors_records").doc(dateStr).set({
+                    records: targetDateBehaviors,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
-                showToast('تم حذف السجل بنجاح', 'info');
+                showToast('تم حذف الملاحظة بنجاح ☁️', 'info');
             } catch (error) {
                 console.error("Error removing behavior:", error);
                 showToast('فشل الحذف السحابي', 'warning');
