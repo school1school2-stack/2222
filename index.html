@@ -447,12 +447,12 @@
                             <i class="fa-solid fa-star text-sky-600"></i>
                             استعلام السلوكيات والمشاركات اليومية
                         </h3>
-                        <p class="text-sky-700 text-xs mt-1">عرض تفاصيل المشاركات (الخاصة باليوم المحدد)، بالإضافة للواجبات والملفات والسلوكيات الدائمة المرصودة</p>
+                        <p class="text-sky-700 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر بدلاً من الشريط</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                    <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm">
+                    <div onclick="openCategoryFullModal('participations')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-lightbulb text-sky-600"></i> المشاركات
@@ -460,9 +460,12 @@
                             <span id="dayParticipationsCount" class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
                         <ul id="dayParticipationsList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
+                        <div class="mt-2 text-center text-[11px] text-sky-700/70 font-bold border-t border-sky-100 pt-2">
+                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
+                        </div>
                     </div>
 
-                    <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm">
+                    <div onclick="openCategoryFullModal('homework')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-book-bookmark text-sky-600"></i> الواجبات
@@ -470,9 +473,12 @@
                             <span id="dayHomeworkCount" class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
                         <ul id="dayHomeworkList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
+                        <div class="mt-2 text-center text-[11px] text-sky-700/70 font-bold border-t border-sky-100 pt-2">
+                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
+                        </div>
                     </div>
 
-                    <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm">
+                    <div onclick="openCategoryFullModal('research')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-folder-open text-sky-600"></i> الملف والبحوث
@@ -480,9 +486,12 @@
                             <span id="dayResearchCount" class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
                         <ul id="dayResearchList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
+                        <div class="mt-2 text-center text-[11px] text-sky-700/70 font-bold border-t border-sky-100 pt-2">
+                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
+                        </div>
                     </div>
 
-                    <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm">
+                    <div onclick="openCategoryFullModal('behaviors')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-triangle-exclamation text-sky-600"></i> السلوكيات / الملاحظات
@@ -490,6 +499,9 @@
                             <span id="dayBehaviorsCount" class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
                         <ul id="dayBehaviorsList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
+                        <div class="mt-2 text-center text-[11px] text-sky-700/70 font-bold border-t border-sky-100 pt-2">
+                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1622,6 +1634,22 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 headerBgClass = "bg-slate-700";
                 icon.innerHTML = `<i class="fa-solid fa-file-signature"></i>`;
                 statusName = "excused";
+            } else if (categoryType === 'participations') {
+                typeTitle = "تقرير المشاركات كاملاً";
+                headerBgClass = "bg-sky-700";
+                icon.innerHTML = `<i class="fa-solid fa-lightbulb"></i>`;
+            } else if (categoryType === 'homework') {
+                typeTitle = "تقرير الواجبات كاملاً";
+                headerBgClass = "bg-indigo-700";
+                icon.innerHTML = `<i class="fa-solid fa-book-bookmark"></i>`;
+            } else if (categoryType === 'research') {
+                typeTitle = "تقرير البحوث والملفات كاملاً";
+                headerBgClass = "bg-amber-700";
+                icon.innerHTML = `<i class="fa-solid fa-folder-open"></i>`;
+            } else if (categoryType === 'behaviors') {
+                typeTitle = "تقرير السلوكيات والملاحظات كاملاً";
+                headerBgClass = "bg-rose-700";
+                icon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
             }
 
             header.className = `p-5 text-white flex justify-between items-center ${headerBgClass}`;
@@ -1634,32 +1662,84 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 return actGroup === 'الجميع' || sGroup === actGroup;
             });
 
-            filteredStudents.forEach((student, index) => {
-                const recordObj = dayRecords[student.id];
-                if (!recordObj) return;
+            if (['present', 'absent', 'late', 'excused'].includes(categoryType)) {
+                filteredStudents.forEach((student) => {
+                    const recordObj = dayRecords[student.id];
+                    if (!recordObj) return;
 
-                const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
+                    const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
 
-                if (status === statusName) {
-                    listCount++;
-                    const card = document.createElement('div');
-                    card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
-                    card.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
-                            <div>
-                                <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
-                                <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                    if (status === statusName) {
+                        listCount++;
+                        const card = document.createElement('div');
+                        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                        card.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
+                                    <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="text-left">
-                            <span class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700">⏰ ${timeStr}</span>
-                        </div>
-                    `;
-                    content.appendChild(card);
-                }
-            });
+                            <div class="text-left">
+                                <span class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700">⏰ ${timeStr}</span>
+                            </div>
+                        `;
+                        content.appendChild(card);
+                    }
+                });
+            } else {
+                filteredStudents.forEach((student) => {
+                    Object.keys(allBehaviorsRecords).forEach(d => {
+                        const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
+                        logs.forEach((item) => {
+                            const name = item.name || '';
+                            const timeStr = item.time || '-';
+                            const iconSymbol = item.icon || '⭐';
+                            const isParticipation = name.includes('مشاركة') || name.includes('إجابة');
+
+                            if (isParticipation && d !== targetDate) return;
+
+                            let matchesCategory = false;
+                            if (categoryType === 'participations' && (isParticipation || (!name.includes('واجب') && !name.includes('ملف') && !name.includes('بحث') && item.score >= 0))) {
+                                matchesCategory = true;
+                            } else if (categoryType === 'homework' && name.includes('واجب')) {
+                                matchesCategory = true;
+                            } else if (categoryType === 'research' && (name.includes('ملف') || name.includes('بحث'))) {
+                                matchesCategory = true;
+                            } else if (categoryType === 'behaviors' && !isParticipation && item.score < 0) {
+                                matchesCategory = true;
+                            }
+
+                            if (matchesCategory) {
+                                listCount++;
+                                const card = document.createElement('div');
+                                card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                                
+                                let pulseBadgeHTML = !isParticipation ? '<span class="pulse-badge text-[10px] bg-rose-500 text-white px-1.5 py-0.5 rounded font-bold mr-1">دائم ⚠️</span>' : '';
+
+                                card.innerHTML = `
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
+                                            <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-left flex flex-col items-end gap-1">
+                                        <span class="text-xs font-bold text-indigo-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 flex items-center gap-1">
+                                            <span>${iconSymbol}</span> <span>${escapeHtml(name)}</span> ${pulseBadgeHTML}
+                                        </span>
+                                        <span class="text-[10px] font-mono text-slate-500">التاريخ: ${d} ⏰ ${timeStr}</span>
+                                    </div>
+                                `;
+                                content.appendChild(card);
+                            }
+                        });
+                    });
+                });
+            }
 
             if (listCount === 0) {
                 content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold">لا يوجد طلاب مسجلون تحت هذه الفئة اليوم</div>`;
