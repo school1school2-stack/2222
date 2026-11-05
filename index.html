@@ -1029,6 +1029,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
+                if (!isStudentPortal) {
+                    renderTable();
+                }
             });
 
             db.collection("student_behaviors_records").onSnapshot((snapshot) => {
@@ -2022,6 +2025,27 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : (recordObj || 'unmarked');
                 const timestamp = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '';
 
+                // حساب إجمالي أيام الحضور والغياب للـ الطالب عبر السحابة كاملة
+                let stPresentCount = 0;
+                let stAbsentCount = 0;
+                Object.keys(allAttendanceRecords).forEach(d => {
+                    const rec = (allAttendanceRecords[d] || {})[student.id];
+                    const st = typeof rec === 'object' && rec !== null ? rec.status : rec;
+                    if (st === 'present') stPresentCount++;
+                    else if (st === 'absent') stAbsentCount++;
+                });
+
+                const attendanceBadgesHTML = `
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200" title="إجمالي أيام الحضور">
+                            <i class="fa-solid fa-circle-check text-[10px]"></i> ${stPresentCount} حضور
+                        </span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200" title="إجمالي أيام الغياب">
+                            <i class="fa-solid fa-circle-xmark text-[10px]"></i> ${stAbsentCount} غياب
+                        </span>
+                    </div>
+                `;
+
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-slate-50 transition border-b border-slate-100';
 
@@ -2107,6 +2131,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         <td class="p-4">
                             <div class="font-bold text-slate-800">${escapeHtml(student.name)}</div>
                             <div class="text-xs font-medium mt-0.5 px-2 py-0.5 rounded-md inline-block" style="color: #c53030; background-color: #fdf8f2; box-shadow: 0 1px 2px rgba(217, 119, 6, 0.1);">${escapeHtml(student.email)}</div>
+                            ${attendanceBadgesHTML}
                         </td>
                         <td class="p-4 text-center font-semibold text-slate-600">
                             <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
@@ -2120,6 +2145,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         <td class="p-4">
                             <div class="font-bold text-slate-800">${escapeHtml(student.name)}</div>
                             <div class="text-xs font-medium mt-0.5 px-2 py-0.5 rounded-md inline-block" style="color: #c53030; background-color: #fdf8f2; box-shadow: 0 1px 2px rgba(217, 119, 6, 0.1);">${escapeHtml(student.email)}</div>
+                            ${attendanceBadgesHTML}
                         </td>
                         <td class="p-4 text-center font-semibold text-slate-600">
                             <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
