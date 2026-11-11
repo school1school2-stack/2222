@@ -231,7 +231,6 @@
                 </button>
             </div>
         </div>
-
         <div id="dailySection">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
                 <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
@@ -495,6 +494,44 @@
                 </div>
             </div>
 
+            <!-- بطاقة إضافية خاصة بالطلاب المتجاوزين لـ 3 أيام غياب -->
+            <div class="bg-rose-50 text-slate-800 rounded-2xl shadow-md p-6 border border-rose-200">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold flex items-center gap-2 text-rose-900">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+                            تقرير المتابعة: طلاب تجاوز غيابهم (3 أيام فأكثر)
+                        </h3>
+                        <p class="text-rose-700 text-xs mt-1">الطلاب الذين تخطت حالات غيابهم المسجلة 3 أيام خلال الفترة المحددة أدناه</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportHighAbsenceCSV()" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-file-csv"></i> تصدير قائمة الغياب المتكرر
+                        </button>
+                        <button onclick="sendHighAbsenceToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> إرسال للمدير واتساب
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl border border-rose-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-right border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-rose-100/70 text-rose-900 text-xs uppercase font-bold border-b border-rose-200">
+                                    <th class="p-3">اسم الطالب والبريد</th>
+                                    <th class="p-3 text-center">الفصل / المجموعة</th>
+                                    <th class="p-3 text-center text-rose-700">عدد أيام الغياب</th>
+                                    <th class="p-3 text-center">الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="highAbsenceTableBody" class="divide-y divide-rose-100 text-sm">
+                                <tr><td colspan="4" class="text-center p-4 text-slate-400">جاري فحص السجلات...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div class="flex flex-wrap items-center gap-3">
@@ -543,7 +580,6 @@
                     <h3 id="repTotalLate" class="text-2xl font-black text-amber-600">0</h3>
                 </div>
             </div>
-
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                 <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-award text-amber-500"></i>
@@ -819,7 +855,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             </div>
         </div>
     </div>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBkCO7FDQXd89YDf843J4_AtvEFvzzt-R0",
@@ -1585,7 +1620,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (behCount === 0) behaviorsList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
         }
 
-        // دالة عرض النافذة المنبثقة الكاملة
         function openCategoryFullModal(categoryType) {
             const targetDate = document.getElementById('singleReportDate').value;
             const dayRecords = allAttendanceRecords[targetDate] || {};
@@ -1750,6 +1784,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const end = document.getElementById('reportEndDate').value;
             const reportTableBody = document.getElementById('reportTableBody');
             const reportStatusText = document.getElementById('reportStatusText');
+            const highAbsenceTableBody = document.getElementById('highAbsenceTableBody');
 
             if (!start || !end) return;
 
@@ -1853,11 +1888,15 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('repBehaviorNegatives').textContent = totalNegativesCount;
 
             reportTableBody.innerHTML = '';
+            if (highAbsenceTableBody) highAbsenceTableBody.innerHTML = '';
 
             if (activeStudents.length === 0) {
                 reportTableBody.innerHTML = `<tr><td colspan="10" class="text-center p-6 text-slate-400">لا يوجد طلاب في هذا الفصل لحساب التقرير</td></tr>`;
+                if (highAbsenceTableBody) highAbsenceTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-slate-400">لا توجد بيانات</td></tr>`;
                 return;
             }
+
+            let highAbsenceCount = 0;
 
             activeStudents.forEach((student) => {
                 const stat = studentStats[student.id];
@@ -1890,7 +1929,119 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     </td>
                 `;
                 reportTableBody.appendChild(row);
+
+                // فحص ما إذا كان الغياب 3 أيام فأكثر
+                if (stat.absent >= 3 && highAbsenceTableBody) {
+                    highAbsenceCount++;
+                    let baseUrl = "https://school1school2-stack.github.io/2222/";
+                    if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
+                        baseUrl = window.location.origin + window.location.pathname;
+                    }
+                    let studentPortalLink = `${baseUrl}?student=${student.id}`;
+
+                    const hRow = document.createElement('tr');
+                    hRow.className = 'hover:bg-rose-50/50 transition border-b border-rose-100';
+                    hRow.innerHTML = `
+                        <td class="p-3">
+                            <div class="font-bold text-slate-900">${escapeHtml(student.name)}</div>
+                            <div class="text-[11px] text-slate-500">${escapeHtml(student.email)}</div>
+                        </td>
+                        <td class="p-3 text-center font-semibold text-slate-700">${escapeHtml(student.group)}</td>
+                        <td class="p-3 text-center font-black text-rose-600 text-base">${stat.absent} أيام</td>
+                        <td class="p-3 text-center">
+                            <a href="${studentPortalLink}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-link"></i> الملف
+                            </a>
+                        </td>
+                    `;
+                    highAbsenceTableBody.appendChild(hRow);
+                }
             });
+
+            if (highAbsenceCount === 0 && highAbsenceTableBody) {
+                highAbsenceTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-emerald-600 font-bold">لا يوجد طلاب تجاوزوا 3 أيام غياب في هذه الفترة 🎉</td></tr>`;
+            }
+        }
+
+        function exportHighAbsenceCSV() {
+            const start = document.getElementById('reportStartDate').value;
+            const end = document.getElementById('reportEndDate').value;
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
+
+            let csvContent = "\uFEFF";
+            csvContent += `قائمة الطلاب المتجاوزين لـ 3 أيام غياب - الفصل: (${activeGroup}) من ${start} إلى ${end}\n`;
+            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,عدد أيام الغياب\n`;
+
+            let count = 0;
+            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
+
+            activeStudents.forEach(student => {
+                let absentCount = 0;
+                relevantDates.forEach(date => {
+                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
+                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    if (st === 'absent') absentCount++;
+                });
+
+                if (absentCount >= 3) {
+                    count++;
+                    csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}",${absentCount}\n`;
+                }
+            });
+
+            if (count === 0) {
+                showToast('لا توجد حالات غياب متكرر للتصدير', 'warning');
+                return;
+            }
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `الغياب_المتكرر_اكثر_من_3ايام_${activeGroup}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function sendHighAbsenceToWhatsApp() {
+            const start = document.getElementById('reportStartDate').value;
+            const end = document.getElementById('reportEndDate').value;
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
+
+            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
+            let highAbsentListText = "";
+            let count = 0;
+
+            activeStudents.forEach(student => {
+                let absentCount = 0;
+                relevantDates.forEach(date => {
+                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
+                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    if (st === 'absent') absentCount++;
+                });
+
+                if (absentCount >= 3) {
+                    count++;
+                    highAbsentListText += `%0A- ${student.name} (${student.group}): ${absentCount} أيام`;
+                }
+            });
+
+            if (count === 0) {
+                showToast('لا توجد حالات غياب تتجاوز 3 أيام للإرسال', 'warning');
+                return;
+            }
+
+            const message = `سعادة مدير المدرسة المحترم،%0A%0اإليك تقريراً بالطلاب الذين تجاوزوا 3 أيام غياب فأكثر للفصل: (${activeGroup}) خلال الفترة من ${start} إلى ${end}:%0A${highAbsentListText}%0A%0ايرجى التكرم بالاطلاع واتخاذ الإجراء اللازم.`;
+            window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
 
         function exportReportCSV() {
@@ -2025,7 +2176,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : (recordObj || 'unmarked');
                 const timestamp = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '';
 
-                // حساب إجمالي أيام الحضور والغياب والتأخر للطالب عبر السحابة كاملة
                 let stPresentCount = 0;
                 let stAbsentCount = 0;
                 let stLateCount = 0;
