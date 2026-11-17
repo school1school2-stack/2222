@@ -164,29 +164,6 @@
                 <div class="text-center p-6 text-slate-400">جاري تحميل السجل...</div>
             </div>
         </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
-                    سجل الحضور والغياب التفصيلي الكامل
-                </h3>
-            </div>
-            <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full text-right border-collapse min-w-[500px]">
-                    <thead>
-                        <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
-                            <th class="p-4">تاريخ اليوم</th>
-                            <th class="p-4 text-center">الحالة المرصودة</th>
-                            <th class="p-4 text-center">وقت الرصد</th>
-                        </tr>
-                    </thead>
-                    <tbody id="portalHistoryTableBody" class="divide-y divide-slate-100 text-sm">
-                        <tr><td colspan="3" class="text-center p-6 text-slate-400">جاري تحميل السجل...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </main>
 
     <main id="mainDashboardContainer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
@@ -1210,12 +1187,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             let present = 0, absent = 0, late = 0, excused = 0;
             let totalBehaviorScore = 0;
-            const historyBody = document.getElementById('portalHistoryTableBody');
             const behaviorsContainer = document.getElementById('portalBehaviorsTableBody');
-            historyBody.innerHTML = '';
             behaviorsContainer.innerHTML = '';
 
-            let hasHistory = false;
             let hasBehaviors = false;
             const sortedDates = Object.keys(allAttendanceRecords).sort().reverse();
             const sortedBehaviorDates = Object.keys(allBehaviorsRecords).sort().reverse();
@@ -1224,35 +1198,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 const dayRecords = allAttendanceRecords[date] || {};
                 const recordObj = dayRecords[targetStudentId];
                 if (recordObj) {
-                    hasHistory = true;
                     const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                    const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
-
                     if (st === 'present') present++;
                     else if (st === 'absent') absent++;
                     else if (st === 'late') late++;
                     else if (st === 'excused') excused++;
-
-                    let statusBadge = '<span class="px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600">مسجل</span>';
-                    if (st === 'present') statusBadge = '<span class="px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800 text-[11px]">حاضر</span>';
-                    else if (st === 'absent') statusBadge = '<span class="px-2.5 py-1 rounded-full font-bold bg-rose-100 text-rose-800 text-[11px]">غائب</span>';
-                    else if (st === 'late') statusBadge = '<span class="px-2.5 py-1 rounded-full font-bold bg-amber-100 text-amber-800 text-[11px]">متأخر</span>';
-                    else if (st === 'excused') statusBadge = '<span class="px-2.5 py-1 rounded-full font-bold bg-blue-100 text-blue-800 text-[11px]">بعذر</span>';
-
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
-                    tr.innerHTML = `
-                        <td class="p-4 font-medium text-slate-700">${date}</td>
-                        <td class="p-4 text-center">${statusBadge}</td>
-                        <td class="p-4 text-center font-mono text-slate-500">${timeStr}</td>
-                    `;
-                    historyBody.appendChild(tr);
                 }
             });
-
-            if (!hasHistory) {
-                historyBody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-slate-400">لا توجد سجلات رصد حضور حتى الآن</td></tr>`;
-            }
 
             sortedBehaviorDates.forEach(date => {
                 const dayBehaviorsList = (allBehaviorsRecords[date] || {})[targetStudentId] || [];
