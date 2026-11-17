@@ -3,770 +3,591 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كشف الحضور والسلوكيات الطلابية - سحابة aaaa</title>
+    <title>منصة متابعة الحضور والسلوكيات المدرسية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <!-- Firebase SDK v8 -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: #f8fafc;
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; border-radius: 8px; }
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.03); opacity: 0.9; }
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        .tab-active {
-            border-bottom: 3px solid #4f46e5;
-            color: #4f46e5;
-            font-weight: 700;
-        }
-        @keyframes softPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.65; transform: scale(1.04); }
-        }
-        .pulse-badge {
-            animation: softPulse 1.8s infinite ease-in-out;
-            display: inline-block;
-        }
+        .pulse-badge { animation: pulse-soft 2s infinite ease-in-out; }
+        .tab-active { border-bottom: 3px solid #4f46e5; color: #4f46e5; font-weight: 700; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-    <header class="bg-indigo-800 text-white shadow-lg border-b border-indigo-900">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <div class="p-3 bg-indigo-700 rounded-xl shadow-inner">
-                    <i class="fa-solid fa-graduation-cap text-2xl text-yellow-300"></i>
+    <!-- Read-Only Banner for Manager -->
+    <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2">
+        <i class="fa-solid fa-shield-halved text-amber-300 text-lg"></i>
+        <span id="bannerText">أنت الآن في لوحة تقارير الحضور والإحصائيات (عرض للمدير)</span>
+    </div>
+
+    <!-- Header Section -->
+    <header class="bg-indigo-900 text-white shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-indigo-800 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-700">
+                    <i class="fa-solid fa-graduation-cap text-2xl text-amber-300"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-wide">كشف الحضور والسلوكيات والمشاركات</h1>
-                    <p class="text-indigo-200 text-sm">أ/ عبدالعزيز الفيفي - إدارة الفصول والمجموعات بالسحابة</p>
+                    <h1 class="text-xl font-black tracking-wide">منصة المتابعة اليومية والسلوكية</h1>
+                    <p class="text-xs text-indigo-200 mt-0.5">وزارة التعليم - إدارة الحضور والسجلات التراكمية</p>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-3 flex-wrap">
-                <button onclick="openStudentShareModal()" class="bg-indigo-700 hover:bg-indigo-600 text-indigo-100 font-bold px-3.5 py-2 rounded-lg border border-indigo-600 shadow flex items-center gap-2 text-sm transition">
-                    <i class="fa-solid fa-link text-yellow-300"></i>
-                    <span>إصدار رابط تقرير طالب</span>
-                </button>
-                <button id="shareManagerBtn" onclick="shareReportWithManager()" class="bg-amber-400 hover:bg-amber-500 text-indigo-950 font-bold px-3 py-2 rounded-lg border border-amber-300 shadow flex items-center gap-2 text-sm transition">
-                    <i class="fa-solid fa-share-nodes text-indigo-900"></i>
-                    <span>مشاركة التقرير للمدير</span>
-                </button>
-                <div id="cloudBadge" class="bg-indigo-900/80 px-4 py-2 rounded-lg border border-indigo-500/30 flex items-center gap-2 text-sm">
-                    <i id="cloudIcon" class="fa-solid fa-cloud text-emerald-400 animate-pulse"></i>
-                    <span id="cloudStatus" class="font-medium text-indigo-100">السحابة: متصل جاري التحميل...</span>
+
+            <!-- Group & Cloud Status -->
+            <div class="flex items-center gap-3 flex-wrap justify-center">
+                <div class="bg-indigo-800/80 border border-indigo-700 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-inner">
+                    <i class="fa-solid fa-users text-amber-300 text-xs"></i>
+                    <span class="text-xs font-bold text-indigo-100">الفصل النشط:</span>
+                    <select id="classSelector" onchange="changeActiveGroup(this.value)" class="bg-indigo-900 text-white text-xs font-bold px-2 py-1 rounded-lg border border-indigo-600 focus:outline-none focus:ring-1 focus:ring-amber-300">
+                        <option value="الجميع">جميع الفصول</option>
+                    </select>
                 </div>
+
+                <button id="manageGroupsBtn" onclick="openManageGroupsModal()" class="bg-indigo-800 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-indigo-700 shadow-sm" title="إدارة الفصول والمجموعات">
+                    <i class="fa-solid fa-folder-plus text-amber-300"></i> الفصول
+                </button>
+
+                <div id="cloudBadge" class="bg-indigo-950/60 border border-indigo-800 px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs font-mono">
+                    <i id="cloudIcon" class="fa-solid fa-cloud text-amber-400"></i>
+                    <span id="cloudStatus" class="text-indigo-200">السحابة متصلة</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div id="tabsContainer" class="bg-indigo-950/40 border-t border-indigo-800/60">
+            <div class="max-w-7xl mx-auto px-4 flex gap-4">
+                <button onclick="switchTab('daily')" id="dailyTabBtn" class="tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-user"></i> الرصد اليومي المباشر
+                </button>
+                <button onclick="switchTab('reports')" id="reportsTabBtn" class="text-slate-400 hover:text-white py-3 px-6 text-sm font-medium transition flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie"></i> التقارير والإحصائيات التراكمية
+                </button>
             </div>
         </div>
     </header>
 
-    <div id="readOnlyBanner" class="hidden bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md flex items-center justify-center gap-2">
-        <i class="fa-solid fa-eye text-lg"></i>
-        <span id="bannerText">أنت الآن في لوحة تقارير الحضور والإحصائيات (عرض للمدير)</span>
-    </div>
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
 
-    <!-- Student Portal View Container -->
-    <main id="studentPortalContainer" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
-        <div class="bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md rounded-xl flex items-center justify-center gap-2">
-            <i class="fa-solid fa-id-badge text-lg"></i>
-            <span>لوحة متابعة الطالب الفردية (اضغط على أي بطاقة أدناه لعرض تفاصيلها وقائمتها فوراً)</span>
-        </div>
+        <!-- Student Portal View (Hidden by default unless ?student=ID) -->
+        <div id="studentPortalContainer" class="hidden space-y-6 max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-0"></div>
+                <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <span class="text-xs font-bold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">تقرير متابعة الطالب الفردي</span>
+                        <h2 id="portalStudentName" class="text-2xl font-black text-slate-900 mt-2">اسم الطالب</h2>
+                        <p id="portalStudentDetails" class="text-xs text-slate-500 mt-1">الفصل والمجموعة</p>
+                    </div>
+                    <div class="bg-indigo-900 text-white p-4 rounded-2xl shadow-inner text-center min-w-[140px]">
+                        <span class="text-[10px] text-indigo-200 block">نسبة الحضور</span>
+                        <span id="portalRateBadge" class="text-lg font-black text-emerald-400">0%</span>
+                    </div>
+                </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="p-3.5 bg-indigo-50 rounded-2xl text-indigo-600 text-2xl">
-                    <i class="fa-solid fa-user-graduate"></i>
+                <!-- Portal Stats Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-100">
+                    <div onclick="openPortalCategoryModal('present')" class="bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer p-3 rounded-xl border border-emerald-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-emerald-700 block">أيام الحضور</span>
+                        <span id="portalPresent" class="text-xl font-black text-emerald-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('absent')" class="bg-rose-50 hover:bg-rose-100 transition cursor-pointer p-3 rounded-xl border border-rose-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-rose-700 block">أيام الغياب</span>
+                        <span id="portalAbsent" class="text-xl font-black text-rose-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('late')" class="bg-amber-50 hover:bg-amber-100 transition cursor-pointer p-3 rounded-xl border border-amber-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-amber-700 block">أيام التأخر</span>
+                        <span id="portalLate" class="text-xl font-black text-amber-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('excused')" class="bg-blue-50 hover:bg-blue-100 transition cursor-pointer p-3 rounded-xl border border-blue-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-blue-700 block">أعذار أخرى</span>
+                        <span id="portalExcused" class="text-xl font-black text-blue-800">0</span>
+                    </div>
                 </div>
-                <div>
-                    <h2 id="portalStudentName" class="text-xl font-black text-slate-900">جاري تحميل اسم الطالب...</h2>
-                    <p id="portalStudentDetails" class="text-xs text-slate-500 mt-0.5 font-medium"></p>
-                </div>
-            </div>
-            <div class="flex items-center gap-4 bg-slate-50 px-4 py-3 rounded-xl border border-slate-200">
-                <div>
-                    <span class="text-xs text-slate-500 font-bold block">معدل الحضور العام</span>
-                    <span id="portalRateBadge" class="text-lg font-black text-emerald-600">0%</span>
-                </div>
-                <div class="border-r border-slate-200 pr-4">
-                    <span class="text-xs text-slate-500 font-bold block">إجمالي نقاط السلوك والمشاركات</span>
-                    <span id="portalBehaviorPoints" class="text-lg font-black text-indigo-600">0</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- بطاقات الحضور والغياب والواجبات والمشاركات (قابلة للضغط) -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <!-- الحضور -->
-            <div onclick="openPortalCategoryModal('present')" class="bg-white hover:bg-emerald-50/50 transition cursor-pointer p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-emerald-600 font-bold mb-1">أيام الحضور</p>
-                    <h3 id="portalPresent" class="text-2xl font-black text-emerald-600">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-            </div>
-
-            <!-- الغياب -->
-            <div onclick="openPortalCategoryModal('absent')" class="bg-white hover:bg-rose-50/50 transition cursor-pointer p-4 rounded-xl border border-rose-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-rose-600 font-bold mb-1">أيام الغياب</p>
-                    <h3 id="portalAbsent" class="text-2xl font-black text-rose-600">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 text-xl">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                </div>
-            </div>
-
-            <!-- التأخر -->
-            <div onclick="openPortalCategoryModal('late')" class="bg-white hover:bg-amber-50/50 transition cursor-pointer p-4 rounded-xl border border-amber-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-amber-600 font-bold mb-1">أيام التأخر</p>
-                    <h3 id="portalLate" class="text-2xl font-black text-amber-600">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-xl">
-                    <i class="fa-solid fa-clock"></i>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-3">
+                    <div onclick="openPortalCategoryModal('homework_done')" class="bg-teal-50 hover:bg-teal-100 transition cursor-pointer p-3 rounded-xl border border-teal-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-teal-700 block">حل الواجبات</span>
+                        <span id="portalHomeworkDone" class="text-lg font-black text-teal-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('homework_not')" class="bg-pink-50 hover:bg-pink-100 transition cursor-pointer p-3 rounded-xl border border-pink-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-pink-700 block">لم يحل الواجب</span>
+                        <span id="portalHomeworkNot" class="text-lg font-black text-pink-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('participations')" class="bg-sky-50 hover:bg-sky-100 transition cursor-pointer p-3 rounded-xl border border-sky-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-sky-700 block">المشاركات</span>
+                        <span id="portalParticipations" class="text-lg font-black text-sky-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('behaviors_notes')" class="bg-purple-50 hover:bg-purple-100 transition cursor-pointer p-3 rounded-xl border border-purple-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-purple-700 block">الملاحظات والسلوك</span>
+                        <span id="portalBehaviorsNotes" class="text-lg font-black text-purple-800">0</span>
+                    </div>
+                    <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-200 text-center shadow-sm col-span-2 sm:col-span-1">
+                        <span class="text-[11px] font-bold text-indigo-700 block">نقاط السلوك</span>
+                        <span id="portalBehaviorPoints" class="text-lg font-black text-indigo-800">0</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- بعذر -->
-            <div onclick="openPortalCategoryModal('excused')" class="bg-white hover:bg-blue-50/50 transition cursor-pointer p-4 rounded-xl border border-blue-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-blue-600 font-bold mb-1">أيام بعذر</p>
-                    <h3 id="portalExcused" class="text-2xl font-black text-blue-600">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-xl">
-                    <i class="fa-solid fa-file-signature"></i>
-                </div>
-            </div>
-
-            <!-- حل الواجبات -->
-            <div onclick="openPortalCategoryModal('homework_done')" class="bg-white hover:bg-teal-50/50 transition cursor-pointer p-4 rounded-xl border border-teal-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-teal-600 font-bold mb-1">حل الواجبات</p>
-                    <h3 id="portalHomeworkDone" class="text-2xl font-black text-teal-600">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600 text-xl">
-                    <i class="fa-solid fa-book-bookmark"></i>
-                </div>
-            </div>
-
-            <!-- لم يحل الواجب -->
-            <div onclick="openPortalCategoryModal('homework_not')" class="bg-white hover:bg-pink-50/50 transition cursor-pointer p-4 rounded-xl border border-pink-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-pink-600 font-bold mb-1">لم يحل الواجب</p>
-                    <h3 id="portalHomeworkNot" class="text-2xl font-black text-pink-600">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-pink-600 text-xl">
-                    <i class="fa-solid fa-book-open-reader"></i>
-                </div>
-            </div>
-
-            <!-- المشاركات -->
-            <div onclick="openPortalCategoryModal('participations')" class="bg-white hover:bg-sky-50/50 transition cursor-pointer p-4 rounded-xl border border-sky-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-sky-600 font-bold mb-1">المشاركات</p>
-                    <h3 id="portalParticipations" class="text-2xl font-black text-sky-600">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600 text-xl">
-                    <i class="fa-solid fa-lightbulb"></i>
-                </div>
-            </div>
-
-            <!-- السلوكيات والملاحظات -->
-            <div onclick="openPortalCategoryModal('behaviors_notes')" class="bg-white hover:bg-purple-50/50 transition cursor-pointer p-4 rounded-xl border border-purple-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-purple-600 font-bold mb-1">السلوكيات والملاحظات</p>
-                    <h3 id="portalBehaviorsNotes" class="text-2xl font-black text-purple-600">0</h3>
-                </div>
-                <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 text-xl">
-                    <i class="fa-solid fa-pen-nib"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-star text-amber-500"></i>
-                    سجل المشاركات والواجبات والملاحظات الخطية والسلوكيات
+            <!-- Portal Detailed Log List -->
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 space-y-4">
+                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-indigo-600"></i> سجل المشاركات والملاحظات التفصيلي
                 </h3>
-            </div>
-            <div class="p-4 space-y-3" id="portalBehaviorsTableBody">
-                <div class="text-center p-6 text-slate-400">جاري تحميل السجل...</div>
-            </div>
-        </div>
-    </main>
-
-    <main id="mainDashboardContainer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
-
-        <div id="tabsContainer" class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2">
-            <button id="dailyTabBtn" onclick="switchTab('daily')" class="tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2">
-                <i class="fa-solid fa-calendar-check text-indigo-600"></i>
-                كشف الحضور اليومي والمشاركات
-            </button>
-            <button id="reportsTabBtn" onclick="switchTab('reports')" class="text-slate-500 hover:text-indigo-600 py-3 px-6 text-sm font-medium transition flex items-center gap-2">
-                <i class="fa-solid fa-chart-pie text-indigo-600"></i>
-                التقارير والإحصائيات
-            </button>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-                <div class="p-2.5 bg-indigo-50 rounded-xl text-indigo-600 font-bold flex items-center gap-2 text-sm">
-                    <i class="fa-solid fa-door-open text-indigo-600"></i>
-                    الفصل / المجموعة الحالية:
+                <div id="portalBehaviorsTableBody" class="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar">
+                    <!-- Dynamic Log Cards -->
                 </div>
-                <select id="classSelector" onchange="changeActiveGroup(this.value)" class="bg-indigo-900 text-white font-bold px-4 py-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition flex-grow sm:flex-grow-0">
-                    <option value="الجميع">جميع الفصول والمجموعات</option>
-                </select>
-            </div>
-
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-                <button onclick="copyCurrentClassData()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 border border-indigo-200">
-                    <i class="fa-solid fa-copy"></i>
-                    نسخ الفصل كامل
-                </button>
-                <button onclick="openAddModalWithClass()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 border border-emerald-200">
-                    <i class="fa-solid fa-paste"></i>
-                    لصق الفصل كامل
-                </button>
-                <button onclick="deleteCurrentClassData()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 border border-rose-200">
-                    <i class="fa-solid fa-trash-can"></i>
-                    حذف الفصل كامل
-                </button>
-                <button id="manageGroupsBtn" onclick="openManageGroupsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-2 border border-slate-300">
-                    <i class="fa-solid fa-folder-plus text-indigo-600"></i>
-                    إدارة الفصول
-                </button>
             </div>
         </div>
-        <div id="dailySection">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
-                <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
-                    
-                    <div class="flex flex-wrap items-center gap-3">
-                        <label class="font-bold text-slate-700 flex items-center gap-2">
-                            <i class="fa-regular fa-calendar-days text-indigo-600"></i>
-                            تاريخ اليوم:
-                        </label>
-                        <input type="date" id="selectedDate" class="bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
-                        <button id="todayBtn" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-3 py-2 rounded-xl text-sm transition">
-                            اليوم
-                        </button>
+
+        <!-- Main Dashboard Container -->
+        <div id="mainDashboardContainer" class="space-y-6">
+
+            <!-- Daily Section -->
+            <div id="dailySection" class="space-y-6">
+                <!-- Top Controls Bar -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3 w-full lg:w-auto">
+                        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
+                            <i class="fa-regular fa-calendar text-indigo-600"></i>
+                            <span class="text-xs font-bold text-slate-700">تاريخ الرصد:</span>
+                            <input type="date" id="selectedDate" class="bg-transparent text-xs font-bold text-indigo-900 focus:outline-none cursor-pointer">
+                        </div>
+                        <button id="todayBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition">اليوم</button>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div id="quickAddControls" class="relative flex items-center gap-1">
-                            <div class="relative">
-                                <input type="text" id="quickStudentInput" list="presetStudentsList" placeholder="ابحث أو اكتب اسم طالب..." class="bg-slate-50 border border-slate-300 text-slate-800 font-medium px-3 py-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none w-[200px]" autocomplete="off">
-                                <datalist id="presetStudentsList"></datalist>
-                            </div>
-                            <button id="addQuickStudentBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl text-sm transition shadow-sm flex items-center justify-center w-9 h-9" title="إضافة الطالب المحدد للفصل الحالي">
-                                <i class="fa-solid fa-plus"></i>
+                    <div class="flex items-center gap-3 w-full lg:w-auto justify-end flex-wrap">
+                        <div class="relative flex-grow sm:flex-grow-0">
+                            <i class="fa-solid fa-search absolute right-3 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="searchInput" placeholder="بحث عن طالب..." class="w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+
+                        <div id="quickAddControls" class="flex items-center gap-2">
+                            <input type="text" id="quickStudentInput" list="presetStudentsList" placeholder="اسم طالب جديد..." class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs w-36 sm:w-44 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <datalist id="presetStudentsList"></datalist>
+                            <button id="addQuickStudentBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-user-plus"></i> إضافة
                             </button>
                         </div>
 
-                        <button id="openAddModalBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-user-plus"></i>
-                            إدراج أسماء (دفعة واحدة)
+                        <button id="openAddModalBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-users-rectangle"></i> قائمة الطلاب والإيميلات
                         </button>
-                        <button id="exportExcelBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-file-excel"></i>
-                            تصدير Excel / CSV
-                        </button>
-                    </div>
 
-                </div>
-            </div>
-
-            <!-- بطاقات الإحصائيات (الضغط المباشر لعرض الحضور والغياب والتأخر) -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-slate-500 font-bold mb-1">إجمالي الطلاب في الفصل</p>
-                        <h3 id="statTotal" class="text-2xl font-black text-slate-800">0</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 text-xl">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                </div>
-
-                <div onclick="openMainQuickModal('present')" class="bg-white hover:bg-emerald-50/60 transition cursor-pointer p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between" title="اضغط لعرض قائمة الحاضرين">
-                    <div>
-                        <p class="text-xs text-emerald-600 font-bold mb-1">حاضر (اضغط للعرض)</p>
-                        <h3 id="statPresent" class="text-2xl font-black text-emerald-600">0</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
-                </div>
-
-                <div onclick="openMainQuickModal('absent')" class="bg-white hover:bg-rose-50/60 transition cursor-pointer p-4 rounded-xl border border-rose-100 shadow-sm flex items-center justify-between" title="اضغط لعرض قائمة الغائبين">
-                    <div>
-                        <p class="text-xs text-rose-600 font-bold mb-1">غائب (اضغط للعرض)</p>
-                        <h3 id="statAbsent" class="text-2xl font-black text-rose-600">0</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 text-xl">
-                        <i class="fa-solid fa-circle-xmark"></i>
-                    </div>
-                </div>
-
-                <div onclick="openMainQuickModal('other')" class="bg-white hover:bg-amber-50/60 transition cursor-pointer p-4 rounded-xl border border-amber-100 shadow-sm flex items-center justify-between" title="اضغط لعرض المتأخرين أو بعذر">
-                    <div>
-                        <p class="text-xs text-amber-600 font-bold mb-1">متأخر / بعذر (اضغط)</p>
-                        <h3 id="statOther" class="text-2xl font-black text-amber-600">0</h3>
-                    </div>
-                    <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-xl">
-                        <i class="fa-solid fa-clock"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-3">
-                    <div class="relative w-full md:w-72">
-                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="searchInput" placeholder="بحث عن اسم طالب..." class="w-full pr-9 pl-4 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-                    <div class="text-xs text-slate-500 font-medium">
-                        (المشاركات تتغير يومياً، بينما الواجبات والملفات والسلوكيات والملاحظات الخطية تظل ثابتة وبارزة للطالب عبر كل الأيام حتى تقوم بحذفها)
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-right border-collapse min-w-[850px]">
-                        <thead>
-                            <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
-                                <th class="p-4">بيانات الطالب (الاسم والبريد)</th>
-                                <th class="p-4 text-center w-28">الفصل/المجموعة</th>
-                                <th class="p-4 text-center">الحالة اليوم ووقت الرصد</th>
-                                <th class="p-4 text-center edit-column">تحديد الحالة (حاضر / غائب / أخرى)</th>
-                                <th class="p-4 text-center edit-column">تسجيل مشاركة / ملاحظة خطية (اليوم)</th>
-                                <th class="p-4 text-center w-28 edit-column">روابط وإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentsTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                    </table>
-                </div>
-
-                <div id="emptyState" class="hidden p-12 text-center">
-                    <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                        <i class="fa-solid fa-user-slash"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-700 mb-1">لا يوجد طلاب في هذا الفصل حتى الآن</h3>
-                    <p class="text-slate-500 text-sm max-w-md mx-auto mb-4">قم بإضافة قائمة أسماء الطلاب لهذا الفصل بالضغط على زر "إدراج أسماء" أو اختر من القائمة المنسدلة.</p>
-                    <button id="emptyStateAddBtn" onclick="document.getElementById('openAddModalBtn').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition">
-                        إضافة قائمة الأسماء الآن
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="reportsSection" class="hidden space-y-6">
-            
-            <div class="bg-indigo-900 text-white rounded-2xl shadow-md p-6 border border-indigo-800">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold flex items-center gap-2 text-amber-300">
-                            <i class="fa-solid fa-calendar-day"></i>
-                            استعلام الحضور والغياب ليوم محدد
-                        </h3>
-                        <p class="text-indigo-200 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر</p>
-                    </div>
-                    <div class="flex items-center gap-3 bg-indigo-800/80 p-2 rounded-xl border border-indigo-700">
-                        <label class="font-bold text-sm text-indigo-100">اختر اليوم:</label>
-                        <input type="date" id="singleReportDate" onchange="renderSingleDayReport()" class="bg-indigo-950 text-white border border-indigo-600 rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-amber-400 focus:outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                    <!-- الحاضرون -->
-                    <div onclick="openCategoryFullModal('present')" class="bg-emerald-950/50 hover:bg-emerald-900/60 transition cursor-pointer border border-emerald-500/30 rounded-xl p-4 shadow-sm">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-emerald-500/30">
-                            <span class="font-bold text-emerald-300 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-check"></i> الحاضرون
-                            </span>
-                            <span id="dayPresentCount" class="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <ul id="dayPresentList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-emerald-100"></ul>
-                        <div class="mt-2 text-center text-[11px] text-emerald-300/70 font-bold border-t border-emerald-500/20 pt-2">
-                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
-                        </div>
-                    </div>
-
-                    <!-- الغائبون -->
-                    <div onclick="openCategoryFullModal('absent')" class="bg-rose-950/50 hover:bg-rose-900/60 transition cursor-pointer border border-rose-500/30 rounded-xl p-4 shadow-sm">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-rose-500/30">
-                            <span class="font-bold text-rose-300 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-xmark"></i> الغائبون
-                            </span>
-                            <span id="dayAbsentCount" class="bg-rose-500/20 text-rose-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <ul id="dayAbsentList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-rose-100"></ul>
-                        <div class="mt-2 text-center text-[11px] text-rose-300/70 font-bold border-t border-rose-500/20 pt-2">
-                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
-                        </div>
-                    </div>
-
-                    <!-- المتأخرون -->
-                    <div onclick="openCategoryFullModal('late')" class="bg-amber-950/50 hover:bg-amber-900/60 transition cursor-pointer border border-amber-500/30 rounded-xl p-4 shadow-sm">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-amber-500/30">
-                            <span class="font-bold text-amber-300 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-clock"></i> المتأخرون
-                            </span>
-                            <span id="dayLateCount" class="bg-amber-500/20 text-amber-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <ul id="dayLateList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-amber-100"></ul>
-                        <div class="mt-2 text-center text-[11px] text-amber-300/70 font-bold border-t border-amber-500/20 pt-2">
-                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
-                        </div>
-                    </div>
-
-                    <!-- بعذر -->
-                    <div onclick="openCategoryFullModal('excused')" class="bg-slate-800/80 hover:bg-slate-800 transition cursor-pointer border border-slate-600 rounded-xl p-4 shadow-sm">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-600">
-                            <span class="font-bold text-slate-300 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-file-signature"></i> بعذر / لم يحدد
-                            </span>
-                            <span id="dayOtherCount" class="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <ul id="dayOtherList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-200"></ul>
-                        <div class="mt-2 text-center text-[11px] text-slate-400 font-bold border-t border-slate-700 pt-2">
-                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- قسم السلوكيات والواجبات المفصولة بدقة -->
-            <div class="bg-sky-50 text-slate-800 rounded-2xl shadow-md p-6 border border-sky-200">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold flex items-center gap-2 text-sky-900">
-                            <i class="fa-solid fa-star text-sky-600"></i>
-                            استعلام السلوكيات والمشاركات والواجبات اليومية
-                        </h3>
-                        <p class="text-sky-700 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
-                    <div onclick="openCategoryFullModal('participations')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
-                            <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-lightbulb text-sky-600"></i> المشاركات
-                            </span>
-                            <span id="dayParticipationsCount" class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <ul id="dayParticipationsList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
-                        <div class="mt-2 text-center text-[11px] text-sky-700/70 font-bold border-t border-sky-100 pt-2">
-                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
-                        </div>
-                    </div>
-
-                    <div onclick="openCategoryFullModal('homework_done')" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm hover:bg-emerald-100/70 transition cursor-pointer">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-emerald-200">
-                            <span class="font-bold text-emerald-900 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-check text-emerald-600"></i> سَلَّمُوا الواجب
-                            </span>
-                            <span id="dayHomeworkDoneCount" class="bg-emerald-200 text-emerald-900 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <ul id="dayHomeworkDoneList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
-                        <div class="mt-2 text-center text-[11px] text-emerald-800/70 font-bold border-t border-emerald-200 pt-2">
-                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
-                        </div>
-                    </div>
-
-                    <div onclick="openCategoryFullModal('homework_not')" class="bg-pink-50 border border-pink-200 rounded-xl p-4 shadow-sm hover:bg-pink-100/70 transition cursor-pointer">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-pink-200">
-                            <span class="font-bold text-pink-900 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-circle-xmark text-pink-600"></i> لَمْ يُسَلِّمُوا الواجب
-                            </span>
-                            <span id="dayHomeworkNotCount" class="bg-pink-200 text-pink-900 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <ul id="dayHomeworkNotList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
-                        <div class="mt-2 text-center text-[11px] text-pink-800/70 font-bold border-t border-pink-200 pt-2">
-                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
-                        </div>
-                    </div>
-
-                    <div onclick="openCategoryFullModal('research')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
-                            <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-folder-open text-sky-600"></i> الملف والبحوث
-                            </span>
-                            <span id="dayResearchCount" class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <ul id="dayResearchList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
-                        <div class="mt-2 text-center text-[11px] text-sky-700/70 font-bold border-t border-sky-100 pt-2">
-                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
-                        </div>
-                    </div>
-
-                    <div onclick="openCategoryFullModal('behaviors')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
-                            <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-pen-nib text-sky-600"></i> الملاحظات الخطية والسلوكيات
-                            </span>
-                            <span id="dayBehaviorsCount" class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                        </div>
-                        <ul id="dayBehaviorsList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
-                        <div class="mt-2 text-center text-[11px] text-sky-700/70 font-bold border-t border-sky-100 pt-2">
-                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- بطاقة إضافية خاصة بالطلاب المتجاوزين لـ 3 أيام غياب -->
-            <div class="bg-rose-50 text-slate-800 rounded-2xl shadow-md p-6 border border-rose-200">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold flex items-center gap-2 text-rose-900">
-                            <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
-                            تقرير المتابعة: طلاب تجاوز غيابهم (3 أيام فأكثر)
-                        </h3>
-                        <p class="text-rose-700 text-xs mt-1">الطلاب الذين تخطت حالات غيابهم المسجلة 3 أيام خلال الفترة المحددة أدناه</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="exportHighAbsenceCSV()" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-file-csv"></i> تصدير قائمة الغياب المتكرر
-                        </button>
-                        <button onclick="sendHighAbsenceToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-brands fa-whatsapp text-sm"></i> إرسال للمدير واتساب
+                        <button id="shareManagerBtn" onclick="shareReportWithManager()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-paper-plane"></i> مشاركة مع المدير
                         </button>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl border border-rose-200 overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-right border-collapse min-w-[600px]">
+
+                <!-- Daily Statistics Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-slate-500 font-bold block">إجمالي طلاب الفصل</span>
+                            <span id="statTotal" class="text-2xl font-black text-slate-900 mt-1 block">0</span>
+                        </div>
+                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                            <i class="fa-solid fa-users text-lg"></i>
+                        </div>
+                    </div>
+
+                    <div onclick="openMainQuickModal('present')" class="bg-white hover:bg-emerald-50/50 transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-emerald-600 font-bold block">الحاضرون اليوم</span>
+                            <span id="statPresent" class="text-2xl font-black text-emerald-700 mt-1 block">0</span>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                            <i class="fa-solid fa-user-check text-lg"></i>
+                        </div>
+                    </div>
+
+                    <div onclick="openMainQuickModal('absent')" class="bg-white hover:bg-rose-50/50 transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-rose-600 font-bold block">الغائبون اليوم</span>
+                            <span id="statAbsent" class="text-2xl font-black text-rose-700 mt-1 block">0</span>
+                        </div>
+                        <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
+                            <i class="fa-solid fa-user-xmark text-lg"></i>
+                        </div>
+                    </div>
+
+                    <div onclick="openMainQuickModal('other')" class="bg-white hover:bg-amber-50/50 transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-amber-600 font-bold block">متأخر / بعذر</span>
+                            <span id="statOther" class="text-2xl font-black text-amber-700 mt-1 block">0</span>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                            <i class="fa-solid fa-clock text-lg"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Single Day Live Reports Widget (Collapsible / Clean View) -->
+                <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-xl border border-indigo-800 text-white p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-indigo-800/60">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-indigo-800 rounded-xl flex items-center justify-center border border-indigo-700">
+                                <i class="fa-solid fa-file-invoice text-amber-300 text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold">ملخص الحضور والأنشطة اليومي التفاعلي</h3>
+                                <p class="text-xs text-indigo-200">عرض فوري للحالات المسجلة في التاريخ المحدد</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-indigo-950/80 px-3 py-1.5 rounded-xl border border-indigo-800">
+                            <i class="fa-regular fa-calendar text-amber-300 text-xs"></i>
+                            <input type="date" id="singleReportDate" onchange="renderSingleDayReport()" class="bg-transparent text-xs font-bold text-amber-300 focus:outline-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Attendance Summary Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('present')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> الحاضرون</span>
+                                <span id="dayPresentCount" class="text-sm font-black bg-emerald-500/20 text-emerald-200 px-2.5 py-0.5 rounded-lg border border-emerald-500/30">0</span>
+                            </div>
+                            <ul id="dayPresentList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد ملاحظات</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('absent')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark"></i> الغائبون</span>
+                                <span id="dayAbsentCount" class="text-sm font-black bg-rose-500/20 text-rose-200 px-2.5 py-0.5 rounded-lg border border-rose-500/30">0</span>
+                            </div>
+                            <ul id="dayAbsentList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد ملاحظات</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('late')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> المتأخرون</span>
+                                <span id="dayLateCount" class="text-sm font-black bg-amber-500/20 text-amber-200 px-2.5 py-0.5 rounded-lg border border-amber-500/30">0</span>
+                            </div>
+                            <ul id="dayLateList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد ملاحظات</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('excused')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-blue-300 flex items-center gap-1.5"><i class="fa-solid fa-file-signature"></i> بعذر / أخرى</span>
+                                <span id="dayOtherCount" class="text-sm font-black bg-blue-500/20 text-blue-200 px-2.5 py-0.5 rounded-lg border border-blue-500/30">0</span>
+                            </div>
+                            <ul id="dayOtherList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد ملاحظات</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Behaviors Summary Grid (Updated to include Forgot File card) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 pt-2">
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('participations')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-sky-300 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb"></i> المشاركات</span>
+                                <span id="dayParticipationsCount" class="text-sm font-black bg-sky-500/20 text-sky-200 px-2.5 py-0.5 rounded-lg border border-sky-500/30">0</span>
+                            </div>
+                            <ul id="dayParticipationsList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد ملاحظات</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('homework_done')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5"><i class="fa-solid fa-book-bookmark"></i> حلوا الواجب</span>
+                                <span id="dayHomeworkDoneCount" class="text-sm font-black bg-emerald-500/20 text-emerald-200 px-2.5 py-0.5 rounded-lg border border-emerald-500/30">0</span>
+                            </div>
+                            <ul id="dayHomeworkDoneList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد سجلات</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('homework_not')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-pink-300 flex items-center gap-1.5"><i class="fa-solid fa-book-open-reader"></i> لم يحلو الواجب</span>
+                                <span id="dayHomeworkNotCount" class="text-sm font-black bg-pink-500/20 text-pink-200 px-2.5 py-0.5 rounded-lg border border-pink-500/30">0</span>
+                            </div>
+                            <ul id="dayHomeworkNotList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد سجلات</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('research')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5"><i class="fa-solid fa-folder-open"></i> إنجاز الملف</span>
+                                <span id="dayResearchCount" class="text-sm font-black bg-amber-500/20 text-amber-200 px-2.5 py-0.5 rounded-lg border border-amber-500/30">0</span>
+                            </div>
+                            <ul id="dayResearchList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد ملاحظات</li>
+                            </ul>
+                        </div>
+
+                        <!-- البطاقة الجديدة المخصصة لنسيان الملف -->
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('forgot_file')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5"><i class="fa-solid fa-folder-closed"></i> نسوا الملف</span>
+                                <span id="dayForgotFileCount" class="text-sm font-black bg-rose-500/20 text-rose-200 px-2.5 py-0.5 rounded-lg border border-rose-500/30">0</span>
+                            </div>
+                            <ul id="dayForgotFileList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد ملاحظات</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3.5 space-y-2">
+                            <div onclick="openCategoryFullModal('behaviors')" class="flex justify-between items-center cursor-pointer hover:bg-white/5 p-1 rounded transition">
+                                <span class="text-xs font-bold text-purple-300 flex items-center gap-1.5"><i class="fa-solid fa-pen-nib"></i> السلوك والملاحظات</span>
+                                <span id="dayBehaviorsCount" class="text-sm font-black bg-purple-500/20 text-purple-200 px-2.5 py-0.5 rounded-lg border border-purple-500/30">0</span>
+                            </div>
+                            <ul id="dayBehaviorsList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+                                <li class="text-slate-400 py-1">لا توجد ملاحظات</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Students Table Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-indigo-600"></i>
+                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openAddModalWithClass()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-indigo-200" title="نسخ طلاب الفصل الحالي لصق سريع">
+                                <i class="fa-regular fa-copy"></i> نسخ طلاب الفصل
+                            </button>
+                            <button onclick="deleteCurrentClassData()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-rose-200" title="حذف جميع طلاب هذا الفصل">
+                                <i class="fa-solid fa-trash-can"></i> حذف الفصل
+                            </button>
+                            <button id="exportExcelBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                                <i class="fa-solid fa-file-excel text-emerald-600"></i> تصدير CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
                             <thead>
-                                <tr class="bg-rose-100/70 text-rose-900 text-xs uppercase font-bold border-b border-rose-200">
-                                    <th class="p-3">اسم الطالب والبريد</th>
-                                    <th class="p-3 text-center">الفصل / المجموعة</th>
-                                    <th class="p-3 text-center text-rose-700">عدد أيام الغياب</th>
-                                    <th class="p-3 text-center">الإجراء</th>
+                                <tr class="bg-slate-100 text-slate-600 text-xs font-bold border-b border-slate-200">
+                                    <th class="p-4">اسم الطالب والبريد الإلكتروني</th>
+                                    <th class="p-4 text-center">الفصل / المجموعة</th>
+                                    <th class="p-4 text-center">الحالة الحالية</th>
+                                    <th class="p-4 text-center">تسجيل الحضور السريع</th>
+                                    <th class="p-4 text-center">السلوك والمشاركات التفاعلية</th>
+                                    <th class="p-4 text-center">إجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody id="highAbsenceTableBody" class="divide-y divide-rose-100 text-sm">
-                                <tr><td colspan="4" class="text-center p-4 text-slate-400">جاري فحص السجلات...</td></tr>
+                            <tbody id="studentsTableBody" class="text-xs divide-y divide-slate-100">
+                                <!-- Dynamic Students Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" class="hidden p-12 text-center space-y-3">
+                        <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-solid fa-user-slash"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-700 text-base">لا توجد طلاب مسجلون في هذا الفصل</h4>
+                        <p class="text-xs text-slate-400">قم بإضافة الطلاب أو اختيار فصل آخر لعرض السجلات</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section (Hidden by default) -->
+            <div id="reportsSection" class="hidden space-y-6">
+                <!-- Date Filter for Reports -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+                        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
+                            <span class="text-xs font-bold text-slate-700">من تاريخ:</span>
+                            <input type="date" id="reportStartDate" onchange="generateReport()" class="bg-transparent text-xs font-bold text-indigo-900 focus:outline-none cursor-pointer">
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
+                            <span class="text-xs font-bold text-slate-700">إلى تاريخ:</span>
+                            <input type="date" id="reportEndDate" onchange="generateReport()" class="bg-transparent text-xs font-bold text-indigo-900 focus:outline-none cursor-pointer">
+                        </div>
+                        <span id="reportStatusText" class="text-xs text-slate-500 font-medium"></span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportReportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-file-excel"></i> تصدير التقرير الشامل CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cumulative Stats Overview Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                        <span class="text-xs text-slate-500 font-bold block">إجمالي أيام الرصد</span>
+                        <span id="repTotalDays" class="text-2xl font-black text-slate-900 mt-1 block">0 يوم</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                        <span class="text-xs text-emerald-600 font-bold block">متوسط نسبة الحضور</span>
+                        <span id="repAvgPresenceRate" class="text-2xl font-black text-emerald-700 mt-1 block">0%</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                        <span class="text-xs text-rose-600 font-bold block">إجمالي حالات الغياب</span>
+                        <span id="repTotalAbsences" class="text-2xl font-black text-rose-700 mt-1 block">0</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                        <span class="text-xs text-amber-600 font-bold block">إجمالي حالات التأخر</span>
+                        <span id="repTotalLate" class="text-2xl font-black text-amber-700 mt-1 block">0</span>
+                    </div>
+                </div>
+
+                <!-- Cumulative Behaviors Overview Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl text-center">
+                        <span class="text-xs font-bold text-emerald-700 block">إجمالي الحضور التراكمي</span>
+                        <span id="repBehaviorPresent" class="text-xl font-black text-emerald-900 mt-1 block">0</span>
+                    </div>
+                    <div class="bg-sky-50 border border-sky-200 p-4 rounded-2xl text-center">
+                        <span class="text-xs font-bold text-sky-700 block">إجمالي المشاركات</span>
+                        <span id="repBehaviorParticipations" class="text-xl font-black text-sky-900 mt-1 block">0</span>
+                    </div>
+                    <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-2xl text-center">
+                        <span class="text-xs font-bold text-indigo-700 block">إجمالي الواجبات</span>
+                        <span id="repBehaviorHomework" class="text-xl font-black text-indigo-900 mt-1 block">0</span>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-center">
+                        <span class="text-xs font-bold text-amber-700 block">إجمالي إنجاز الملفات</span>
+                        <span id="repBehaviorResearch" class="text-xl font-black text-amber-900 mt-1 block">0</span>
+                    </div>
+                    <div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl text-center col-span-2 sm:col-span-1">
+                        <span class="text-xs font-bold text-rose-700 block">إجمالي السلبيات</span>
+                        <span id="repBehaviorNegatives" class="text-xl font-black text-rose-900 mt-1 block">0</span>
+                    </div>
+                </div>
+
+                <!-- High Absence Alert Box -->
+                <div class="bg-white rounded-2xl shadow-sm border border-rose-200 overflow-hidden">
+                    <div class="p-4 bg-rose-50 border-b border-rose-200 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+                            <h3 class="font-bold text-rose-900 text-sm">الطلاب المتجاوزون لـ 3 أيام غياب فأكثر (تنبيه للمدير)</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="exportHighAbsenceCSV()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">
+                                <i class="fa-solid fa-file-excel"></i> تصدير الغياب المتكرر
+                            </button>
+                            <button onclick="sendHighAbsenceToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-brands fa-whatsapp"></i> إرسال عبر واتساب
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-rose-50/50 text-rose-900 text-xs font-bold border-b border-rose-100">
+                                    <th class="p-3">اسم الطالب والبريد</th>
+                                    <th class="p-3 text-center">الفصل</th>
+                                    <th class="p-3 text-center">أيام الغياب</th>
+                                    <th class="p-3 text-center">رابط الملف الفردي</th>
+                                </tr>
+                            </thead>
+                            <tbody id="highAbsenceTableBody" class="text-xs divide-y divide-slate-100">
+                                <!-- Dynamic High Absence Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Comprehensive Cumulative Report Table -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200">
+                        <h3 class="font-bold text-slate-800 text-sm">جدول السجل التراكمي الشامل للفترة المحددة</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 text-xs font-bold border-b border-slate-200">
+                                    <th class="p-4">اسم الطالب والبريد</th>
+                                    <th class="p-4 text-center">الفصل</th>
+                                    <th class="p-4 text-center">أيام الحضور</th>
+                                    <th class="p-4 text-center">المشاركات</th>
+                                    <th class="p-4 text-center">الواجبات</th>
+                                    <th class="p-4 text-center">إنجاز الملفات</th>
+                                    <th class="p-4 text-center">السلبيات والملاحظات</th>
+                                    <th class="p-4 text-center">الغياب</th>
+                                    <th class="p-4 text-center">التأخر</th>
+                                    <th class="p-4 text-center">نسبة الحضور</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody" class="text-xs divide-y divide-slate-100">
+                                <!-- Dynamic Report Rows -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <span class="font-bold text-slate-700 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-filter text-indigo-600"></i>
-                            نطاق تقرير الإحصائيات التراكمي:
-                        </span>
-                        <div class="flex items-center gap-2 text-sm">
-                            <label class="text-slate-500">من:</label>
-                            <input type="date" id="reportStartDate" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        </div>
-                        <div class="flex items-center gap-2 text-sm">
-                            <label class="text-slate-500">إلى:</label>
-                            <input type="date" id="reportEndDate" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        </div>
-                        <button onclick="generateReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-1.5 rounded-xl text-sm transition">
-                            عرض التقرير
-                        </button>
-                    </div>
-
-                    <button onclick="exportReportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-sm">
-                        <i class="fa-solid fa-file-csv"></i>
-                        تصدير التقرير كـ CSV
-                    </button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <p class="text-xs text-slate-500 font-bold mb-1">إجمالي أيام الرصد</p>
-                    <h3 id="repTotalDays" class="text-2xl font-black text-slate-800">0 يوم</h3>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-emerald-200 shadow-sm">
-                    <p class="text-xs text-emerald-600 font-bold mb-1">نسبة الحضور العامة</p>
-                    <h3 id="repAvgPresenceRate" class="text-2xl font-black text-emerald-600">0%</h3>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-rose-200 shadow-sm">
-                    <p class="text-xs text-rose-600 font-bold mb-1">إجمالي حالات الغياب</p>
-                    <h3 id="repTotalAbsences" class="text-2xl font-black text-rose-600">0</h3>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-amber-200 shadow-sm">
-                    <p class="text-xs text-amber-600 font-bold mb-1">إجمالي التأخر والحياد</p>
-                    <h3 id="repTotalLate" class="text-2xl font-black text-amber-600">0</h3>
-                </div>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
-                <h3 class="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-award text-amber-500"></i>
-                    إحصائيات السلوكيات والمشاركات التراكمية للفصل خلال الفترة
-                </h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                    <div class="bg-emerald-50/60 p-4 rounded-xl border border-emerald-200 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-emerald-700 font-bold mb-1">الحضور</p>
-                            <h4 id="repBehaviorPresent" class="text-xl font-black text-emerald-800">0</h4>
-                        </div>
-                        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600">
-                            <i class="fa-solid fa-user-check"></i>
-                        </div>
-                    </div>
-
-                    <div class="bg-cyan-50/60 p-4 rounded-xl border border-cyan-200 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-cyan-700 font-bold mb-1">المشاركات</p>
-                            <h4 id="repBehaviorParticipations" class="text-xl font-black text-cyan-800">0</h4>
-                        </div>
-                        <div class="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center text-cyan-600">
-                            <i class="fa-solid fa-lightbulb"></i>
-                        </div>
-                    </div>
-
-                    <div class="bg-indigo-50/60 p-4 rounded-xl border border-indigo-200 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-indigo-700 font-bold mb-1">الواجبات</p>
-                            <h4 id="repBehaviorHomework" class="text-xl font-black text-indigo-800">0</h4>
-                        </div>
-                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600">
-                            <i class="fa-solid fa-book-bookmark"></i>
-                        </div>
-                    </div>
-
-                    <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-amber-700 font-bold mb-1">البحوث والملفات</p>
-                            <h4 id="repBehaviorResearch" class="text-xl font-black text-amber-800">0</h4>
-                        </div>
-                        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
-                            <i class="fa-solid fa-folder-open"></i>
-                        </div>
-                    </div>
-
-                    <div class="bg-rose-50/60 p-4 rounded-xl border border-rose-200 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-rose-700 font-bold mb-1">السلبيات والملاحظات</p>
-                            <h4 id="repBehaviorNegatives" class="text-xl font-black text-rose-800">0</h4>
-                        </div>
-                        <div class="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center text-rose-600">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-users-viewfinder text-indigo-600"></i>
-                        تقرير إحصائيات حضور الطلاب والسلوكيات التراكمي
-                    </h3>
-                    <span id="reportStatusText" class="text-xs text-slate-500">جاري تحميل البيانات...</span>
-                </div>
-
-                <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-right border-collapse min-w-[850px]">
-                        <thead>
-                            <tr class="bg-slate-100/80 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
-                                <th class="p-4">بيانات الطالب (الاسم والبريد)</th>
-                                <th class="p-4 text-center">الفصل/المجموعة</th>
-                                <th class="p-4 text-center text-emerald-700">أيام الحضور</th>
-                                <th class="p-4 text-center text-cyan-700">المشاركات</th>
-                                <th class="p-4 text-center text-indigo-700">الواجبات</th>
-                                <th class="p-4 text-center text-amber-700">البحوث/الملفات</th>
-                                <th class="p-4 text-center text-rose-700">السلبيات</th>
-                                <th class="p-4 text-center text-rose-700">أيام الغياب</th>
-                                <th class="p-4 text-center text-amber-700">أيام التأخر</th>
-                                <th class="p-4 text-center">نسبة الحضور</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reportTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
-
     </main>
-    <!-- Modal Report Full Category View -->
-    <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all">
-            <div id="fullModalHeader" class="p-5 text-white flex justify-between items-center bg-indigo-900">
+
+    <!-- Full Category Modal (For Live Daily Details & Counts) -->
+    <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
+            <div id="fullModalHeader" class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-3">
-                    <div id="fullModalIcon" class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
+                    <div id="fullModalIcon" class="text-2xl"></div>
                     <div>
-                        <h3 id="fullModalTitle" class="text-lg font-bold">تقرير تفصيلي</h3>
-                        <p id="fullModalSubtitle" class="text-xs opacity-80">تاريخ اليوم المحدد</p>
+                        <h3 id="fullModalTitle" class="text-lg font-bold">تفاصيل الفئة</h3>
+                        <p id="fullModalSubtitle" class="text-xs text-indigo-200 mt-0.5">التاريخ والفصل</p>
                     </div>
                 </div>
-                <button onclick="closeCategoryFullModal()" class="text-white/80 hover:text-white transition p-2 text-xl">
-                    <i class="fa-solid fa-xmark"></i>
+                <button onclick="closeCategoryFullModal()" class="text-indigo-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
             
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-grow space-y-3" id="fullModalContent">
-                <!-- محتوى النافذة -->
+            <div id="fullModalContent" class="p-6 space-y-3 overflow-y-auto custom-scrollbar flex-grow">
+                <!-- Dynamic cards list -->
             </div>
 
-            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-                <span id="fullModalCountBadge" class="text-xs font-bold bg-slate-200 text-slate-700 px-3 py-1 rounded-full">العدد الإجمالي: 0</span>
-                <button onclick="closeCategoryFullModal()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition">
-                    إغلاق التقرير
-                </button>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center shrink-0">
+                <span id="fullModalCountBadge" class="text-xs font-bold text-slate-600 bg-slate-200 px-3 py-1.5 rounded-xl">الإجمالي: 0</span>
+                <button onclick="closeCategoryFullModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">إغلاق</button>
             </div>
         </div>
     </div>
 
-    <!-- نافذة منبثقة خاصة بعرض تفاصيل الفئات في لوحة الطالب الفردية -->
-    <div id="portalCategoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden transform transition-all">
-            <div id="portalModalHeader" class="p-4 text-white flex justify-between items-center bg-indigo-900">
+    <!-- Interactive Portal Category Modal -->
+    <div id="portalCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-lg overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
+            <div id="portalModalHeader" class="p-4 text-white flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-2.5">
-                    <div id="portalModalIcon" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-calendar-days"></i>
-                    </div>
-                    <h3 id="portalModalTitle" class="text-base font-bold">قائمة التفاصيل</h3>
+                    <span id="portalModalIcon" class="text-xl"></span>
+                    <h3 id="portalModalTitle" class="text-base font-bold">سجل الفئة</h3>
                 </div>
-                <button onclick="closePortalCategoryModal()" class="text-white/80 hover:text-white transition p-1.5 text-lg">
-                    <i class="fa-solid fa-xmark"></i>
+                <button onclick="closePortalCategoryModal()" class="text-white/80 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
             
-            <div class="p-5 overflow-y-auto custom-scrollbar flex-grow space-y-2.5" id="portalModalContent">
-                <!-- العناصر ستظهر هنا -->
+            <div id="portalModalContent" class="p-5 space-y-2.5 overflow-y-auto custom-scrollbar flex-grow">
+                <!-- Dynamic cards -->
             </div>
 
-            <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-                <span id="portalModalCountBadge" class="text-xs font-bold bg-slate-200 text-slate-700 px-3 py-1 rounded-full">الإجمالي: 0</span>
-                <button onclick="closePortalCategoryModal()" class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition">
-                    إغلاق
-                </button>
+            <div class="p-3.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center shrink-0">
+                <span id="portalModalCountBadge" class="text-xs font-bold text-slate-600 bg-slate-200 px-2.5 py-1 rounded-lg">الإجمالي: 0</span>
+                <button onclick="closePortalCategoryModal()" class="px-4 py-1.5 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs transition">إغلاق</button>
             </div>
         </div>
     </div>
