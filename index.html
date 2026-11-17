@@ -85,7 +85,7 @@
     <main id="studentPortalContainer" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
         <div class="bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md rounded-xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-id-badge text-lg"></i>
-            <span>لوحة متابعة الطالب الفردية (اضغط على بطاقات الحضور أو الغياب لعرض قائمتها المخصصة)</span>
+            <span>لوحة متابعة الطالب الفردية (اضغط على أي بط أدناه لعرض تفاصيلها وقائمتها فوراً)</span>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -110,11 +110,12 @@
             </div>
         </div>
 
-        <!-- بطاقات الحضور والغياب القابلة للضغط -->
+        <!-- بطاقات الحضور والغياب والواجبات والمشاركات (قابلة للضغط) -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- الحضور -->
             <div onclick="openPortalCategoryModal('present')" class="bg-white hover:bg-emerald-50/50 transition cursor-pointer p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-emerald-600 font-bold mb-1">أيام الحضور (عرض القائمة)</p>
+                    <p class="text-xs text-emerald-600 font-bold mb-1">أيام الحضور</p>
                     <h3 id="portalPresent" class="text-2xl font-black text-emerald-600">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl">
@@ -122,9 +123,10 @@
                 </div>
             </div>
 
+            <!-- الغياب -->
             <div onclick="openPortalCategoryModal('absent')" class="bg-white hover:bg-rose-50/50 transition cursor-pointer p-4 rounded-xl border border-rose-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-rose-600 font-bold mb-1">أيام الغياب (عرض القائمة)</p>
+                    <p class="text-xs text-rose-600 font-bold mb-1">أيام الغياب</p>
                     <h3 id="portalAbsent" class="text-2xl font-black text-rose-600">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 text-xl">
@@ -132,9 +134,10 @@
                 </div>
             </div>
 
+            <!-- التأخر -->
             <div onclick="openPortalCategoryModal('late')" class="bg-white hover:bg-amber-50/50 transition cursor-pointer p-4 rounded-xl border border-amber-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-amber-600 font-bold mb-1">أيام التأخر (عرض القائمة)</p>
+                    <p class="text-xs text-amber-600 font-bold mb-1">أيام التأخر</p>
                     <h3 id="portalLate" class="text-2xl font-black text-amber-600">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-xl">
@@ -142,13 +145,58 @@
                 </div>
             </div>
 
+            <!-- بعذر -->
             <div onclick="openPortalCategoryModal('excused')" class="bg-white hover:bg-blue-50/50 transition cursor-pointer p-4 rounded-xl border border-blue-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-blue-600 font-bold mb-1">أيام بعذر (عرض القائمة)</p>
+                    <p class="text-xs text-blue-600 font-bold mb-1">أيام بعذر</p>
                     <h3 id="portalExcused" class="text-2xl font-black text-blue-600">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-xl">
                     <i class="fa-solid fa-file-signature"></i>
+                </div>
+            </div>
+
+            <!-- حل الواجبات -->
+            <div onclick="openPortalCategoryModal('homework_done')" class="bg-white hover:bg-teal-50/50 transition cursor-pointer p-4 rounded-xl border border-teal-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-teal-600 font-bold mb-1">حل الواجبات</p>
+                    <h3 id="portalHomeworkDone" class="text-2xl font-black text-teal-600">0</h3>
+                </div>
+                <div class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600 text-xl">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                </div>
+            </div>
+
+            <!-- لم يحل الواجب -->
+            <div onclick="openPortalCategoryModal('homework_not')" class="bg-white hover:bg-pink-50/50 transition cursor-pointer p-4 rounded-xl border border-pink-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-pink-600 font-bold mb-1">لم يحل الواجب</p>
+                    <h3 id="portalHomeworkNot" class="text-2xl font-black text-pink-600">0</h3>
+                </div>
+                <div class="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-pink-600 text-xl">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+            </div>
+
+            <!-- المشاركات -->
+            <div onclick="openPortalCategoryModal('participations')" class="bg-white hover:bg-sky-50/50 transition cursor-pointer p-4 rounded-xl border border-sky-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-sky-600 font-bold mb-1">المشاركات</p>
+                    <h3 id="portalParticipations" class="text-2xl font-black text-sky-600">0</h3>
+                </div>
+                <div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600 text-xl">
+                    <i class="fa-solid fa-lightbulb"></i>
+                </div>
+            </div>
+
+            <!-- السلوكيات والملاحظات -->
+            <div onclick="openPortalCategoryModal('behaviors_notes')" class="bg-white hover:bg-purple-50/50 transition cursor-pointer p-4 rounded-xl border border-purple-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-purple-600 font-bold mb-1">السلوكيات والملاحظات</p>
+                    <h3 id="portalBehaviorsNotes" class="text-2xl font-black text-purple-600">0</h3>
+                </div>
+                <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 text-xl">
+                    <i class="fa-solid fa-pen-nib"></i>
                 </div>
             </div>
         </div>
@@ -681,7 +729,7 @@
         </div>
     </div>
 
-    <!-- نافذة منبثقة خاصة بعرض أيام الحضور أو الغياب للطالب في لوحة الطالب الفردية -->
+    <!-- نافذة منبثقة خاصة بعرض تفاصيل الفئات في لوحة الطالب الفردية -->
     <div id="portalCategoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden transform transition-all">
             <div id="portalModalHeader" class="p-4 text-white flex justify-between items-center bg-indigo-900">
@@ -689,7 +737,7 @@
                     <div id="portalModalIcon" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-lg">
                         <i class="fa-solid fa-calendar-days"></i>
                     </div>
-                    <h3 id="portalModalTitle" class="text-base font-bold">قائمة الأيام</h3>
+                    <h3 id="portalModalTitle" class="text-base font-bold">قائمة التفاصيل</h3>
                 </div>
                 <button onclick="closePortalCategoryModal()" class="text-white/80 hover:text-white transition p-1.5 text-lg">
                     <i class="fa-solid fa-xmark"></i>
@@ -697,7 +745,7 @@
             </div>
             
             <div class="p-5 overflow-y-auto custom-scrollbar flex-grow space-y-2.5" id="portalModalContent">
-                <!-- الأيام ستظهر هنا -->
+                <!-- العناصر ستظهر هنا -->
             </div>
 
             <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
@@ -1186,6 +1234,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('portalStudentDetails').textContent = `الفصل: ${student.group} | البريد: ${student.email}`;
 
             let present = 0, absent = 0, late = 0, excused = 0;
+            let homeworkDoneCount = 0, homeworkNotCount = 0, participationsCount = 0, behaviorsNotesCount = 0;
             let totalBehaviorScore = 0;
             const behaviorsContainer = document.getElementById('portalBehaviorsTableBody');
             behaviorsContainer.innerHTML = '';
@@ -1212,8 +1261,20 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     hasBehaviors = true;
                     totalBehaviorScore += Number(item.score || 0);
 
-                    const isParticipation = item.name.includes('مشاركة') || item.name.includes('إجابة');
+                    const name = item.name || '';
+                    const isParticipation = name.includes('مشاركة') || name.includes('إجابة');
                     const isCustomNote = item.isCustomNote;
+
+                    if (name.includes('حل الواجب')) {
+                        homeworkDoneCount++;
+                    } else if (name.includes('لم يحل الواجب')) {
+                        homeworkNotCount++;
+                    } else if (isParticipation || (!name.includes('واجب') && !name.includes('ملف') && !name.includes('بحث') && !isCustomNote && item.score >= 0)) {
+                        participationsCount++;
+                    } else if (isCustomNote || item.score < 0) {
+                        behaviorsNotesCount++;
+                    }
+
                     let scoreBadgeClass = item.score > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : (item.score < 0 ? "text-rose-600 bg-rose-50 border-rose-200" : "text-indigo-600 bg-indigo-50 border-indigo-200");
                     let pulseClass = (!isParticipation && !isCustomNote) ? " pulse-badge shadow-sm" : "";
 
@@ -1248,6 +1309,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('portalAbsent').textContent = absent;
             document.getElementById('portalLate').textContent = late;
             document.getElementById('portalExcused').textContent = excused;
+            document.getElementById('portalHomeworkDone').textContent = homeworkDoneCount;
+            document.getElementById('portalHomeworkNot').textContent = homeworkNotCount;
+            document.getElementById('portalParticipations').textContent = participationsCount;
+            document.getElementById('portalBehaviorsNotes').textContent = behaviorsNotesCount;
             document.getElementById('portalBehaviorPoints').textContent = totalBehaviorScore;
 
             const totalEval = present + absent + late;
@@ -1258,8 +1323,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             rateBadge.className = rate >= 75 ? "text-lg font-black text-emerald-600" : "text-lg font-black text-rose-600";
         }
 
-        // فتح نافذة منبثقة لعرض أيام حضور أو غياب الطالب المحدد
-        function openPortalCategoryModal(statusType) {
+        // نافذة منبثقة تفاعلية عند الضغط على أي بطاقة في لوحة الطالب
+        function openPortalCategoryModal(categoryType) {
             const modal = document.getElementById('portalCategoryModal');
             const header = document.getElementById('portalModalHeader');
             const title = document.getElementById('portalModalTitle');
@@ -1269,68 +1334,127 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             content.innerHTML = '';
             let listCount = 0;
-
             let headerBgClass = "bg-indigo-900";
             let typeTitle = "";
             let badgeStyle = "";
 
-            if (statusType === 'present') {
+            if (categoryType === 'present') {
                 typeTitle = "أيام الحضور المرصودة";
                 headerBgClass = "bg-emerald-700";
                 icon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
                 badgeStyle = "bg-emerald-100 text-emerald-800 border-emerald-200";
-            } else if (statusType === 'absent') {
+            } else if (categoryType === 'absent') {
                 typeTitle = "أيام الغياب المرصودة";
                 headerBgClass = "bg-rose-700";
                 icon.innerHTML = `<i class="fa-solid fa-circle-xmark"></i>`;
                 badgeStyle = "bg-rose-100 text-rose-800 border-rose-200";
-            } else if (statusType === 'late') {
+            } else if (categoryType === 'late') {
                 typeTitle = "أيام التأخر المرصودة";
                 headerBgClass = "bg-amber-600";
                 icon.innerHTML = `<i class="fa-solid fa-clock"></i>`;
                 badgeStyle = "bg-amber-100 text-amber-800 border-amber-200";
-            } else if (statusType === 'excused') {
+            } else if (categoryType === 'excused') {
                 typeTitle = "أيام الأعذار والحالات الأخرى";
                 headerBgClass = "bg-blue-700";
                 icon.innerHTML = `<i class="fa-solid fa-file-signature"></i>`;
                 badgeStyle = "bg-blue-100 text-blue-800 border-blue-200";
+            } else if (categoryType === 'homework_done') {
+                typeTitle = "سجل حل الواجبات";
+                headerBgClass = "bg-teal-700";
+                icon.innerHTML = `<i class="fa-solid fa-book-bookmark"></i>`;
+                badgeStyle = "bg-teal-100 text-teal-800 border-teal-200";
+            } else if (categoryType === 'homework_not') {
+                typeTitle = "سجل عدم حل الواجبات";
+                headerBgClass = "bg-pink-700";
+                icon.innerHTML = `<i class="fa-solid fa-book-open-reader"></i>`;
+                badgeStyle = "bg-pink-100 text-pink-800 border-pink-200";
+            } else if (categoryType === 'participations') {
+                typeTitle = "سجل المشاركات والتفاعل";
+                headerBgClass = "bg-sky-700";
+                icon.innerHTML = `<i class="fa-solid fa-lightbulb"></i>`;
+                badgeStyle = "bg-sky-100 text-sky-800 border-sky-200";
+            } else if (categoryType === 'behaviors_notes') {
+                typeTitle = "سجل السلوكيات والملاحظات الخطية";
+                headerBgClass = "bg-purple-700";
+                icon.innerHTML = `<i class="fa-solid fa-pen-nib"></i>`;
+                badgeStyle = "bg-purple-100 text-purple-800 border-purple-200";
             }
 
             header.className = `p-4 text-white flex justify-between items-center ${headerBgClass}`;
             title.textContent = typeTitle;
 
-            const sortedDates = Object.keys(allAttendanceRecords).sort().reverse();
-            sortedDates.forEach(date => {
-                const dayRecords = allAttendanceRecords[date] || {};
-                const recordObj = dayRecords[targetStudentId];
-                if (recordObj) {
-                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                    const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
+            if (['present', 'absent', 'late', 'excused'].includes(categoryType)) {
+                const sortedDates = Object.keys(allAttendanceRecords).sort().reverse();
+                sortedDates.forEach(date => {
+                    const dayRecords = allAttendanceRecords[date] || {};
+                    const recordObj = dayRecords[targetStudentId];
+                    if (recordObj) {
+                        const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                        const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
 
-                    if (st === statusType) {
-                        listCount++;
-                        const card = document.createElement('div');
-                        card.className = "p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm";
-                        card.innerHTML = `
-                            <div class="flex items-center gap-2.5">
-                                <span class="w-6 h-6 bg-white text-slate-700 font-bold text-xs rounded-md flex items-center justify-center border border-slate-300">${listCount}</span>
-                                <span class="font-bold text-slate-800 text-xs font-mono"><i class="fa-regular fa-calendar text-indigo-600 ml-1"></i> ${date}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold px-2.5 py-1 rounded-lg border ${badgeStyle}">${typeTitle.split(' ')[1]}</span>
-                                <span class="text-[11px] font-mono bg-white px-2 py-0.5 rounded border text-slate-600">⏰ ${timeStr}</span>
-                            </div>
-                        `;
-                        content.appendChild(card);
+                        if (st === categoryType) {
+                            listCount++;
+                            const card = document.createElement('div');
+                            card.className = "p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm";
+                            card.innerHTML = `
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-6 h-6 bg-white text-slate-700 font-bold text-xs rounded-md flex items-center justify-center border border-slate-300">${listCount}</span>
+                                    <span class="font-bold text-slate-800 text-xs font-mono"><i class="fa-regular fa-calendar text-indigo-600 ml-1"></i> ${date}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-lg border ${badgeStyle}">${typeTitle}</span>
+                                    <span class="text-[11px] font-mono bg-white px-2 py-0.5 rounded border text-slate-600">⏰ ${timeStr}</span>
+                                </div>
+                            `;
+                            content.appendChild(card);
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                const sortedBehaviorDates = Object.keys(allBehaviorsRecords).sort().reverse();
+                sortedBehaviorDates.forEach(date => {
+                    const dayLogs = (allBehaviorsRecords[date] || {})[targetStudentId] || [];
+                    dayLogs.forEach((item, itemIdx) => {
+                        const name = item.name || '';
+                        const isParticipation = name.includes('مشاركة') || name.includes('إجابة');
+                        const isCustomNote = item.isCustomNote;
+
+                        let matches = false;
+                        if (categoryType === 'homework_done' && name.includes('حل الواجب')) matches = true;
+                        else if (categoryType === 'homework_not' && name.includes('لم يحل الواجب')) matches = true;
+                        else if (categoryType === 'participations' && (isParticipation || (!name.includes('واجب') && !name.includes('ملف') && !name.includes('بحث') && !isCustomNote && item.score >= 0))) matches = true;
+                        else if (categoryType === 'behaviors_notes' && (isCustomNote || item.score < 0)) matches = true;
+
+                        if (matches) {
+                            listCount++;
+                            const card = document.createElement('div');
+                            card.className = "p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm";
+                            card.innerHTML = `
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-6 h-6 bg-white text-slate-700 font-bold text-xs rounded-md flex items-center justify-center border border-slate-300">${listCount}</span>
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-xs">${escapeHtml(name)}</div>
+                                        <div class="text-[10px] text-slate-500 font-mono mt-0.5">${date} | ⏰ ${item.time}</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-lg border ${badgeStyle}">${item.score > 0 ? '+' + item.score : item.score}</span>
+                                    <button onclick="removeBehaviorLogFromDate('${targetStudentId}', '${date}', ${itemIdx}); openPortalCategoryModal('${categoryType}');" class="bg-rose-100 hover:bg-rose-200 text-rose-700 p-1.5 rounded-lg text-xs transition" title="حذف">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            `;
+                            content.appendChild(card);
+                        }
+                    });
+                });
+            }
 
             if (listCount === 0) {
                 content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold text-sm">لا توجد سجلات مسجلة تحت هذه الفئة حتى الآن</div>`;
             }
 
-            countBadge.textContent = `الإجمالي: ${listCount} يوم`;
+            countBadge.textContent = `الإجمالي: ${listCount}`;
             modal.classList.remove('hidden');
         }
 
