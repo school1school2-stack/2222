@@ -229,7 +229,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                         <div onclick="openCategoryFullModal('present')" class="bg-white/10 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition shadow-sm group">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 bg-emerald-500/20 text-emerald-300 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
@@ -280,6 +280,20 @@
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-left text-xs text-blue-300/60"></i>
+                        </div>
+
+                        <!-- زر الغياب المتكرر المدمج مع الأزرار العلوية -->
+                        <div onclick="openCategoryFullModal('high_absent')" class="bg-white/10 hover:bg-red-600/30 border border-red-500/30 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition shadow-sm group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-red-500/20 text-red-300 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-slate-300 block font-medium">غياب 3 أيام فأكثر</span>
+                                    <span id="dayHighAbsentCount" class="text-lg font-black text-red-300">0 طالب</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-left text-xs text-red-300/60"></i>
                         </div>
                     </div>
 
@@ -817,6 +831,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     allBehaviorsRecords[doc.id] = doc.data().records || {};
                 });
                 renderSingleDayReport();
+                renderHighAbsenceTable();
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
@@ -1383,6 +1398,19 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('dayLateCount').textContent = `${lCount} طالب`;
             document.getElementById('dayOtherCount').textContent = `${oCount} طالب`;
 
+            // حساب عدد الطلاب المتجاوزين لـ 3 أيام غياب لعرضه في زر القائمة العلوية
+            let highAbsentTotal = 0;
+            filteredForReport.forEach(student => {
+                let absentCount = 0;
+                Object.keys(allAttendanceRecords).forEach(date => {
+                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
+                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    if (st === 'absent') absentCount++;
+                });
+                if (absentCount >= 3) highAbsentTotal++;
+            });
+            document.getElementById('dayHighAbsentCount').textContent = `${highAbsentTotal} طالب`;
+
             let partCount = 0, hwDoneCount = 0, hwNotCount = 0, resCount = 0, forgotCount = 0, behCount = 0;
 
             filteredForReport.forEach(s => {
@@ -1589,6 +1617,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 headerBgClass = "bg-slate-700";
                 icon.innerHTML = `<i class="fa-solid fa-file-signature"></i>`;
                 statusName = "excused";
+            } else if (categoryType === 'high_absent') {
+                typeTitle = "قائمة الطلاب المتجاوزين لـ 3 أيام غياب فأكثر";
+                headerBgClass = "bg-red-700";
+                icon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
             } else if (categoryType === 'participations') {
                 typeTitle = "تقرير المشاركات كاملاً";
                 headerBgClass = "bg-sky-700";
@@ -1625,7 +1657,42 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 return actGroup === 'الجميع' || sGroup === actGroup;
             });
 
-            if (['present', 'absent', 'late', 'excused'].includes(categoryType)) {
+            if (categoryType === 'high_absent') {
+                filteredStudents.forEach((student) => {
+                    let absentCount = 0;
+                    Object.keys(allAttendanceRecords).forEach(date => {
+                        const recordObj = (allAttendanceRecords[date] || {})[student.id];
+                        const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                        if (st === 'absent') absentCount++;
+                    });
+
+                    if (absentCount >= 3) {
+                        listCount++;
+                        let baseUrl = "https://school1school2-stack.github.io/2222/";
+                        if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
+                            baseUrl = window.location.origin + window.location.pathname;
+                        }
+                        let studentPortalLink = `${baseUrl}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
+
+                        const card = document.createElement('div');
+                        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                        card.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
+                                    <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">${absentCount} أيام غياب</span>
+                                <a href="${studentPortalLink}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-bold transition">الملف</a>
+                            </div>
+                        `;
+                        content.appendChild(card);
+                    }
+                });
+            } else if (['present', 'absent', 'late', 'excused'].includes(categoryType)) {
                 filteredStudents.forEach((student) => {
                     const recordObj = dayRecords[student.id];
                     if (!recordObj) return;
@@ -1960,7 +2027,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </td>
                         <td class="p-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <a href="${studentPortalLink}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-2 rounded-lg text-xs font-bold transition" title="فتح رابط التقرير الخاص بالط الطالب">
+                                <a href="${studentPortalLink}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-2 rounded-lg text-xs font-bold transition" title="فتح رابط التقرير الخاص بالطالب">
                                     <i class="fa-solid fa-link"></i>
                                 </a>
                                 <button onclick="deleteStudent('${student.id}')" class="text-slate-400 hover:text-rose-600 transition p-1 rounded-lg hover:bg-rose-50" title="حذف الطالب من السجل والسحابة">
