@@ -296,6 +296,7 @@
                 </div>
             </div>
 
+            <!-- بطاقات الإحصائيات (تفعيل الضغط المباشر لعرض الحضور والغياب والتأخر) -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
@@ -307,9 +308,9 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between">
+                <div onclick="openMainQuickModal('present')" class="bg-white hover:bg-emerald-50/60 transition cursor-pointer p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between" title="اضغط لعرض قائمة الحاضرين">
                     <div>
-                        <p class="text-xs text-emerald-600 font-bold mb-1">حاضر</p>
+                        <p class="text-xs text-emerald-600 font-bold mb-1">حاضر (اضغط للعرض)</p>
                         <h3 id="statPresent" class="text-2xl font-black text-emerald-600">0</h3>
                     </div>
                     <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl">
@@ -317,9 +318,9 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border border-rose-100 shadow-sm flex items-center justify-between">
+                <div onclick="openMainQuickModal('absent')" class="bg-white hover:bg-rose-50/60 transition cursor-pointer p-4 rounded-xl border border-rose-100 shadow-sm flex items-center justify-between" title="اضغط لعرض قائمة الغائبين">
                     <div>
-                        <p class="text-xs text-rose-600 font-bold mb-1">غائب</p>
+                        <p class="text-xs text-rose-600 font-bold mb-1">غائب (اضغط للعرض)</p>
                         <h3 id="statAbsent" class="text-2xl font-black text-rose-600">0</h3>
                     </div>
                     <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 text-xl">
@@ -327,9 +328,9 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border border-amber-100 shadow-sm flex items-center justify-between">
+                <div onclick="openMainQuickModal('other')" class="bg-white hover:bg-amber-50/60 transition cursor-pointer p-4 rounded-xl border border-amber-100 shadow-sm flex items-center justify-between" title="اضغط لعرض المتأخرين أو بعذر">
                     <div>
-                        <p class="text-xs text-amber-600 font-bold mb-1">متأخر / بعذر</p>
+                        <p class="text-xs text-amber-600 font-bold mb-1">متأخر / بعذر (اضغط)</p>
                         <h3 id="statOther" class="text-2xl font-black text-amber-600">0</h3>
                     </div>
                     <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-xl">
@@ -454,18 +455,19 @@
                 </div>
             </div>
 
+            <!-- قسم السلوكيات والواجبات المفصولة (سلموا / لم يسلموا) -->
             <div class="bg-sky-50 text-slate-800 rounded-2xl shadow-md p-6 border border-sky-200">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
                         <h3 class="text-lg font-bold flex items-center gap-2 text-sky-900">
                             <i class="fa-solid fa-star text-sky-600"></i>
-                            استعلام السلوكيات والمشاركات اليومية
+                            استعلام السلوكيات والمشاركات والواجبات اليومية
                         </h3>
                         <p class="text-sky-700 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
                     <div onclick="openCategoryFullModal('participations')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
@@ -479,15 +481,28 @@
                         </div>
                     </div>
 
-                    <div onclick="openCategoryFullModal('homework')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
-                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
-                            <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-book-bookmark text-sky-600"></i> الواجبات
+                    <div onclick="openCategoryFullModal('homework_done')" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm hover:bg-emerald-100/70 transition cursor-pointer">
+                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-emerald-200">
+                            <span class="font-bold text-emerald-900 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i> سَلَّمُوا الواجب
                             </span>
-                            <span id="dayHomeworkCount" class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                            <span id="dayHomeworkDoneCount" class="bg-emerald-200 text-emerald-900 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
-                        <ul id="dayHomeworkList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
-                        <div class="mt-2 text-center text-[11px] text-sky-700/70 font-bold border-t border-sky-100 pt-2">
+                        <ul id="dayHomeworkDoneList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
+                        <div class="mt-2 text-center text-[11px] text-emerald-800/70 font-bold border-t border-emerald-200 pt-2">
+                            <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
+                        </div>
+                    </div>
+
+                    <div onclick="openCategoryFullModal('homework_not')" class="bg-pink-50 border border-pink-200 rounded-xl p-4 shadow-sm hover:bg-pink-100/70 transition cursor-pointer">
+                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-pink-200">
+                            <span class="font-bold text-pink-900 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-xmark text-pink-600"></i> لَمْ يُسَلِّمُوا الواجب
+                            </span>
+                            <span id="dayHomeworkNotCount" class="bg-pink-200 text-pink-900 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                        </div>
+                        <ul id="dayHomeworkNotList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs text-slate-700"></ul>
+                        <div class="mt-2 text-center text-[11px] text-pink-800/70 font-bold border-t border-pink-200 pt-2">
                             <i class="fa-solid fa-expand ml-1"></i> اضغط لفتح القائمة كاملة
                         </div>
                     </div>
@@ -939,8 +954,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             </div>
         </div>
     </div>
-
-        <script>
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBkCO7FDQXd89YDf843J4_AtvEFvzzt-R0",
             authDomain: "aztlg-494c3.firebaseapp.com",
@@ -1323,7 +1337,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             rateBadge.className = rate >= 75 ? "text-lg font-black text-emerald-600" : "text-lg font-black text-rose-600";
         }
 
-        // نافذة منبثقة تفاعلية عند الضغط على أي بطاقة في لوحة الطالب
+        // نافذة منبثقة تفاعلية عند الضغط على أي بطاقة في لوحة الطالب أو الواجهة الرئيسية
         function openPortalCategoryModal(categoryType) {
             const modal = document.getElementById('portalCategoryModal');
             const header = document.getElementById('portalModalHeader');
@@ -1460,6 +1474,89 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function closePortalCategoryModal() {
             document.getElementById('portalCategoryModal').classList.add('hidden');
+        }
+
+        // دالة الضغط السريع المباشر من الواجهة الرئيسية لاستعراض الحضور والغياب والتأخر
+        function openMainQuickModal(categoryType) {
+            const targetDate = selectedDateInput.value;
+            const dayRecords = allAttendanceRecords[targetDate] || {};
+
+            const modal = document.getElementById('fullCategoryModal');
+            const header = document.getElementById('fullModalHeader');
+            const title = document.getElementById('fullModalTitle');
+            const subtitle = document.getElementById('fullModalSubtitle');
+            const icon = document.getElementById('fullModalIcon');
+            const content = document.getElementById('fullModalContent');
+            const countBadge = document.getElementById('fullModalCountBadge');
+
+            content.innerHTML = '';
+            let listCount = 0;
+            let headerBgClass = "bg-indigo-900";
+            let typeTitle = "";
+
+            if (categoryType === 'present') {
+                typeTitle = "قائمة الطلاب الحاضرين اليوم";
+                headerBgClass = "bg-emerald-700";
+                icon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+            } else if (categoryType === 'absent') {
+                typeTitle = "قائمة الطلاب الغائبين اليوم";
+                headerBgClass = "bg-rose-700";
+                icon.innerHTML = `<i class="fa-solid fa-circle-xmark"></i>`;
+            } else if (categoryType === 'other') {
+                typeTitle = "قائمة الطلاب (المتأخرين أو بعذر) اليوم";
+                headerBgClass = "bg-amber-600";
+                icon.innerHTML = `<i class="fa-solid fa-clock"></i>`;
+            }
+
+            header.className = `p-5 text-white flex justify-between items-center ${headerBgClass}`;
+            title.textContent = typeTitle;
+            subtitle.textContent = `تاريخ اليوم: ${targetDate} | الفصل: ${activeGroup}`;
+
+            const filteredStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
+
+            filteredStudents.forEach((student) => {
+                const recordObj = dayRecords[student.id];
+                if (!recordObj) return;
+
+                const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
+
+                let matches = false;
+                if (categoryType === 'present' && status === 'present') matches = true;
+                if (categoryType === 'absent' && status === 'absent') matches = true;
+                if (categoryType === 'other' && (status === 'late' || status === 'excused')) matches = true;
+
+                if (matches) {
+                    listCount++;
+                    const statusTag = status === 'late' ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold mr-1">متأخر</span>' : (status === 'excused' ? '<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold mr-1">بعذر</span>' : '');
+                    const card = document.createElement('div');
+                    card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)} ${statusTag}</h4>
+                                <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                            </div>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700">⏰ ${timeStr}</span>
+                        </div>
+                    `;
+                    content.appendChild(card);
+                }
+            });
+
+            if (listCount === 0) {
+                content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold">لا يوجد طلاب مسجلون تحت هذه الفئة اليوم</div>`;
+            }
+
+            countBadge.textContent = `العدد الإجمالي: ${listCount} طالب`;
+            modal.classList.remove('hidden');
         }
 
         function updateGroupDropdowns() {
@@ -1768,16 +1865,18 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (oCount === 0) otherList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
 
             const participationsList = document.getElementById('dayParticipationsList');
-            const homeworkList = document.getElementById('dayHomeworkList');
+            const homeworkDoneList = document.getElementById('dayHomeworkDoneList');
+            const homeworkNotList = document.getElementById('dayHomeworkNotList');
             const researchList = document.getElementById('dayResearchList');
             const behaviorsList = document.getElementById('dayBehaviorsList');
 
             participationsList.innerHTML = '';
-            homeworkList.innerHTML = '';
+            homeworkDoneList.innerHTML = '';
+            homeworkNotList.innerHTML = '';
             researchList.innerHTML = '';
             behaviorsList.innerHTML = '';
 
-            let partCount = 0, hwCount = 0, resCount = 0, behCount = 0;
+            let partCount = 0, hwDoneCount = 0, hwNotCount = 0, resCount = 0, behCount = 0;
 
             filteredForReport.forEach(s => {
                 Object.keys(allBehaviorsRecords).forEach(d => {
@@ -1792,7 +1891,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         if (isParticipation && d !== targetDate) return;
 
                         const li = document.createElement('li');
-                        li.className = 'py-2 px-3 bg-sky-50 rounded-xl flex flex-col gap-1 border border-sky-200 shadow-sm';
+                        li.className = 'py-2 px-3 bg-white rounded-xl flex flex-col gap-1 border border-slate-200 shadow-sm';
                         
                         let pulseHTML = (!isParticipation && !isCustomNote) ? '<span class="pulse-badge text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-bold">دائم ⚠️</span>' : '';
 
@@ -1805,13 +1904,16 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 <span class="text-[11px] font-bold text-sky-900 flex items-center gap-1">
                                     <span>${icon}</span> <span>${escapeHtml(name)}</span> ${pulseHTML}
                                 </span>
-                                ${timeStr ? `<span class="text-[10px] text-slate-600 font-mono bg-sky-200/60 px-1.5 py-0.5 rounded">${d} ⏰ ${timeStr}</span>` : ''}
+                                ${timeStr ? `<span class="text-[10px] text-slate-600 font-mono bg-slate-100 px-1.5 py-0.5 rounded">${d} ⏰ ${timeStr}</span>` : ''}
                             </div>
                         `;
 
-                        if (name.includes('واجب')) {
-                            hwCount++;
-                            homeworkList.appendChild(li);
+                        if (name.includes('حل الواجب')) {
+                            hwDoneCount++;
+                            homeworkDoneList.appendChild(li);
+                        } else if (name.includes('لم يحل الواجب')) {
+                            hwNotCount++;
+                            homeworkNotList.appendChild(li);
                         } else if (name.includes('ملف') || name.includes('بحث')) {
                             resCount++;
                             researchList.appendChild(li);
@@ -1830,12 +1932,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
 
             document.getElementById('dayParticipationsCount').textContent = partCount;
-            document.getElementById('dayHomeworkCount').textContent = hwCount;
+            document.getElementById('dayHomeworkDoneCount').textContent = hwDoneCount;
+            document.getElementById('dayHomeworkNotCount').textContent = hwNotCount;
             document.getElementById('dayResearchCount').textContent = resCount;
             document.getElementById('dayBehaviorsCount').textContent = behCount;
 
             if (partCount === 0) participationsList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
-            if (hwCount === 0) homeworkList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
+            if (hwDoneCount === 0) homeworkDoneList.innerHTML = '<li class="text-slate-400 py-1">لا توجد سجلات</li>';
+            if (hwNotCount === 0) homeworkNotList.innerHTML = '<li class="text-slate-400 py-1">لا توجد سجلات</li>';
             if (resCount === 0) researchList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
             if (behCount === 0) behaviorsList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
         }
@@ -1883,10 +1987,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 typeTitle = "تقرير المشاركات كاملاً";
                 headerBgClass = "bg-sky-700";
                 icon.innerHTML = `<i class="fa-solid fa-lightbulb"></i>`;
-            } else if (categoryType === 'homework') {
-                typeTitle = "تقرير الواجبات كاملاً";
-                headerBgClass = "bg-indigo-700";
-                icon.innerHTML = `<i class="fa-solid fa-book-bookmark"></i>`;
+            } else if (categoryType === 'homework_done') {
+                typeTitle = "تقرير الطلاب الذين سَلَّمُوا الواجب كاملاً";
+                headerBgClass = "bg-emerald-700";
+                icon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+            } else if (categoryType === 'homework_not') {
+                typeTitle = "تقرير الطلاب الذين لَمْ يُسَلِّمُوا الواجب كاملاً";
+                headerBgClass = "bg-pink-700";
+                icon.innerHTML = `<i class="fa-solid fa-circle-xmark"></i>`;
             } else if (categoryType === 'research') {
                 typeTitle = "تقرير البحوث والملفات كاملاً";
                 headerBgClass = "bg-amber-700";
@@ -1950,7 +2058,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             let matchesCategory = false;
                             if (categoryType === 'participations' && (isParticipation || (!name.includes('واجب') && !name.includes('ملف') && !name.includes('بحث') && !isCustomNote && item.score >= 0))) {
                                 matchesCategory = true;
-                            } else if (categoryType === 'homework' && name.includes('واجب')) {
+                            } else if (categoryType === 'homework_done' && name.includes('حل الواجب')) {
+                                matchesCategory = true;
+                            } else if (categoryType === 'homework_not' && name.includes('لم يحل الواجب')) {
                                 matchesCategory = true;
                             } else if (categoryType === 'research' && (name.includes('ملف') || name.includes('بحث'))) {
                                 matchesCategory = true;
