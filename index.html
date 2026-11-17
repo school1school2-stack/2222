@@ -85,7 +85,7 @@
     <main id="studentPortalContainer" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
         <div class="bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md rounded-xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-id-badge text-lg"></i>
-            <span>لوحة متابعة الطالب الفردية (يمكنك حذف أي سلوك أو ملاحظة خطية وستتحدث الشاشة فوراً)</span>
+            <span>لوحة متابعة الطالب الفردية (اضغط على بطاقات الحضور أو الغياب لعرض قائمتها المخصصة)</span>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -110,10 +110,11 @@
             </div>
         </div>
 
+        <!-- بطاقات الحضور والغياب القابلة للضغط -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between">
+            <div onclick="openPortalCategoryModal('present')" class="bg-white hover:bg-emerald-50/50 transition cursor-pointer p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-emerald-600 font-bold mb-1">أيام الحضور</p>
+                    <p class="text-xs text-emerald-600 font-bold mb-1">أيام الحضور (عرض القائمة)</p>
                     <h3 id="portalPresent" class="text-2xl font-black text-emerald-600">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl">
@@ -121,9 +122,9 @@
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl border border-rose-100 shadow-sm flex items-center justify-between">
+            <div onclick="openPortalCategoryModal('absent')" class="bg-white hover:bg-rose-50/50 transition cursor-pointer p-4 rounded-xl border border-rose-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-rose-600 font-bold mb-1">أيام الغياب</p>
+                    <p class="text-xs text-rose-600 font-bold mb-1">أيام الغياب (عرض القائمة)</p>
                     <h3 id="portalAbsent" class="text-2xl font-black text-rose-600">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 text-xl">
@@ -131,9 +132,9 @@
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl border border-amber-100 shadow-sm flex items-center justify-between">
+            <div onclick="openPortalCategoryModal('late')" class="bg-white hover:bg-amber-50/50 transition cursor-pointer p-4 rounded-xl border border-amber-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-amber-600 font-bold mb-1">أيام التأخر</p>
+                    <p class="text-xs text-amber-600 font-bold mb-1">أيام التأخر (عرض القائمة)</p>
                     <h3 id="portalLate" class="text-2xl font-black text-amber-600">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-xl">
@@ -141,9 +142,9 @@
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl border border-blue-100 shadow-sm flex items-center justify-between">
+            <div onclick="openPortalCategoryModal('excused')" class="bg-white hover:bg-blue-50/50 transition cursor-pointer p-4 rounded-xl border border-blue-100 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-blue-600 font-bold mb-1">أيام بعذر</p>
+                    <p class="text-xs text-blue-600 font-bold mb-1">أيام بعذر (عرض القائمة)</p>
                     <h3 id="portalExcused" class="text-2xl font-black text-blue-600">0</h3>
                 </div>
                 <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-xl">
@@ -168,7 +169,7 @@
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
-                    سجل الحضور والغياب التفصيلي
+                    سجل الحضور والغياب التفصيلي الكامل
                 </h3>
             </div>
             <div class="overflow-x-auto custom-scrollbar">
@@ -361,7 +362,7 @@
                             <i class="fa-solid fa-calendar-day"></i>
                             استعلام الحضور والغياب ليوم محدد
                         </h3>
-                        <p class="text-indigo-200 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر بدلاً من الشريط</p>
+                        <p class="text-indigo-200 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر</p>
                     </div>
                     <div class="flex items-center gap-3 bg-indigo-800/80 p-2 rounded-xl border border-indigo-700">
                         <label class="font-bold text-sm text-indigo-100">اختر اليوم:</label>
@@ -433,9 +434,9 @@
                     <div>
                         <h3 class="text-lg font-bold flex items-center gap-2 text-sky-900">
                             <i class="fa-solid fa-star text-sky-600"></i>
-                            استعلام السلوكيات والمشاركات والملاحظات اليومية
+                            استعلام السلوكيات والمشاركات اليومية
                         </h3>
-                        <p class="text-sky-700 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر بدلاً من الشريط</p>
+                        <p class="text-sky-700 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر</p>
                     </div>
                 </div>
 
@@ -691,13 +692,41 @@
             </div>
             
             <div class="p-6 overflow-y-auto custom-scrollbar flex-grow space-y-3" id="fullModalContent">
-                <!-- الطلاب سيظهرون هنا كاملاً في شكل كروت أو قائمة مرتبة -->
+                <!-- محتوى النافذة -->
             </div>
 
             <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
                 <span id="fullModalCountBadge" class="text-xs font-bold bg-slate-200 text-slate-700 px-3 py-1 rounded-full">العدد الإجمالي: 0</span>
                 <button onclick="closeCategoryFullModal()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition">
                     إغلاق التقرير
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة منبثقة خاصة بعرض أيام الحضور أو الغياب للطالب في لوحة الطالب الفردية -->
+    <div id="portalCategoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden transform transition-all">
+            <div id="portalModalHeader" class="p-4 text-white flex justify-between items-center bg-indigo-900">
+                <div class="flex items-center gap-2.5">
+                    <div id="portalModalIcon" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <h3 id="portalModalTitle" class="text-base font-bold">قائمة الأيام</h3>
+                </div>
+                <button onclick="closePortalCategoryModal()" class="text-white/80 hover:text-white transition p-1.5 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-grow space-y-2.5" id="portalModalContent">
+                <!-- الأيام ستظهر هنا -->
+            </div>
+
+            <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+                <span id="portalModalCountBadge" class="text-xs font-bold bg-slate-200 text-slate-700 px-3 py-1 rounded-full">الإجمالي: 0</span>
+                <button onclick="closePortalCategoryModal()" class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition">
+                    إغلاق
                 </button>
             </div>
         </div>
@@ -1275,6 +1304,86 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const rateBadge = document.getElementById('portalRateBadge');
             rateBadge.textContent = `${rate}%`;
             rateBadge.className = rate >= 75 ? "text-lg font-black text-emerald-600" : "text-lg font-black text-rose-600";
+        }
+
+        // فتح نافذة منبثقة لعرض أيام حضور أو غياب الطالب المحدد
+        function openPortalCategoryModal(statusType) {
+            const modal = document.getElementById('portalCategoryModal');
+            const header = document.getElementById('portalModalHeader');
+            const title = document.getElementById('portalModalTitle');
+            const icon = document.getElementById('portalModalIcon');
+            const content = document.getElementById('portalModalContent');
+            const countBadge = document.getElementById('portalModalCountBadge');
+
+            content.innerHTML = '';
+            let listCount = 0;
+
+            let headerBgClass = "bg-indigo-900";
+            let typeTitle = "";
+            let badgeStyle = "";
+
+            if (statusType === 'present') {
+                typeTitle = "أيام الحضور المرصودة";
+                headerBgClass = "bg-emerald-700";
+                icon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+                badgeStyle = "bg-emerald-100 text-emerald-800 border-emerald-200";
+            } else if (statusType === 'absent') {
+                typeTitle = "أيام الغياب المرصودة";
+                headerBgClass = "bg-rose-700";
+                icon.innerHTML = `<i class="fa-solid fa-circle-xmark"></i>`;
+                badgeStyle = "bg-rose-100 text-rose-800 border-rose-200";
+            } else if (statusType === 'late') {
+                typeTitle = "أيام التأخر المرصودة";
+                headerBgClass = "bg-amber-600";
+                icon.innerHTML = `<i class="fa-solid fa-clock"></i>`;
+                badgeStyle = "bg-amber-100 text-amber-800 border-amber-200";
+            } else if (statusType === 'excused') {
+                typeTitle = "أيام الأعذار والحالات الأخرى";
+                headerBgClass = "bg-blue-700";
+                icon.innerHTML = `<i class="fa-solid fa-file-signature"></i>`;
+                badgeStyle = "bg-blue-100 text-blue-800 border-blue-200";
+            }
+
+            header.className = `p-4 text-white flex justify-between items-center ${headerBgClass}`;
+            title.textContent = typeTitle;
+
+            const sortedDates = Object.keys(allAttendanceRecords).sort().reverse();
+            sortedDates.forEach(date => {
+                const dayRecords = allAttendanceRecords[date] || {};
+                const recordObj = dayRecords[targetStudentId];
+                if (recordObj) {
+                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
+
+                    if (st === statusType) {
+                        listCount++;
+                        const card = document.createElement('div');
+                        card.className = "p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm";
+                        card.innerHTML = `
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-6 h-6 bg-white text-slate-700 font-bold text-xs rounded-md flex items-center justify-center border border-slate-300">${listCount}</span>
+                                <span class="font-bold text-slate-800 text-xs font-mono"><i class="fa-regular fa-calendar text-indigo-600 ml-1"></i> ${date}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-lg border ${badgeStyle}">${typeTitle.split(' ')[1]}</span>
+                                <span class="text-[11px] font-mono bg-white px-2 py-0.5 rounded border text-slate-600">⏰ ${timeStr}</span>
+                            </div>
+                        `;
+                        content.appendChild(card);
+                    }
+                }
+            });
+
+            if (listCount === 0) {
+                content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold text-sm">لا توجد سجلات مسجلة تحت هذه الفئة حتى الآن</div>`;
+            }
+
+            countBadge.textContent = `الإجمالي: ${listCount} يوم`;
+            modal.classList.remove('hidden');
+        }
+
+        function closePortalCategoryModal() {
+            document.getElementById('portalCategoryModal').classList.add('hidden');
         }
 
         function updateGroupDropdowns() {
