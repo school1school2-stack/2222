@@ -27,7 +27,7 @@
 
     <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2">
         <i class="fa-solid fa-shield-halved text-amber-300 text-lg"></i>
-        <span id="bannerText">أنت الآن في لوحة تقارير الحضور والإحصائيات (عرض للمدير)</span>
+        <span id="bannerText">وضع العرض الشامل للمدير (للقراءة والاطلاع فقط - لا يمكن التعديل)</span>
     </div>
 
     <header class="bg-indigo-900 text-white shadow-xl">
@@ -221,7 +221,6 @@
                     </div>
                 </div>
 
-                <!-- الأزرار والبطاقات التفاعلية الأنيقة جداً (بدل زحمة الأسماء الطويلة) -->
                 <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-xl border border-indigo-800 text-white p-6 space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-indigo-800/60">
                         <div class="flex items-center gap-3">
@@ -239,7 +238,6 @@
                         </div>
                     </div>
 
-                    <!-- أزرار الحضور والغياب (تفتح نافذة منبثقة عند الضغط) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div onclick="openCategoryFullModal('present')" class="bg-white/10 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition shadow-sm group">
                             <div class="flex items-center gap-3">
@@ -294,7 +292,6 @@
                         </div>
                     </div>
 
-                    <!-- أزرار الأنشطة والسلوكيات (تفتح نافذة منبثقة عند الضغط) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 pt-2">
                         <div onclick="openCategoryFullModal('participations')" class="bg-white/10 hover:bg-sky-600/30 border border-sky-500/30 rounded-xl p-3 flex items-center justify-between cursor-pointer transition shadow-sm group">
                             <div class="flex items-center gap-2.5">
@@ -530,7 +527,6 @@
         </div>
     </main>
 
-    <!-- نافذة منبثقة تفاعلية عامة لعرض القوائم عند الضغط على أي زر/أيقونة -->
     <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
             <div id="fullModalHeader" class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
@@ -575,7 +571,6 @@
             </div>
         </div>
     </div>
-    <!-- Modal Custom Note Input -->
     <div id="customNoteModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
@@ -735,7 +730,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             
             <div class="p-6 space-y-4">
                 <p class="text-xs text-slate-600 leading-relaxed font-semibold">
-                    يمكنك إرسال رابط التقرير والإحصائيات التراكمية مباشرة للمدير (سيظهر له قسم التقارير حصرياً) أو نسخ الرابط لإرساله عبر أي وسيلة أخرى:
+                    يمكنك إرسال رابط لوحة المتابعة الشاملة والتقارير مباشرة للمدير (بصلاحية العرض والقراءة فقط دون تعديل) أو نسخ الرابط:
                 </p>
 
                 <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
@@ -748,7 +743,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 <div class="grid grid-cols-1 gap-2 pt-2">
                     <button onclick="sendReportToWhatsAppManager()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow">
                         <i class="fa-brands fa-whatsapp text-lg"></i>
-                        إرسال رابط التقارير للمدير عبر واتساب
+                        إرسال رابط العرض للمدير عبر واتساب
                     </button>
                 </div>
             </div>
@@ -758,6 +753,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             </div>
         </div>
     </div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBkCO7FDQXd89YDf843J4_AtvEFvzzt-R0",
@@ -845,15 +841,21 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function applyReadOnlyMode() {
             document.getElementById('readOnlyBanner').classList.remove('hidden');
-            document.getElementById('bannerText').textContent = 'أنت الآن في لوحة تقارير الحضور والإحصائيات (عرض للمدير)';
+            document.getElementById('bannerText').textContent = 'وضع العرض الشامل للمدير (للقراءة والاطلاع فقط - لا يمكن التعديل)';
+
             document.getElementById('manageGroupsBtn').classList.add('hidden');
             document.getElementById('quickAddControls').classList.add('hidden');
             document.getElementById('openAddModalBtn').classList.add('hidden');
             document.getElementById('shareManagerBtn').classList.add('hidden');
-            document.getElementById('tabsContainer').classList.add('hidden');
-            
-            document.getElementById('dailySection').classList.add('hidden');
-            document.getElementById('reportsSection').classList.remove('hidden');
+
+            const deleteClassBtn = document.querySelector('button[onclick="deleteCurrentClassData()"]');
+            const copyClassBtn = document.querySelector('button[onclick="openAddModalWithClass()"]');
+            if (deleteClassBtn) deleteClassBtn.classList.add('hidden');
+            if (copyClassBtn) copyClassBtn.classList.add('hidden');
+
+            document.getElementById('tabsContainer').classList.remove('hidden');
+            document.getElementById('dailySection').classList.remove('hidden');
+            document.getElementById('reportsSection').classList.add('hidden');
         }
 
         function updateShareUrl() {
@@ -875,12 +877,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 dailySec.classList.remove('hidden');
                 reportsSec.classList.add('hidden');
                 dailyBtn.className = "tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2";
-                reportsBtn.className = "text-slate-500 hover:text-indigo-600 py-3 px-6 text-sm font-medium transition flex items-center gap-2";
+                reportsBtn.className = "text-slate-400 hover:text-white py-3 px-6 text-sm font-medium transition flex items-center gap-2";
             } else {
                 dailySec.classList.add('hidden');
                 reportsSec.classList.remove('hidden');
                 reportsBtn.className = "tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2";
-                dailyBtn.className = "text-slate-500 hover:text-indigo-600 py-3 px-6 text-sm font-medium transition flex items-center gap-2";
+                dailyBtn.className = "text-slate-400 hover:text-white py-3 px-6 text-sm font-medium transition flex items-center gap-2";
                 generateReport();
                 renderSingleDayReport();
             }
@@ -897,7 +899,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function initCloudSync() {
-            const cloudBadge = document.getElementById('cloudBadge');
             const cloudStatus = document.getElementById('cloudStatus');
             const cloudIcon = document.getElementById('cloudIcon');
 
@@ -1110,9 +1111,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             <span class="px-3 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}${pulseClass}">
                                 ${item.score > 0 ? '+' + item.score : (item.score < 0 ? item.score : 'ملاحظة خطية')}
                             </span>
+                            ${!isReadOnly ? `
                             <button onclick="removeBehaviorLogFromDate('${targetStudentId}', '${date}', ${itemIdx})" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="حذف هذا السجل نهائياً">
                                 <i class="fa-solid fa-trash-can"></i> حذف
-                            </button>
+                            </button>` : ''}
                         </div>
                     `;
                     behaviorsContainer.appendChild(cardDiv);
@@ -1256,9 +1258,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="text-xs font-bold px-2.5 py-1 rounded-lg border ${badgeStyle}">${item.score > 0 ? '+' + item.score : item.score}</span>
+                                    ${!isReadOnly ? `
                                     <button onclick="removeBehaviorLogFromDate('${targetStudentId}', '${date}', ${itemIdx}); openPortalCategoryModal('${categoryType}');" class="bg-rose-100 hover:bg-rose-200 text-rose-700 p-1.5 rounded-lg text-xs transition" title="حذف">
                                         <i class="fa-solid fa-trash-can"></i>
-                                    </button>
+                                    </button>` : ''}
                                 </div>
                             `;
                             content.appendChild(card);
@@ -1590,7 +1593,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
-        // تحديث العدادات فقط في الأزرار المختصرة دون إظهار قوائم مزعجة
         function renderSingleDayReport() {
             if (isStudentPortal) return;
             const targetDate = document.getElementById('singleReportDate').value;
@@ -1660,7 +1662,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('dayBehaviorsCount').textContent = behCount;
         }
 
-        // نافذة منبثقة موحدة لفتح واستعراض الطلاب عند النقر على الأزرار
         function openCategoryFullModal(categoryType) {
             const targetDate = document.getElementById('singleReportDate').value;
             const dayRecords = allAttendanceRecords[targetDate] || {};
@@ -1990,7 +1991,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
                         baseUrl = window.location.origin + window.location.pathname;
                     }
-                    let studentPortalLink = `${baseUrl}?student=${student.id}`;
+                    let studentPortalLink = `${baseUrl}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
 
                     const hRow = document.createElement('tr');
                     hRow.className = 'hover:bg-rose-50/50 transition border-b border-rose-100';
@@ -2093,7 +2094,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 return;
             }
 
-            const message = `سعادة مدير المدرسة المحترم،%0A%0اإليك تقريراً بالطلاب الذين تجاوزوا 3 أيام غياب فأكثر للفصل: (${activeGroup}) خلال الفترة من ${start} إلى ${end}:%0A${highAbsentListText}%0A%0ايرجى التكرم بالاطلاع واتخاذ الإجراء اللازم.`;
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقريراً بالطلاب الذين تجاوزوا 3 أيام غياب فأكثر للفصل: (${activeGroup}) خلال الفترة من ${start} إلى ${end}:%0A${highAbsentListText}%0A%0Aيرجى التكرم بالاطلاع واتخاذ الإجراء اللازم.`;
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
 
@@ -2333,9 +2334,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
                     baseUrl = window.location.origin + window.location.pathname;
                 }
-                let studentPortalLink = `${baseUrl}?student=${student.id}`;
+                let studentPortalLink = `${baseUrl}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
 
                 if (isReadOnly) {
+                    const readOnlyLogsHTML = logsHTML.replace(/<button onclick="event\.stopPropagation\(\); removeBehaviorLogFromDate.*?<\/button>/g, '');
+
                     row.innerHTML = `
                         <td class="p-4">
                             <div class="font-bold text-slate-800">${escapeHtml(student.name)}</div>
@@ -2348,6 +2351,19 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             </span>
                         </td>
                         <td class="p-4 text-center">${statusBadge}</td>
+                        <td class="p-4 text-center text-slate-400 text-[11px] font-bold">
+                            <i class="fa-solid fa-lock text-slate-300 ml-1"></i> للعرض فقط
+                        </td>
+                        <td class="p-4">
+                            <div class="flex flex-col gap-1 items-center">
+                                ${combinedLogs.length > 0 ? readOnlyLogsHTML : '<span class="text-slate-400 text-[11px]">لا توجد ملاحظات مسجلة</span>'}
+                            </div>
+                        </td>
+                        <td class="p-4 text-center">
+                            <a href="${studentPortalLink}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2.5 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center gap-1" title="فتح ملف الطالب">
+                                <i class="fa-solid fa-up-right-from-square"></i> ملف الطالب
+                            </a>
+                        </td>
                     `;
                 } else {
                     row.innerHTML = `
@@ -2435,6 +2451,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         async function saveCustomNote() {
+            if (isReadOnly) return;
             const noteText = document.getElementById('customNoteInput').value.trim();
             if (!noteText || !currentCustomNoteStudentId) {
                 showToast('يرجى كتابة نص الملاحظة أولاً', 'warning');
@@ -2530,6 +2547,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         };
 
         window.removeBehaviorLogFromDate = async function(studentId, dateStr, logIndex) {
+            if (isReadOnly) return;
             try {
                 const docRef = db.collection("student_behaviors_records").doc(dateStr);
                 const doc = await docRef.get();
@@ -2802,7 +2820,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const shareInput = document.getElementById('shareUrlInput');
             shareInput.select();
             document.execCommand('copy');
-            showToast('تم نسخ رابط التقارير بنجاح 📋', 'success');
+            showToast('تم نسخ رابط لوحة المدير بنجاح 📋', 'success');
         }
 
         function sendReportToWhatsAppManager() {
@@ -2832,7 +2850,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const grandTotal = overallPresent + overallAbsent + overallLate;
             const avgRate = grandTotal > 0 ? Math.round((overallPresent / grandTotal) * 100) : 0;
 
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقرير الحضور والإحصائيات للفصل: (${activeGroup})%0A- إجمالي أيام الرصد: ${relevantDates.length} يوم%0A- نسبة الحضور العامة: ${avgRate}%%%0A- إجمالي الغياب: ${overallAbsent}%0A- إجمالي التأخر: ${overallLate}%0A%0Aيمكنكم الاطلاع على تفاصيل التقارير والإحصائيات عبر الرابط:%0A${shareUrl}`;
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك ملخص تقرير الحضور والإحصائيات للفصل: (${activeGroup})%0A----------------------------------%0A📊 إجمالي أيام الرصد: ${relevantDates.length} يوم%0A📈 نسبة الحضور العامة: ${avgRate}%%%0A✅ إجمالي الحضور: ${overallPresent}%0A❌ إجمالي الغياب: ${overallAbsent}%0A⏰ إجمالي التأخر: ${overallLate}%0A----------------------------------%0Aيمكنكم الاطلاع على لوحة المتابعة الكاملة والتفاصيل (للقراءة والعرض فقط) عبر الرابط:%0A${shareUrl}`;
 
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
