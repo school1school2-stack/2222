@@ -296,7 +296,7 @@
                 </div>
             </div>
 
-            <!-- بطاقات الإحصائيات (تفعيل الضغط المباشر لعرض الحضور والغياب والتأخر) -->
+            <!-- بطاقات الإحصائيات (الضغط المباشر لعرض الحضور والغياب والتأخر) -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
@@ -455,7 +455,7 @@
                 </div>
             </div>
 
-            <!-- قسم السلوكيات والواجبات المفصولة (سلموا / لم يسلموا) -->
+            <!-- قسم السلوكيات والواجبات المفصولة بدقة -->
             <div class="bg-sky-50 text-slate-800 rounded-2xl shadow-md p-6 border border-sky-200">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
@@ -1279,7 +1279,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     const isParticipation = name.includes('مشاركة') || name.includes('إجابة');
                     const isCustomNote = item.isCustomNote;
 
-                    if (name.includes('حل الواجب')) {
+                    if (name.includes('حل الواجب') && !name.includes('لم يحل')) {
                         homeworkDoneCount++;
                     } else if (name.includes('لم يحل الواجب')) {
                         homeworkNotCount++;
@@ -1434,7 +1434,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         const isCustomNote = item.isCustomNote;
 
                         let matches = false;
-                        if (categoryType === 'homework_done' && name.includes('حل الواجب')) matches = true;
+                        if (categoryType === 'homework_done' && name.includes('حل الواجب') && !name.includes('لم يحل')) matches = true;
                         else if (categoryType === 'homework_not' && name.includes('لم يحل الواجب')) matches = true;
                         else if (categoryType === 'participations' && (isParticipation || (!name.includes('واجب') && !name.includes('ملف') && !name.includes('بحث') && !isCustomNote && item.score >= 0))) matches = true;
                         else if (categoryType === 'behaviors_notes' && (isCustomNote || item.score < 0)) matches = true;
@@ -1908,7 +1908,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             </div>
                         `;
 
-                        if (name.includes('حل الواجب')) {
+                        // الفرز الدقيق المنفصل تماماً بين سلموا ولم يسلموا الواجب
+                        if (name.includes('حل الواجب') && !name.includes('لم يحل')) {
                             hwDoneCount++;
                             homeworkDoneList.appendChild(li);
                         } else if (name.includes('لم يحل الواجب')) {
@@ -2058,7 +2059,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             let matchesCategory = false;
                             if (categoryType === 'participations' && (isParticipation || (!name.includes('واجب') && !name.includes('ملف') && !name.includes('بحث') && !isCustomNote && item.score >= 0))) {
                                 matchesCategory = true;
-                            } else if (categoryType === 'homework_done' && name.includes('حل الواجب')) {
+                            } else if (categoryType === 'homework_done' && name.includes('حل الواجب') && !name.includes('لم يحل')) {
                                 matchesCategory = true;
                             } else if (categoryType === 'homework_not' && name.includes('لم يحل الواجب')) {
                                 matchesCategory = true;
@@ -2180,7 +2181,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         const logs = dayBehaviors[studentId] || [];
                         logs.forEach(item => {
                             const name = item.name || '';
-                            if (name.includes('واجب')) {
+                            if (name.includes('حل الواجب') && !name.includes('لم يحل')) {
                                 studentStats[studentId].homework++;
                                 totalHomeworkCount++;
                             } else if (name.includes('ملف') || name.includes('بحث')) {
@@ -2413,7 +2414,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     const logs = (allBehaviorsRecords[date] || {})[student.id] || [];
                     logs.forEach(item => {
                         const name = item.name || '';
-                        if (name.includes('واجب')) { homework++; }
+                        if (name.includes('حل الواجب') && !name.includes('لم يحل')) { homework++; }
                         else if (name.includes('ملف') || name.includes('بحث')) { research++; }
                         else if (name.includes('مشاركة') || name.includes('إجابة')) {
                             if (date >= start && date <= end) participations++;
