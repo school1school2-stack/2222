@@ -85,7 +85,7 @@
     <main id="studentPortalContainer" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
         <div class="bg-amber-500 text-slate-950 font-bold px-4 py-2.5 text-center text-sm shadow-md rounded-xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-id-badge text-lg"></i>
-            <span>لوحة متابعة الطالب الفردية (يمكنك حذف أي سلوك حتى لو كان الأخير وستتحدث الشاشة فوراً)</span>
+            <span>لوحة متابعة الطالب الفردية (يمكنك حذف أي سلوك أو ملاحظة خطية وستتحدث الشاشة فوراً)</span>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -156,7 +156,7 @@
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                 <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                     <i class="fa-solid fa-star text-amber-500"></i>
-                    سجل المشاركات والواجبات والسلوكيات
+                    سجل المشاركات والواجبات والملاحظات الخطية والسلوكيات
                 </h3>
             </div>
             <div class="p-4 space-y-3" id="portalBehaviorsTableBody">
@@ -319,7 +319,7 @@
                         <input type="text" id="searchInput" placeholder="بحث عن اسم طالب..." class="w-full pr-9 pl-4 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div class="text-xs text-slate-500 font-medium">
-                        (المشاركات تتغير يومياً، بينما الواجبات والملفات والسلوكيات تظل ثابتة وبارزة بنبض تنبيهي للطالب عبر كل الأيام حتى تقوم بحذفها)
+                        (المشاركات تتغير يومياً، بينما الواجبات والملفات والسلوكيات والملاحظات الخطية تظل ثابتة وبارزة للطالب عبر كل الأيام حتى تقوم بحذفها)
                     </div>
                 </div>
 
@@ -331,7 +331,7 @@
                                 <th class="p-4 text-center w-28">الفصل/المجموعة</th>
                                 <th class="p-4 text-center">الحالة اليوم ووقت الرصد</th>
                                 <th class="p-4 text-center edit-column">تحديد الحالة (حاضر / غائب / أخرى)</th>
-                                <th class="p-4 text-center edit-column">تسجيل مشاركة / سلوك (اليوم)</th>
+                                <th class="p-4 text-center edit-column">تسجيل مشاركة / ملاحظة خطية (اليوم)</th>
                                 <th class="p-4 text-center w-28 edit-column">روابط وإجراءات</th>
                             </tr>
                         </thead>
@@ -433,7 +433,7 @@
                     <div>
                         <h3 class="text-lg font-bold flex items-center gap-2 text-sky-900">
                             <i class="fa-solid fa-star text-sky-600"></i>
-                            استعلام السلوكيات والمشاركات اليومية
+                            استعلام السلوكيات والمشاركات والملاحظات اليومية
                         </h3>
                         <p class="text-sky-700 text-xs mt-1">اضغط على أي بطاقة لعرض القائمة كاملة في تقرير مكبر بدلاً من الشريط</p>
                     </div>
@@ -482,7 +482,7 @@
                     <div onclick="openCategoryFullModal('behaviors')" class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm hover:bg-sky-100/50 transition cursor-pointer">
                         <div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-100">
                             <span class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
-                                <i class="fa-solid fa-triangle-exclamation text-sky-600"></i> السلوكيات / الملاحظات
+                                <i class="fa-solid fa-pen-nib text-sky-600"></i> الملاحظات الخطية والسلوكيات
                             </span>
                             <span id="dayBehaviorsCount" class="bg-sky-100 text-sky-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                         </div>
@@ -703,6 +703,37 @@
         </div>
     </div>
 
+    <!-- Modal Custom Note Input -->
+    <div id="customNoteModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
+            <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-pen-nib text-amber-300"></i>
+                    إضافة ملاحظة خطية للطالب
+                </h3>
+                <button onclick="closeCustomNoteModal()" class="text-indigo-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <p id="customNoteStudentName" class="text-xs font-bold text-indigo-700 bg-indigo-50 p-2.5 rounded-xl border border-indigo-100"></p>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">اكتب الملاحظة أو الموقف:</label>
+                    <textarea id="customNoteInput" rows="4" placeholder="اكتب الملاحظة هنا (مثال: تميز اليوم في التفاعل والمشاركة)..." class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none leading-relaxed"></textarea>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                <button onclick="closeCustomNoteModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-200 font-semibold text-sm transition">إلغاء</button>
+                <button onclick="saveCustomNote()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-semibold text-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    حفظ الملاحظة
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-800 text-white flex justify-between items-center">
@@ -878,7 +909,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             { icon: '💤', name: 'النوم في الحصة', score: -1.0, color: '#6610f2' },
             { icon: '🗣️', name: 'التحدث أثناء الدرس', score: -1.0, color: '#6f42c1' },
             { icon: '📱', name: 'استخدام الهاتف', score: -1.0, color: '#d9534f' },
-            { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
+            { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' },
+            { icon: '📝', name: 'ملاحظة خطية مخصصة', score: 0.0, color: '#4f46e5', isCustomNote: true }
         ];
 
         let isReadOnly = false; 
@@ -893,6 +925,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         let currentDate = new Date().toISOString().split('T')[0];
         let allAttendanceRecords = {}; 
         let allBehaviorsRecords = {};
+        let currentCustomNoteStudentId = null;
 
         const selectedDateInput = document.getElementById('selectedDate');
         const studentsTableBody = document.getElementById('studentsTableBody');
@@ -1196,11 +1229,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 const dayBehaviorsList = (allBehaviorsRecords[date] || {})[targetStudentId] || [];
                 dayBehaviorsList.forEach((item, itemIdx) => {
                     hasBehaviors = true;
-                    totalBehaviorScore += Number(item.score);
+                    totalBehaviorScore += Number(item.score || 0);
 
                     const isParticipation = item.name.includes('مشاركة') || item.name.includes('إجابة');
-                    let scoreBadgeClass = item.score > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-rose-600 bg-rose-50 border-rose-200";
-                    let pulseClass = !isParticipation ? " pulse-badge shadow-sm" : "";
+                    const isCustomNote = item.isCustomNote;
+                    let scoreBadgeClass = item.score > 0 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : (item.score < 0 ? "text-rose-600 bg-rose-50 border-rose-200" : "text-indigo-600 bg-indigo-50 border-indigo-200");
+                    let pulseClass = (!isParticipation && !isCustomNote) ? " pulse-badge shadow-sm" : "";
 
                     const cardDiv = document.createElement('div');
                     cardDiv.className = 'p-4 bg-slate-50 hover:bg-slate-100 transition rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm';
@@ -1214,9 +1248,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>
                         <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                             <span class="px-3 py-1 rounded-lg text-xs font-black border ${scoreBadgeClass}${pulseClass}">
-                                ${item.score > 0 ? '+' + item.score : item.score} ${!isParticipation ? '⚠️ تنبيه' : ''}
+                                ${item.score > 0 ? '+' + item.score : (item.score < 0 ? item.score : 'ملاحظة خطية')}
                             </span>
-                            <button onclick="removeBehaviorLogFromDate('${targetStudentId}', '${date}', ${itemIdx})" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="حذف هذا السلوك نهائياً">
+                            <button onclick="removeBehaviorLogFromDate('${targetStudentId}', '${date}', ${itemIdx})" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="حذف هذا السجل نهائياً">
                                 <i class="fa-solid fa-trash-can"></i> حذف
                             </button>
                         </div>
@@ -1563,18 +1597,19 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             filteredForReport.forEach(s => {
                 Object.keys(allBehaviorsRecords).forEach(d => {
                     const logs = (allBehaviorsRecords[d] || {})[s.id] || [];
-                    logs.forEach((item, logIdx) => {
+                    logs.forEach((item) => {
                         const name = item.name || '';
                         const timeStr = item.time || '';
                         const icon = item.icon || '⭐';
                         const isParticipation = name.includes('مشاركة') || name.includes('إجابة');
+                        const isCustomNote = item.isCustomNote;
 
                         if (isParticipation && d !== targetDate) return;
 
                         const li = document.createElement('li');
                         li.className = 'py-2 px-3 bg-sky-50 rounded-xl flex flex-col gap-1 border border-sky-200 shadow-sm';
                         
-                        let pulseHTML = !isParticipation ? '<span class="pulse-badge text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-bold">دائم ⚠️</span>' : '';
+                        let pulseHTML = (!isParticipation && !isCustomNote) ? '<span class="pulse-badge text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-bold">دائم ⚠️</span>' : '';
 
                         li.innerHTML = `
                             <div class="flex justify-between items-center">
@@ -1598,7 +1633,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         } else if (isParticipation) {
                             partCount++;
                             participationsList.appendChild(li);
-                        } else if (item.score < 0) {
+                        } else if (item.score < 0 || isCustomNote) {
                             behCount++;
                             behaviorsList.appendChild(li);
                         } else {
@@ -1672,9 +1707,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 headerBgClass = "bg-amber-700";
                 icon.innerHTML = `<i class="fa-solid fa-folder-open"></i>`;
             } else if (categoryType === 'behaviors') {
-                typeTitle = "تقرير السلوكيات والملاحظات كاملاً";
+                typeTitle = "تقرير الملاحظات الخطية والسلوكيات كاملاً";
                 headerBgClass = "bg-rose-700";
-                icon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+                icon.innerHTML = `<i class="fa-solid fa-pen-nib"></i>`;
             }
 
             header.className = `p-5 text-white flex justify-between items-center ${headerBgClass}`;
@@ -1723,17 +1758,18 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             const timeStr = item.time || '-';
                             const iconSymbol = item.icon || '⭐';
                             const isParticipation = name.includes('مشاركة') || name.includes('إجابة');
+                            const isCustomNote = item.isCustomNote;
 
                             if (isParticipation && d !== targetDate) return;
 
                             let matchesCategory = false;
-                            if (categoryType === 'participations' && (isParticipation || (!name.includes('واجب') && !name.includes('ملف') && !name.includes('بحث') && item.score >= 0))) {
+                            if (categoryType === 'participations' && (isParticipation || (!name.includes('واجب') && !name.includes('ملف') && !name.includes('بحث') && !isCustomNote && item.score >= 0))) {
                                 matchesCategory = true;
                             } else if (categoryType === 'homework' && name.includes('واجب')) {
                                 matchesCategory = true;
                             } else if (categoryType === 'research' && (name.includes('ملف') || name.includes('بحث'))) {
                                 matchesCategory = true;
-                            } else if (categoryType === 'behaviors' && !isParticipation && item.score < 0) {
+                            } else if (categoryType === 'behaviors' && (isCustomNote || (!isParticipation && item.score < 0))) {
                                 matchesCategory = true;
                             }
 
@@ -1742,7 +1778,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 const card = document.createElement('div');
                                 card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
                                 
-                                let pulseBadgeHTML = !isParticipation ? '<span class="pulse-badge text-[10px] bg-rose-500 text-white px-1.5 py-0.5 rounded font-bold mr-1">دائم ⚠️</span>' : '';
+                                let pulseBadgeHTML = (!isParticipation && !isCustomNote) ? '<span class="pulse-badge text-[10px] bg-rose-500 text-white px-1.5 py-0.5 rounded font-bold mr-1">دائم ⚠️</span>' : '';
 
                                 card.innerHTML = `
                                     <div class="flex items-center gap-3">
@@ -1860,7 +1896,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                     studentStats[studentId].participations++;
                                     totalParticipationsCount++;
                                 }
-                            } else if (item.score < 0) {
+                            } else if (item.score < 0 || item.isCustomNote) {
                                 studentStats[studentId].negatives++;
                                 totalNegativesCount++;
                             } else {
@@ -1930,7 +1966,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 `;
                 reportTableBody.appendChild(row);
 
-                // فحص ما إذا كان الغياب 3 أيام فأكثر
                 if (stat.absent >= 3 && highAbsenceTableBody) {
                     highAbsenceCount++;
                     let baseUrl = "https://school1school2-stack.github.io/2222/";
@@ -2064,7 +2099,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             let csvContent = "\uFEFF"; 
             csvContent += `تقرير الحضور والسلوكيات التراكمي - الفصل: (${activeGroup}) من ${start} إلى ${end}\n`;
-            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,أيام الحضور,المشاركات,الواجبات,البحوث والملفات,السلبيات,أيام الغياب,أيام التأخر,بعذر,نسبة الحضور\n`;
+            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,أيام الحضور,المشاركات,الواجبات,البحوث والملفات,السلبيات والملاحظات,أيام الغياب,أيام التأخر,بعذر,نسبة الحضور\n`;
 
             activeStudents.forEach(student => {
                 let present = 0, absent = 0, late = 0, excused = 0;
@@ -2088,7 +2123,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         else if (name.includes('مشاركة') || name.includes('إجابة')) {
                             if (date >= start && date <= end) participations++;
                         }
-                        else if (item.score < 0) negatives++;
+                        else if (item.score < 0 || item.isCustomNote) negatives++;
                         else {
                             if (date >= start && date <= end) participations++;
                         }
@@ -2239,9 +2274,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>`;
                 }
 
-                let behaviorOptionsHTML = `<option value="">+ اختر مشاركة أو سلوك...</option>`;
+                let behaviorOptionsHTML = `<option value="">+ اختر مشاركة أو ملاحظة...</option>`;
                 defaultActions.forEach((act, idx) => {
-                    behaviorOptionsHTML += `<option value="${idx}">${act.icon} ${act.name} (${act.score > 0 ? '+' + act.score : act.score})</option>`;
+                    behaviorOptionsHTML += `<option value="${idx}">${act.icon} ${act.name} ${act.score !== 0 ? '(' + (act.score > 0 ? '+' + act.score : act.score) + ')' : ''}</option>`;
                 });
 
                 let combinedLogs = [];
@@ -2249,12 +2284,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
                     logs.forEach((log, logIdx) => {
                         const isParticipation = log.name.includes('مشاركة') || log.name.includes('إجابة');
-                        if (d === currentDate || !isParticipation) {
+                        const isCustomNote = log.isCustomNote;
+                        if (d === currentDate || (!isParticipation && !isCustomNote)) {
                             combinedLogs.push({
                                 ...log,
                                 originDate: d,
                                 logIdx: logIdx,
-                                isPermanent: !isParticipation && d !== currentDate
+                                isPermanent: !isParticipation && !isCustomNote && d !== currentDate
                             });
                         }
                     });
@@ -2262,14 +2298,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                 let logsHTML = `<div class="flex flex-wrap gap-1 mt-1 max-w-[220px] max-h-[85px] overflow-y-auto custom-scrollbar p-0.5">`;
                 combinedLogs.forEach((log) => {
-                    let badgeColor = log.score > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200";
+                    let badgeColor = log.score > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : (log.score < 0 ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-indigo-50 text-indigo-700 border-indigo-200");
                     let pulseStyle = log.isPermanent ? " pulse-badge" : "";
                     
                     logsHTML += `
                         <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${badgeColor}${pulseStyle}" title="التاريخ: ${log.originDate} - ${log.time}">
                             <span>${log.icon}</span>
                             <span>${escapeHtml(log.name)}</span>
-                            <button onclick="event.stopPropagation(); removeBehaviorLogFromDate('${student.id}', '${log.originDate}', ${log.logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5 font-bold" title="حذف هذا السلوك">×</button>
+                            <button onclick="event.stopPropagation(); removeBehaviorLogFromDate('${student.id}', '${log.originDate}', ${log.logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5 font-bold" title="حذف">×</button>
                         </span>
                     `;
                 });
@@ -2326,7 +2362,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </td>
                         <td class="p-4">
                             <div class="flex flex-col gap-1">
-                                <select onchange="addBehaviorLog('${student.id}', this.value)" class="py-1.5 px-2 text-xs border border-indigo-200 rounded-lg bg-indigo-50/50 text-indigo-900 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                <select onchange="handleBehaviorDropdown('${student.id}', this)" class="py-1.5 px-2 text-xs border border-indigo-200 rounded-lg bg-indigo-50/50 text-indigo-900 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                     ${behaviorOptionsHTML}
                                 </select>
                                 ${combinedLogs.length > 0 ? logsHTML : ''}
@@ -2349,6 +2385,102 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
 
             updateStats();
+        }
+
+        window.handleBehaviorDropdown = function(studentId, selectElement) {
+            const val = selectElement.value;
+            if (val === "") return;
+            const actionIdx = parseInt(val);
+            const action = defaultActions[actionIdx];
+            selectElement.value = "";
+
+            if (!action) return;
+
+            if (action.isCustomNote) {
+                openCustomNoteModal(studentId);
+            } else {
+                addBehaviorLog(studentId, action);
+            }
+        };
+
+        function openCustomNoteModal(studentId) {
+            currentCustomNoteStudentId = studentId;
+            const student = students.find(s => s.id === studentId);
+            document.getElementById('customNoteStudentName').textContent = `الطالب: ${student ? student.name : ''}`;
+            document.getElementById('customNoteInput').value = '';
+            document.getElementById('customNoteModal').classList.remove('hidden');
+        }
+
+        function closeCustomNoteModal() {
+            document.getElementById('customNoteModal').classList.add('hidden');
+            currentCustomNoteStudentId = null;
+        }
+
+        async function saveCustomNote() {
+            const noteText = document.getElementById('customNoteInput').value.trim();
+            if (!noteText || !currentCustomNoteStudentId) {
+                showToast('يرجى كتابة نص الملاحظة أولاً', 'warning');
+                return;
+            }
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+
+            const updatedBehaviors = { ...studentBehaviorsData };
+            if (!updatedBehaviors[currentCustomNoteStudentId]) {
+                updatedBehaviors[currentCustomNoteStudentId] = [];
+            }
+
+            updatedBehaviors[currentCustomNoteStudentId].push({
+                icon: '📝',
+                name: noteText,
+                score: 0,
+                time: timeString,
+                isCustomNote: true
+            });
+
+            try {
+                await db.collection("student_behaviors_records").doc(currentDate).set({
+                    records: updatedBehaviors,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                showToast('تم حفظ الملاحظة الخطية بنجاح ☁️', 'cloud');
+                closeCustomNoteModal();
+            } catch (error) {
+                console.error("Error saving custom note:", error);
+                showToast('فشل الحفظ السحابي', 'warning');
+            }
+        }
+
+        async function addBehaviorLog(studentId, action) {
+            if (isReadOnly || isStudentPortal) return;
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+
+            const updatedBehaviors = { ...studentBehaviorsData };
+            if (!updatedBehaviors[studentId]) {
+                updatedBehaviors[studentId] = [];
+            }
+
+            updatedBehaviors[studentId].push({
+                icon: action.icon,
+                name: action.name,
+                score: action.score,
+                time: timeString
+            });
+
+            try {
+                await db.collection("student_behaviors_records").doc(currentDate).set({
+                    records: updatedBehaviors,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                showToast(`تم تسجيل (${action.name}) للطالب بنجاح ☁️`, 'cloud');
+            } catch (error) {
+                console.error("Error saving behavior:", error);
+                showToast('فشل الحفظ السحابي', 'warning');
+            }
         }
 
         window.setStatus = async function(studentId, status) {
@@ -2375,40 +2507,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 showToast('تم حفظ الحالة والوقت سحابياً ☁️', 'cloud');
             } catch (error) {
                 console.error("Error saving status:", error);
-                showToast('فشل الحفظ السحابي', 'warning');
-            }
-        };
-
-        window.addBehaviorLog = async function(studentId, actionIndexStr) {
-            if (isReadOnly || isStudentPortal || actionIndexStr === "") return;
-            const actionIdx = parseInt(actionIndexStr);
-            const action = defaultActions[actionIdx];
-            if (!action) return;
-
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-
-            const updatedBehaviors = { ...studentBehaviorsData };
-            if (!updatedBehaviors[studentId]) {
-                updatedBehaviors[studentId] = [];
-            }
-
-            updatedBehaviors[studentId].push({
-                icon: action.icon,
-                name: action.name,
-                score: action.score,
-                time: timeString
-            });
-
-            try {
-                await db.collection("student_behaviors_records").doc(currentDate).set({
-                    records: updatedBehaviors,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-
-                showToast(`تم تسجيل (${action.name}) للطالب بنجاح ☁️`, 'cloud');
-            } catch (error) {
-                console.error("Error saving behavior:", error);
                 showToast('فشل الحفظ السحابي', 'warning');
             }
         };
@@ -2452,7 +2550,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     renderTable();
                 }
 
-                showToast('تم حذف السلوك بنجاح ☁️', 'info');
+                showToast('تم حذف السجل بنجاح ☁️', 'info');
 
             } catch (error) {
                 console.error("Error removing behavior:", error);
