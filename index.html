@@ -20,7 +20,6 @@
             50% { transform: scale(1.03); opacity: 0.9; }
         }
         .pulse-badge { animation: pulse-soft 2s infinite ease-in-out; }
-        .tab-active { border-bottom: 3px solid #4f46e5; color: #4f46e5; font-weight: 700; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
@@ -59,17 +58,6 @@
                     <i id="cloudIcon" class="fa-solid fa-cloud text-amber-400"></i>
                     <span id="cloudStatus" class="text-indigo-200">السحابة متصلة</span>
                 </div>
-            </div>
-        </div>
-
-        <div id="tabsContainer" class="bg-indigo-950/40 border-t border-indigo-800/60">
-            <div class="max-w-7xl mx-auto px-4 flex gap-4">
-                <button onclick="switchTab('daily')" id="dailyTabBtn" class="tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2">
-                    <i class="fa-solid fa-clipboard-user"></i> الرصد اليومي المباشر
-                </button>
-                <button onclick="switchTab('reports')" id="reportsTabBtn" class="text-slate-400 hover:text-white py-3 px-6 text-sm font-medium transition flex items-center gap-2">
-                    <i class="fa-solid fa-chart-pie"></i> التقارير والإحصائيات التراكمية
-                </button>
             </div>
         </div>
     </header>
@@ -408,161 +396,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- التقارير والإحصائيات التراكمية (المطورة بلوحة تحكم نظيفة) -->
-            <div id="reportsSection" class="hidden space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-                        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
-                            <span class="text-xs font-bold text-slate-700">من تاريخ:</span>
-                            <input type="date" id="reportStartDate" onchange="generateReport()" class="bg-transparent text-xs font-bold text-indigo-900 focus:outline-none cursor-pointer">
-                        </div>
-                        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl">
-                            <span class="text-xs font-bold text-slate-700">إلى تاريخ:</span>
-                            <input type="date" id="reportEndDate" onchange="generateReport()" class="bg-transparent text-xs font-bold text-indigo-900 focus:outline-none cursor-pointer">
-                        </div>
-                        <span id="reportStatusText" class="text-xs text-slate-500 font-medium"></span>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button onclick="exportReportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-file-excel"></i> تصدير التقرير الشامل CSV
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-slate-500 font-bold block">إجمالي أيام الرصد</span>
-                            <span id="repTotalDays" class="text-2xl font-black text-slate-900 mt-1 block">0 يوم</span>
-                        </div>
-                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
-                            <i class="fa-solid fa-calendar-days text-lg"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-emerald-600 font-bold block">متوسط نسبة الحضور</span>
-                            <span id="repAvgPresenceRate" class="text-2xl font-black text-emerald-700 mt-1 block">0%</span>
-                        </div>
-                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-                            <i class="fa-solid fa-chart-line text-lg"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-rose-600 font-bold block">إجمالي حالات الغياب</span>
-                            <span id="repTotalAbsences" class="text-2xl font-black text-rose-700 mt-1 block">0</span>
-                        </div>
-                        <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
-                            <i class="fa-solid fa-user-xmark text-lg"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-amber-600 font-bold block">إجمالي حالات التأخر</span>
-                            <span id="repTotalLate" class="text-2xl font-black text-amber-700 mt-1 block">0</span>
-                        </div>
-                        <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
-                            <i class="fa-solid fa-clock text-lg"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl shadow-xl border border-indigo-900 text-white p-6 space-y-4">
-                    <div class="flex items-center gap-3 pb-3 border-b border-indigo-800/60">
-                        <div class="w-10 h-10 bg-indigo-800 rounded-xl flex items-center justify-center border border-indigo-700">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300 text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-bold">الملخص التراكمي للأنشطة والسلوكيات</h3>
-                            <p class="text-xs text-indigo-200">إحصائيات إجمالية للفترة المحددة</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                        <div class="bg-white/10 border border-emerald-500/30 rounded-xl p-3.5 text-center transition shadow-sm">
-                            <span class="text-xs font-bold text-emerald-300 block mb-1">الحضور التراكمي</span>
-                            <span id="repBehaviorPresent" class="text-xl font-black text-emerald-200">0</span>
-                        </div>
-                        <div class="bg-white/10 border border-sky-500/30 rounded-xl p-3.5 text-center transition shadow-sm">
-                            <span class="text-xs font-bold text-sky-300 block mb-1">إجمالي المشاركات</span>
-                            <span id="repBehaviorParticipations" class="text-xl font-black text-sky-200">0</span>
-                        </div>
-                        <div class="bg-white/10 border border-indigo-500/30 rounded-xl p-3.5 text-center transition shadow-sm">
-                            <span class="text-xs font-bold text-indigo-300 block mb-1">إجمالي الواجبات</span>
-                            <span id="repBehaviorHomework" class="text-xl font-black text-indigo-200">0</span>
-                        </div>
-                        <div class="bg-white/10 border border-amber-500/30 rounded-xl p-3.5 text-center transition shadow-sm">
-                            <span class="text-xs font-bold text-amber-300 block mb-1">إنجاز الملفات</span>
-                            <span id="repBehaviorResearch" class="text-xl font-black text-amber-200">0</span>
-                        </div>
-                        <div class="bg-white/10 border border-rose-500/30 rounded-xl p-3.5 text-center transition shadow-sm col-span-2 sm:col-span-1">
-                            <span class="text-xs font-bold text-rose-300 block mb-1">إجمالي السلبيات</span>
-                            <span id="repBehaviorNegatives" class="text-xl font-black text-rose-200">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-rose-200 overflow-hidden">
-                    <div class="p-4 bg-rose-50 border-b border-rose-200 flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg"></i>
-                            <h3 class="font-bold text-rose-900 text-sm">الطلاب المتجاوزون لـ 3 أيام غياب فأكثر (تنبيه للمدير)</h3>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="exportHighAbsenceCSV()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1">
-                                <i class="fa-solid fa-file-excel"></i> تصدير الغياب
-                            </button>
-                            <button onclick="sendHighAbsenceToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm">
-                                <i class="fa-brands fa-whatsapp"></i> واتساب
-                            </button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto max-h-72 overflow-y-auto custom-scrollbar">
-                        <table class="w-full text-right border-collapse">
-                            <thead>
-                                <tr class="bg-rose-50/50 text-rose-900 text-xs font-bold border-b border-rose-100 sticky top-0">
-                                    <th class="p-3">اسم الطالب والبريد</th>
-                                    <th class="p-3 text-center">الفصل</th>
-                                    <th class="p-3 text-center">أيام الغياب</th>
-                                    <th class="p-3 text-center">رابط الملف الفردي</th>
-                                </tr>
-                            </thead>
-                            <tbody id="highAbsenceTableBody" class="text-xs divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-table-cells text-indigo-600"></i> جدول السجل التراكمي الشامل للفترة المحددة
-                        </h3>
-                        <span class="text-xs text-slate-400 font-medium">اسحب أفقياً لمشاهدة كافة الأعمدة ➡️</span>
-                    </div>
-                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto custom-scrollbar">
-                        <table class="w-full text-right border-collapse">
-                            <thead class="sticky top-0 bg-slate-100 z-10">
-                                <tr class="text-slate-600 text-xs font-bold border-b border-slate-200">
-                                    <th class="p-4">اسم الطالب والبريد</th>
-                                    <th class="p-4 text-center">الفصل</th>
-                                    <th class="p-4 text-center">أيام الحضور</th>
-                                    <th class="p-4 text-center">المشاركات</th>
-                                    <th class="p-4 text-center">الواجبات</th>
-                                    <th class="p-4 text-center">إنجاز الملفات</th>
-                                    <th class="p-4 text-center">السلبيات والملاحظات</th>
-                                    <th class="p-4 text-center">الغياب</th>
-                                    <th class="p-4 text-center">التأخر</th>
-                                    <th class="p-4 text-center">نسبة الحضور</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reportTableBody" class="text-xs divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
         </div>
     </main>
 
@@ -610,6 +443,7 @@
             </div>
         </div>
     </div>
+
     <div id="customNoteModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
@@ -713,43 +547,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         </div>
     </div>
 
-    <div id="studentShareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-lg overflow-hidden transform transition-all">
-            <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
-                <h3 class="text-lg font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-link text-yellow-300"></i> إصدار رابط تقرير طالب مخصص
-                </h3>
-                <button onclick="closeStudentShareModal()" class="text-indigo-200 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-            
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">اختر الطالب لإصدار رابطه الخاص:</label>
-                    <select id="selectShareStudent" onchange="generateStudentPortalUrl()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="">-- اختر الطالب --</option>
-                    </select>
-                </div>
-
-                <div id="studentUrlBox" class="hidden space-y-2 pt-2">
-                    <label class="block text-xs font-bold text-slate-700">رابط المتابعة الفردي الخاص بالطالب:</label>
-                    <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
-                        <input type="text" id="studentGeneratedUrlInput" readonly value="" class="bg-transparent text-xs font-mono font-bold text-slate-700 w-full focus:outline-none">
-                        <button onclick="copyGeneratedStudentUrl()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0">
-                            <i class="fa-regular fa-copy"></i> نسخ
-                        </button>
-                    </div>
-                    <p class="text-[11px] text-slate-500">قم بمشاركة هذا الرابط مع الطالب أو ولي الأمر ليطلع على تقريره وحضوره.</p>
-                </div>
-            </div>
-
-            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                <button onclick="closeStudentShareModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">إغلاق</button>
-            </div>
-        </div>
-    </div>
-
     <div id="toast" class="fixed bottom-5 left-5 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 text-sm flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none translate-y-2 z-50">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toastText">تم الحفظ بنجاح</span>
@@ -769,7 +566,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             
             <div class="p-6 space-y-4">
                 <p class="text-xs text-slate-600 leading-relaxed font-semibold">
-                    يمكنك إرسال رابط لوحة المتابعة الشاملة والتقارير مباشرة للمدير (بصلاحية العرض والقراءة فقط دون تعديل) أو نسخ الرابط:
+                    يمكنك إرسال رابط لوحة المتابعة الشاملة مباشرة للمدير (بصلاحية العرض والقراءة فقط دون تعديل) أو نسخ الرابط:
                 </p>
 
                 <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
@@ -868,11 +665,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             selectedDateInput.value = currentDate;
             document.getElementById('singleReportDate').value = currentDate;
 
-            const today = new Date();
-            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-            document.getElementById('reportStartDate').value = firstDayOfMonth;
-            document.getElementById('reportEndDate').value = currentDate;
-
             initCloudSync();
             setupEventListeners();
             updateShareUrl();
@@ -892,9 +684,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (deleteClassBtn) deleteClassBtn.classList.add('hidden');
             if (copyClassBtn) copyClassBtn.classList.add('hidden');
 
-            document.getElementById('tabsContainer').classList.remove('hidden');
             document.getElementById('dailySection').classList.remove('hidden');
-            document.getElementById('reportsSection').classList.add('hidden');
         }
 
         function updateShareUrl() {
@@ -904,27 +694,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
             const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}`;
             document.getElementById('shareUrlInput').value = shareUrl;
-        }
-
-        function switchTab(tab) {
-            const dailySec = document.getElementById('dailySection');
-            const reportsSec = document.getElementById('reportsSection');
-            const dailyBtn = document.getElementById('dailyTabBtn');
-            const reportsBtn = document.getElementById('reportsTabBtn');
-
-            if (tab === 'daily') {
-                dailySec.classList.remove('hidden');
-                reportsSec.classList.add('hidden');
-                dailyBtn.className = "tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2";
-                reportsBtn.className = "text-slate-400 hover:text-white py-3 px-6 text-sm font-medium transition flex items-center gap-2";
-            } else {
-                dailySec.classList.add('hidden');
-                reportsSec.classList.remove('hidden');
-                reportsBtn.className = "tab-active py-3 px-6 text-sm font-medium transition flex items-center gap-2";
-                dailyBtn.className = "text-slate-400 hover:text-white py-3 px-6 text-sm font-medium transition flex items-center gap-2";
-                generateReport();
-                renderSingleDayReport();
-            }
         }
 
         function getStudentEmail(data, docId) {
@@ -984,7 +753,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 cloudStatus.textContent = "السحابة: متصل ومزامن (aaaa)";
                 cloudIcon.className = "fa-solid fa-cloud text-emerald-400";
                 
-                populateStudentShareDropdown();
                 if (isStudentPortal && students.length > 0) {
                     renderStudentPortalView();
                 }
@@ -1003,9 +771,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     allAttendanceRecords[doc.id] = doc.data().records || {};
                 });
                 renderSingleDayReport();
-                if (isReadOnly || !document.getElementById('reportsSection').classList.contains('hidden')) {
-                    generateReport();
-                }
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
@@ -1020,9 +785,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     allBehaviorsRecords[doc.id] = doc.data().records || {};
                 });
                 renderSingleDayReport();
-                if (!document.getElementById('reportsSection').classList.contains('hidden')) {
-                    generateReport();
-                }
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
@@ -1030,55 +792,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     renderTable();
                 }
             });
-        }
-
-        function populateStudentShareDropdown() {
-            const select = document.getElementById('selectShareStudent');
-            if(!select) return;
-            select.innerHTML = '<option value="">-- اختر الطالب --</option>';
-            students.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = `${s.name} (${s.group})`;
-                select.appendChild(opt);
-            });
-        }
-
-        function openStudentShareModal() {
-            populateStudentShareDropdown();
-            document.getElementById('selectShareStudent').value = "";
-            document.getElementById('studentUrlBox').classList.add('hidden');
-            document.getElementById('studentShareModal').classList.remove('hidden');
-        }
-
-        function closeStudentShareModal() {
-            document.getElementById('studentShareModal').classList.add('hidden');
-        }
-
-        function generateStudentPortalUrl() {
-            const studentId = document.getElementById('selectShareStudent').value;
-            const urlBox = document.getElementById('studentUrlBox');
-
-            if (!studentId) {
-                urlBox.classList.add('hidden');
-                return;
-            }
-
-            let baseUrl = "https://school1school2-stack.github.io/2222/";
-            if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
-                baseUrl = window.location.origin + window.location.pathname;
-            }
-            const studentUrl = `${baseUrl}?student=${studentId}`;
-            
-            document.getElementById('studentGeneratedUrlInput').value = studentUrl;
-            urlBox.classList.remove('hidden');
-        }
-
-        function copyGeneratedStudentUrl() {
-            const input = document.getElementById('studentGeneratedUrlInput');
-            input.select();
-            document.execCommand('copy');
-            showToast('تم نسخ رابط الطالب الفردي بنجاح 📋', 'success');
         }
 
         function renderStudentPortalView() {
@@ -1429,7 +1142,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             activeGroup = groupName.trim();
             updateShareUrl();
             renderTable();
-            generateReport();
             renderSingleDayReport();
         }
 
@@ -1440,29 +1152,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function closeManageGroupsModal() {
             document.getElementById('groupsModal').classList.add('hidden');
-        }
-
-        function copyCurrentClassData() {
-            if (activeGroup === 'الجميع') {
-                showToast('يرجى تحديد فصل معين لنسخه', 'warning');
-                return;
-            }
-            const activeStudents = students.filter(s => s.group.trim() === activeGroup.trim());
-            if (activeStudents.length === 0) {
-                showToast('لا توجد طلاب في هذا الفصل للنسخ', 'warning');
-                return;
-            }
-
-            let textToCopy = "";
-            activeStudents.forEach(st => {
-                textToCopy += `${st.name}\n${st.email}\n`;
-            });
-
-            navigator.clipboard.writeText(textToCopy.trim()).then(() => {
-                showToast('تم نسخ طلاب الفصل (اسم وإيميل) بنجاح 📋', 'success');
-            }).catch(() => {
-                showToast('فشل النسخ تلقائياً', 'warning');
-            });
         }
 
         function openAddModalWithClass() {
@@ -1870,338 +1559,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function closeCategoryFullModal() {
             document.getElementById('fullCategoryModal').classList.add('hidden');
-        }
-
-        function generateReport() {
-            if (isStudentPortal) return;
-            const start = document.getElementById('reportStartDate').value;
-            const end = document.getElementById('reportEndDate').value;
-            const reportTableBody = document.getElementById('reportTableBody');
-            const reportStatusText = document.getElementById('reportStatusText');
-            const highAbsenceTableBody = document.getElementById('highAbsenceTableBody');
-
-            if (!start || !end) return;
-
-            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
-            const totalRecordedDays = relevantDates.length;
-
-            document.getElementById('repTotalDays').textContent = `${totalRecordedDays} يوم`;
-            reportStatusText.textContent = `تم تحليل ${totalRecordedDays} يوم رصد خلال هذه الفترة`;
-
-            let overallPresent = 0;
-            let overallAbsent = 0;
-            let overallLate = 0;
-
-            let totalParticipationsCount = 0;
-            let totalHomeworkCount = 0;
-            let totalResearchCount = 0;
-            let totalNegativesCount = 0;
-
-            const activeStudents = students.filter(s => {
-                const sGroup = (s.group || '').trim();
-                const actGroup = activeGroup.trim();
-                return actGroup === 'الجميع' || sGroup === actGroup;
-            });
-
-            let studentStats = {};
-            activeStudents.forEach(s => {
-                studentStats[s.id] = { 
-                    name: s.name, 
-                    email: s.email, 
-                    group: s.group, 
-                    present: 0, 
-                    absent: 0, 
-                    late: 0, 
-                    excused: 0,
-                    participations: 0,
-                    homework: 0,
-                    research: 0,
-                    negatives: 0
-                };
-            });
-
-            relevantDates.forEach(date => {
-                const dayRecords = allAttendanceRecords[date] || {};
-                Object.keys(dayRecords).forEach(studentId => {
-                    if (studentStats[studentId]) {
-                        const recordObj = dayRecords[studentId];
-                        const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                        
-                        if (st === 'present') { studentStats[studentId].present++; overallPresent++; }
-                        else if (st === 'absent') { studentStats[studentId].absent++; overallAbsent++; }
-                        else if (st === 'late') { studentStats[studentId].late++; overallLate++; }
-                        else if (st === 'excused') { studentStats[studentId].excused++; }
-                    }
-                });
-            });
-
-            const relevantBehaviorDates = Object.keys(allBehaviorsRecords);
-            relevantBehaviorDates.forEach(date => {
-                const dayBehaviors = allBehaviorsRecords[date] || {};
-                Object.keys(dayBehaviors).forEach(studentId => {
-                    if (studentStats[studentId]) {
-                        const logs = dayBehaviors[studentId] || [];
-                        logs.forEach(item => {
-                            const name = item.name || '';
-                            if (name.includes('حل الواجب') && !name.includes('لم يحل')) {
-                                studentStats[studentId].homework++;
-                                totalHomeworkCount++;
-                            } else if (name.includes('إنجاز ملف') || name.includes('بحث')) {
-                                studentStats[studentId].research++;
-                                totalResearchCount++;
-                            } else if (name.includes('مشاركة') || name.includes('إجابة')) {
-                                if (date >= start && date <= end) {
-                                    studentStats[studentId].participations++;
-                                    totalParticipationsCount++;
-                                }
-                            } else if (item.score < 0 || item.isCustomNote) {
-                                studentStats[studentId].negatives++;
-                                totalNegativesCount++;
-                            } else {
-                                if (date >= start && date <= end) {
-                                    studentStats[studentId].participations++;
-                                    totalParticipationsCount++;
-                                }
-                            }
-                        });
-                    }
-                });
-            });
-
-            const grandTotalEntries = overallPresent + overallAbsent + overallLate;
-            const avgRate = grandTotalEntries > 0 ? Math.round((overallPresent / grandTotalEntries) * 100) : 0;
-
-            document.getElementById('repAvgPresenceRate').textContent = `${avgRate}%`;
-            document.getElementById('repTotalAbsences').textContent = overallAbsent;
-            document.getElementById('repTotalLate').textContent = overallLate;
-
-            document.getElementById('repBehaviorPresent').textContent = overallPresent;
-            document.getElementById('repBehaviorParticipations').textContent = totalParticipationsCount;
-            document.getElementById('repBehaviorHomework').textContent = totalHomeworkCount;
-            document.getElementById('repBehaviorResearch').textContent = totalResearchCount;
-            document.getElementById('repBehaviorNegatives').textContent = totalNegativesCount;
-
-            reportTableBody.innerHTML = '';
-            if (highAbsenceTableBody) highAbsenceTableBody.innerHTML = '';
-
-            if (activeStudents.length === 0) {
-                reportTableBody.innerHTML = `<tr><td colspan="10" class="text-center p-6 text-slate-400">لا يوجد طلاب في هذا الفصل لحساب التقرير</td></tr>`;
-                if (highAbsenceTableBody) highAbsenceTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-slate-400">لا توجد بيانات</td></tr>`;
-                return;
-            }
-
-            let highAbsenceCount = 0;
-
-            activeStudents.forEach((student) => {
-                const stat = studentStats[student.id];
-                const totalEvaluated = stat.present + stat.absent + stat.late;
-                const attendanceRate = totalEvaluated > 0 ? Math.round(((stat.present + stat.late) / totalEvaluated) * 100) : 0;
-
-                let rateBadgeClass = "bg-emerald-100 text-emerald-800";
-                if (attendanceRate < 75) rateBadgeClass = "bg-rose-100 text-rose-800";
-                else if (attendanceRate < 90) rateBadgeClass = "bg-amber-100 text-amber-800";
-
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-slate-50 transition border-b border-slate-100';
-                row.innerHTML = `
-                    <td class="p-4">
-                        <div class="font-bold text-slate-800">${escapeHtml(student.name)}</div>
-                        <div class="text-xs font-medium mt-0.5 px-2 py-0.5 rounded-md inline-block" style="color: #c53030; background-color: #fdf8f2; box-shadow: 0 1px 2px rgba(217, 119, 6, 0.1);">${escapeHtml(student.email)}</div>
-                    </td>
-                    <td class="p-4 text-center font-semibold text-slate-600">${escapeHtml(student.group)}</td>
-                    <td class="p-4 text-center font-bold text-emerald-600">${stat.present}</td>
-                    <td class="p-4 text-center font-bold text-cyan-600">${stat.participations}</td>
-                    <td class="p-4 text-center font-bold text-indigo-600">${stat.homework}</td>
-                    <td class="p-4 text-center font-bold text-amber-600">${stat.research}</td>
-                    <td class="p-4 text-center font-bold text-rose-600">${stat.negatives}</td>
-                    <td class="p-4 text-center font-semibold text-rose-600">${stat.absent}</td>
-                    <td class="p-4 text-center font-semibold text-amber-600">${stat.late}</td>
-                    <td class="p-4 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${rateBadgeClass}">
-                            ${attendanceRate}%
-                        </span>
-                    </td>
-                `;
-                reportTableBody.appendChild(row);
-
-                if (stat.absent >= 3 && highAbsenceTableBody) {
-                    highAbsenceCount++;
-                    let baseUrl = "https://school1school2-stack.github.io/2222/";
-                    if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
-                        baseUrl = window.location.origin + window.location.pathname;
-                    }
-                    let studentPortalLink = `${baseUrl}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
-
-                    const hRow = document.createElement('tr');
-                    hRow.className = 'hover:bg-rose-50/50 transition border-b border-rose-100';
-                    hRow.innerHTML = `
-                        <td class="p-3">
-                            <div class="font-bold text-slate-900">${escapeHtml(student.name)}</div>
-                            <div class="text-[11px] text-slate-500">${escapeHtml(student.email)}</div>
-                        </td>
-                        <td class="p-3 text-center font-semibold text-slate-700">${escapeHtml(student.group)}</td>
-                        <td class="p-3 text-center font-black text-rose-600 text-base">${stat.absent} أيام</td>
-                        <td class="p-3 text-center">
-                            <a href="${studentPortalLink}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-sm">
-                                <i class="fa-solid fa-link"></i> الملف
-                            </a>
-                        </td>
-                    `;
-                    highAbsenceTableBody.appendChild(hRow);
-                }
-            });
-
-            if (highAbsenceCount === 0 && highAbsenceTableBody) {
-                highAbsenceTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-emerald-600 font-bold">لا يوجد طلاب تجاوزوا 3 أيام غياب في هذه الفترة 🎉</td></tr>`;
-            }
-        }
-
-        function exportHighAbsenceCSV() {
-            const start = document.getElementById('reportStartDate').value;
-            const end = document.getElementById('reportEndDate').value;
-            const activeStudents = students.filter(s => {
-                const sGroup = (s.group || '').trim();
-                const actGroup = activeGroup.trim();
-                return actGroup === 'الجميع' || sGroup === actGroup;
-            });
-
-            let csvContent = "\uFEFF";
-            csvContent += `قائمة الطلاب المتجاوزين لـ 3 أيام غياب - الفصل: (${activeGroup}) من ${start} إلى ${end}\n`;
-            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,عدد أيام الغياب\n`;
-
-            let count = 0;
-            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
-
-            activeStudents.forEach(student => {
-                let absentCount = 0;
-                relevantDates.forEach(date => {
-                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
-                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                    if (st === 'absent') absentCount++;
-                });
-
-                if (absentCount >= 3) {
-                    count++;
-                    csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}",${absentCount}\n`;
-                }
-            });
-
-            if (count === 0) {
-                showToast('لا توجد حالات غياب متكرر للتصدير', 'warning');
-                return;
-            }
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `الغياب_المتكرر_اكثر_من_3ايام_${activeGroup}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function sendHighAbsenceToWhatsApp() {
-            const start = document.getElementById('reportStartDate').value;
-            const end = document.getElementById('reportEndDate').value;
-            const activeStudents = students.filter(s => {
-                const sGroup = (s.group || '').trim();
-                const actGroup = activeGroup.trim();
-                return actGroup === 'الجميع' || sGroup === actGroup;
-            });
-
-            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
-            let highAbsentListText = "";
-            let count = 0;
-
-            activeStudents.forEach(student => {
-                let absentCount = 0;
-                relevantDates.forEach(date => {
-                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
-                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                    if (st === 'absent') absentCount++;
-                });
-
-                if (absentCount >= 3) {
-                    count++;
-                    highAbsentListText += `%0A- ${student.name} (${student.group}): ${absentCount} أيام`;
-                }
-            });
-
-            if (count === 0) {
-                showToast('لا توجد حالات غياب تتجاوز 3 أيام للإرسال', 'warning');
-                return;
-            }
-
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقريراً بالطلاب الذين تجاوزوا 3 أيام غياب فأكثر للفصل: (${activeGroup}) خلال الفترة من ${start} إلى ${end}:%0A${highAbsentListText}%0A%0Aيرجى التكرم بالاطلاع واتخاذ الإجراء اللازم.`;
-            window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
-        }
-
-        function exportReportCSV() {
-            const start = document.getElementById('reportStartDate').value;
-            const end = document.getElementById('reportEndDate').value;
-
-            const activeStudents = students.filter(s => {
-                const sGroup = (s.group || '').trim();
-                const actGroup = activeGroup.trim();
-                return actGroup === 'الجميع' || sGroup === actGroup;
-            });
-
-            if (activeStudents.length === 0) {
-                showToast('لا توجد بيانات للتصدير!', 'warning');
-                return;
-            }
-
-            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
-            const relevantBehaviorDates = Object.keys(allBehaviorsRecords);
-
-            let csvContent = "\uFEFF"; 
-            csvContent += `تقرير الحضور والسلوكيات التراكمي - الفصل: (${activeGroup}) من ${start} إلى ${end}\n`;
-            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,أيام الحضور,المشاركات,الواجبات,البحوث والملفات,السلبيات والملاحظات,أيام الغياب,أيام التأخر,بعذر,نسبة الحضور\n`;
-
-            activeStudents.forEach(student => {
-                let present = 0, absent = 0, late = 0, excused = 0;
-                let participations = 0, homework = 0, research = 0, negatives = 0;
-
-                relevantDates.forEach(date => {
-                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
-                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                    if (st === 'present') present++;
-                    else if (st === 'absent') absent++;
-                    else if (st === 'late') late++;
-                    else if (st === 'excused') excused++;
-                });
-
-                relevantBehaviorDates.forEach(date => {
-                    const logs = (allBehaviorsRecords[date] || {})[student.id] || [];
-                    logs.forEach(item => {
-                        const name = item.name || '';
-                        if (name.includes('حل الواجب') && !name.includes('لم يحل')) { homework++; }
-                        else if (name.includes('إنجاز ملف') || name.includes('بحث')) { research++; }
-                        else if (name.includes('مشاركة') || name.includes('إجابة')) {
-                            if (date >= start && date <= end) participations++;
-                        }
-                        else if (item.score < 0 || item.isCustomNote) negatives++;
-                        else {
-                            if (date >= start && date <= end) participations++;
-                        }
-                    });
-                });
-
-                const totalEval = present + absent + late;
-                const rate = totalEval > 0 ? Math.round(((present + late) / totalEval) * 100) : 0;
-
-                csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}",${present},${participations},${homework},${research},${negatives},${absent},${late},${excused},"${rate}%"\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `تقرير_الحضور_والسلوكيات_${activeGroup}_${start}_إلى_${end}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
 
         function fetchAttendanceForDate(dateStr) {
@@ -2864,33 +2221,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function sendReportToWhatsAppManager() {
             const shareUrl = document.getElementById('shareUrlInput').value;
-            const start = document.getElementById('reportStartDate').value;
-            const end = document.getElementById('reportEndDate').value;
-            const relevantDates = Object.keys(allAttendanceRecords).filter(date => date >= start && date <= end);
-            
-            let overallPresent = 0, overallAbsent = 0, overallLate = 0;
-            const activeStudents = students.filter(s => {
-                const sGroup = (s.group || '').trim();
-                const actGroup = activeGroup.trim();
-                return actGroup === 'الجميع' || sGroup === actGroup;
-            });
-
-            relevantDates.forEach(date => {
-                const dayRecords = allAttendanceRecords[date] || {};
-                activeStudents.forEach(s => {
-                    const recordObj = dayRecords[s.id];
-                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                    if (st === 'present') overallPresent++;
-                    else if (st === 'absent') overallAbsent++;
-                    else if (st === 'late') overallLate++;
-                });
-            });
-
-            const grandTotal = overallPresent + overallAbsent + overallLate;
-            const avgRate = grandTotal > 0 ? Math.round((overallPresent / grandTotal) * 100) : 0;
-
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك ملخص تقرير الحضور والإحصائيات للفصل: (${activeGroup})%0A----------------------------------%0A📊 إجمالي أيام الرصد: ${relevantDates.length} يوم%0A📈 نسبة الحضور العامة: ${avgRate}%%%0A✅ إجمالي الحضور: ${overallPresent}%0A❌ إجمالي الغياب: ${overallAbsent}%0A⏰ إجمالي التأخر: ${overallLate}%0A----------------------------------%0Aيمكنكم الاطلاع على لوحة المتابعة الكاملة والتفاصيل (للقراءة والعرض فقط) عبر الرابط:%0A${shareUrl}`;
-
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aيمكنكم الاطلاع على لوحة المتابعة الكاملة للفصل: (${activeGroup}) (للقراءة والعرض فقط) عبر الرابط:%0A${shareUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
 
