@@ -352,6 +352,37 @@
                     </div>
                 </div>
 
+                <!-- جدول التنبيه للطلاب المتجاوزين لـ 3 أيام غياب فأكثر -->
+                <div class="bg-white rounded-2xl shadow-sm border border-rose-200 overflow-hidden">
+                    <div class="p-4 bg-rose-50 border-b border-rose-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg"></i>
+                            <h3 class="font-bold text-rose-900 text-sm">الطلاب المتجاوزون لـ 3 أيام غياب فأكثر (تنبيه للمدير)</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="exportHighAbsenceCSV()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1">
+                                <i class="fa-solid fa-file-excel"></i> تصدير الغياب
+                            </button>
+                            <button onclick="sendHighAbsenceToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-brands fa-whatsapp"></i> واتساب
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto max-h-72 overflow-y-auto custom-scrollbar">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-rose-50/50 text-rose-900 text-xs font-bold border-b border-rose-100 sticky top-0">
+                                    <th class="p-3">اسم الطالب والبريد</th>
+                                    <th class="p-3 text-center">الفصل</th>
+                                    <th class="p-3 text-center">أيام الغياب</th>
+                                    <th class="p-3 text-center">رابط الملف الفردي</th>
+                                </tr>
+                            </thead>
+                            <tbody id="highAbsenceTableBody" class="text-xs divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-2">
@@ -771,6 +802,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     allAttendanceRecords[doc.id] = doc.data().records || {};
                 });
                 renderSingleDayReport();
+                renderHighAbsenceTable();
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
@@ -1143,6 +1175,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             updateShareUrl();
             renderTable();
             renderSingleDayReport();
+            renderHighAbsenceTable();
         }
 
         function openManageGroupsModal() {
@@ -1388,6 +1421,133 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const dayForgotCountEl = document.getElementById('dayForgotFileCount');
             if(dayForgotCountEl) dayForgotCountEl.textContent = forgotCount;
             document.getElementById('dayBehaviorsCount').textContent = behCount;
+        }
+
+        function renderHighAbsenceTable() {
+            const highAbsenceTableBody = document.getElementById('highAbsenceTableBody');
+            if (!highAbsenceTableBody) return;
+            highAbsenceTableBody.innerHTML = '';
+
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
+
+            let highAbsenceCount = 0;
+
+            activeStudents.forEach((student) => {
+                let absentCount = 0;
+                Object.keys(allAttendanceRecords).forEach(date => {
+                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
+                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    if (st === 'absent') absentCount++;
+                });
+
+                if (absentCount >= 3) {
+                    highAbsenceCount++;
+                    let baseUrl = "https://school1school2-stack.github.io/2222/";
+                    if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
+                        baseUrl = window.location.origin + window.location.pathname;
+                    }
+                    let studentPortalLink = `${baseUrl}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
+
+                    const hRow = document.createElement('tr');
+                    hRow.className = 'hover:bg-rose-50/50 transition border-b border-rose-100';
+                    hRow.innerHTML = `
+                        <td class="p-3">
+                            <div class="font-bold text-slate-900">${escapeHtml(student.name)}</div>
+                            <div class="text-[11px] text-slate-500">${escapeHtml(student.email)}</div>
+                        </td>
+                        <td class="p-3 text-center font-semibold text-slate-700">${escapeHtml(student.group)}</td>
+                        <td class="p-3 text-center font-black text-rose-600 text-base">${absentCount} أيام</td>
+                        <td class="p-3 text-center">
+                            <a href="${studentPortalLink}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-link"></i> الملف
+                            </a>
+                        </td>
+                    `;
+                    highAbsenceTableBody.appendChild(hRow);
+                }
+            });
+
+            if (highAbsenceCount === 0) {
+                highAbsenceTableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-emerald-600 font-bold">لا يوجد طلاب تجاوزوا 3 أيام غياب 🎉</td></tr>`;
+            }
+        }
+
+        function exportHighAbsenceCSV() {
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
+
+            let csvContent = "\uFEFF";
+            csvContent += `قائمة الطلاب المتجاوزين لـ 3 أيام غياب - الفصل: (${activeGroup})\n`;
+            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,عدد أيام الغياب\n`;
+
+            let count = 0;
+            activeStudents.forEach(student => {
+                let absentCount = 0;
+                Object.keys(allAttendanceRecords).forEach(date => {
+                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
+                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    if (st === 'absent') absentCount++;
+                });
+
+                if (absentCount >= 3) {
+                    count++;
+                    csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}",${absentCount}\n`;
+                }
+            });
+
+            if (count === 0) {
+                showToast('لا توجد حالات غياب متكرر للتصدير', 'warning');
+                return;
+            }
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `الغياب_المتكرر_اكثر_من_3ايام_${activeGroup}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function sendHighAbsenceToWhatsApp() {
+            const activeStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            });
+
+            let highAbsentListText = "";
+            let count = 0;
+
+            activeStudents.forEach(student => {
+                let absentCount = 0;
+                Object.keys(allAttendanceRecords).forEach(date => {
+                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
+                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    if (st === 'absent') absentCount++;
+                });
+
+                if (absentCount >= 3) {
+                    count++;
+                    highAbsentListText += `%0A- ${student.name} (${student.group}): ${absentCount} أيام`;
+                }
+            });
+
+            if (count === 0) {
+                showToast('لا توجد حالات غياب تتجاوز 3 أيام للإرسال', 'warning');
+                return;
+            }
+
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقريراً بالطلاب الذين تجاوزوا 3 أيام غياب فأكثر للفصل: (${activeGroup}):%0A${highAbsentListText}%0A%0Aيرجى التكرم بالاطلاع واتخاذ الإجراء اللازم.`;
+            window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
 
         function openCategoryFullModal(categoryType) {
@@ -1800,7 +1960,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </td>
                         <td class="p-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <a href="${studentPortalLink}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-2 rounded-lg text-xs font-bold transition" title="فتح رابط التقرير الخاص بالطالب">
+                                <a href="${studentPortalLink}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-2 rounded-lg text-xs font-bold transition" title="فتح رابط التقرير الخاص بالط الطالب">
                                     <i class="fa-solid fa-link"></i>
                                 </a>
                                 <button onclick="deleteStudent('${student.id}')" class="text-slate-400 hover:text-rose-600 transition p-1 rounded-lg hover:bg-rose-50" title="حذف الطالب من السجل والسحابة">
