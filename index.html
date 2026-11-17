@@ -1867,15 +1867,17 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const homeworkDoneList = document.getElementById('dayHomeworkDoneList');
             const homeworkNotList = document.getElementById('dayHomeworkNotList');
             const researchList = document.getElementById('dayResearchList');
+            const forgotFileList = document.getElementById('dayForgotFileList');
             const behaviorsList = document.getElementById('dayBehaviorsList');
 
             participationsList.innerHTML = '';
             homeworkDoneList.innerHTML = '';
             homeworkNotList.innerHTML = '';
             researchList.innerHTML = '';
+            if(forgotFileList) forgotFileList.innerHTML = '';
             behaviorsList.innerHTML = '';
 
-            let partCount = 0, hwDoneCount = 0, hwNotCount = 0, resCount = 0, behCount = 0;
+            let partCount = 0, hwDoneCount = 0, hwNotCount = 0, resCount = 0, forgotCount = 0, behCount = 0;
 
             filteredForReport.forEach(s => {
                 Object.keys(allBehaviorsRecords).forEach(d => {
@@ -1907,16 +1909,19 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             </div>
                         `;
 
-                        // الفرز الدقيق المنفصل تماماً بين سلموا ولم يسلموا الواجب
+                        // الفصل التام بين إنجاز الملف (إيجابي) ونسيان الملف (سلبي) والواجبات والمشاركات
                         if (name.includes('حل الواجب') && !name.includes('لم يحل')) {
                             hwDoneCount++;
                             homeworkDoneList.appendChild(li);
                         } else if (name.includes('لم يحل الواجب')) {
                             hwNotCount++;
                             homeworkNotList.appendChild(li);
-                        } else if (name.includes('ملف') || name.includes('بحث')) {
+                        } else if (name.includes('إنجاز ملف') || name.includes('بحث')) {
                             resCount++;
                             researchList.appendChild(li);
+                        } else if (name.includes('نسيان ملف')) {
+                            forgotCount++;
+                            if(forgotFileList) forgotFileList.appendChild(li);
                         } else if (isParticipation) {
                             partCount++;
                             participationsList.appendChild(li);
@@ -1935,12 +1940,15 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('dayHomeworkDoneCount').textContent = hwDoneCount;
             document.getElementById('dayHomeworkNotCount').textContent = hwNotCount;
             document.getElementById('dayResearchCount').textContent = resCount;
+            const dayForgotCountEl = document.getElementById('dayForgotFileCount');
+            if(dayForgotCountEl) dayForgotCountEl.textContent = forgotCount;
             document.getElementById('dayBehaviorsCount').textContent = behCount;
 
             if (partCount === 0) participationsList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
             if (hwDoneCount === 0) homeworkDoneList.innerHTML = '<li class="text-slate-400 py-1">لا توجد سجلات</li>';
             if (hwNotCount === 0) homeworkNotList.innerHTML = '<li class="text-slate-400 py-1">لا توجد سجلات</li>';
             if (resCount === 0) researchList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
+            if (forgotCount === 0 && forgotFileList) forgotFileList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
             if (behCount === 0) behaviorsList.innerHTML = '<li class="text-slate-400 py-1">لا توجد ملاحظات</li>';
         }
 
@@ -1996,12 +2004,16 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 headerBgClass = "bg-pink-700";
                 icon.innerHTML = `<i class="fa-solid fa-circle-xmark"></i>`;
             } else if (categoryType === 'research') {
-                typeTitle = "تقرير البحوث والملفات كاملاً";
+                typeTitle = "تقرير إنجاز الملف والبحوث كاملاً";
                 headerBgClass = "bg-amber-700";
                 icon.innerHTML = `<i class="fa-solid fa-folder-open"></i>`;
+            } else if (categoryType === 'forgot_file') {
+                typeTitle = "تقرير نسيان الملف كاملاً";
+                headerBgClass = "bg-rose-700";
+                icon.innerHTML = `<i class="fa-solid fa-folder-closed"></i>`;
             } else if (categoryType === 'behaviors') {
                 typeTitle = "تقرير الملاحظات الخطية والسلوكيات كاملاً";
-                headerBgClass = "bg-rose-700";
+                headerBgClass = "bg-purple-700";
                 icon.innerHTML = `<i class="fa-solid fa-pen-nib"></i>`;
             }
 
@@ -2062,9 +2074,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 matchesCategory = true;
                             } else if (categoryType === 'homework_not' && name.includes('لم يحل الواجب')) {
                                 matchesCategory = true;
-                            } else if (categoryType === 'research' && (name.includes('ملف') || name.includes('بحث'))) {
+                            } else if (categoryType === 'research' && (name.includes('إنجاز ملف') || name.includes('بحث'))) {
                                 matchesCategory = true;
-                            } else if (categoryType === 'behaviors' && (isCustomNote || (!isParticipation && item.score < 0))) {
+                            } else if (categoryType === 'forgot_file' && name.includes('نسيان ملف')) {
+                                matchesCategory = true;
+                            } else if (categoryType === 'behaviors' && (isCustomNote || (!isParticipation && item.score < 0 && !name.includes('نسيان ملف')))) {
                                 matchesCategory = true;
                             }
 
@@ -2183,7 +2197,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             if (name.includes('حل الواجب') && !name.includes('لم يحل')) {
                                 studentStats[studentId].homework++;
                                 totalHomeworkCount++;
-                            } else if (name.includes('ملف') || name.includes('بحث')) {
+                            } else if (name.includes('إنجاز ملف') || name.includes('بحث')) {
                                 studentStats[studentId].research++;
                                 totalResearchCount++;
                             } else if (name.includes('مشاركة') || name.includes('إجابة')) {
@@ -2414,7 +2428,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     logs.forEach(item => {
                         const name = item.name || '';
                         if (name.includes('حل الواجب') && !name.includes('لم يحل')) { homework++; }
-                        else if (name.includes('ملف') || name.includes('بحث')) { research++; }
+                        else if (name.includes('إنجاز ملف') || name.includes('بحث')) { research++; }
                         else if (name.includes('مشاركة') || name.includes('إجابة')) {
                             if (date >= start && date <= end) participations++;
                         }
