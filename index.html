@@ -372,13 +372,20 @@
                             <i class="fa-solid fa-list-check text-indigo-600"></i>
                             <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب</h3>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <button onclick="openAddModalWithClass()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-indigo-200" title="نسخ طلاب الفصل الحالي لصق سريع">
                                 <i class="fa-regular fa-copy"></i> نسخ طلاب الفصل
                             </button>
                             <button onclick="deleteCurrentClassData()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-rose-200" title="حذف جميع طلاب هذا الفصل">
                                 <i class="fa-solid fa-trash-can"></i> حذف الفصل
                             </button>
+                            <button onclick="exportFullAttendanceBackupJSON()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm" title="حفظ نسخة احتياطية لجميع الحضور والغياب وسجلات السلوك في ملف JSON">
+                                <i class="fa-solid fa-download"></i> نسخة احتياطية (JSON)
+                            </button>
+                            <label class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm cursor-pointer" title="استعادة النسخة الاحتياطية للسحابة">
+                                <i class="fa-solid fa-upload"></i> استعادة النسخة
+                                <input type="file" id="restoreBackupInput" accept=".json" onchange="restoreAttendanceBackupJSON(event)" class="hidden">
+                            </label>
                             <button id="exportExcelBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1">
                                 <i class="fa-solid fa-file-excel text-emerald-600"></i> تصدير CSV
                             </button>
@@ -814,6 +821,94 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     renderTable();
                 }
             });
+        }
+
+        // دالة تصدير نسخة احتياطية كاملة للحضور والغياب والسلوكيات بصيغة JSON
+        async function exportFullAttendanceBackupJSON() {
+            try {
+                showToast('جاري تجهيز النسخة الاحتياطية...', 'cloud');
+                
+                // جلب جميع سجلات الحضور من كل التواريخ
+                const attendanceSnap = await db.collection("attendance_records").get();
+                let attendanceRecordsBackup = {};
+                attendanceSnap.forEach(doc => {
+                    attendanceRecordsBackup[doc.id] = doc.data();
+                });
+
+                // جلب جميع سجلات السلوكيات والمشاركات من كل التواريخ
+                const behaviorsSnap = await db.collection("student_behaviors_records").get();
+                let behaviorsRecordsBackup = {};
+                behaviorsSnap.forEach(doc => {
+                    behaviorsRecordsBackup[doc.id] = doc.data();
+                });
+
+                // تجميع البيانات في هيكل واحد متكامل
+                const fullBackup = {
+                    version: "1.0",
+                    exportDate: new Date().toISOString(),
+                    attendance_records: attendanceRecordsBackup,
+                    student_behaviors_records: behaviorsRecordsBackup
+                };
+
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `نسخة_احتياطية_الغياب_والحضور_${new Date().toISOString().split('T')[0]}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+
+                showToast('تم تصدير النسخة الاحتياطية بنجاح 💾', 'success');
+            } catch (err) {
+                console.error("Backup export error:", err);
+                showToast('فشل تصدير النسخة الاحتياطية', 'warning');
+            }
+        }
+
+        // دالة استعادة النسخة الاحتياطية المرفوعة من ملف JSON إلى السحابة
+        async function restoreAttendanceBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm("هل أنت متأكد من استعادة هذه النسخة؟ سيتم دمج أو تحديث السجلات في السحابة بناءً على الملف.")) {
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    showToast('جاري استعادة البيانات إلى السحابة...', 'cloud');
+                    const backupData = JSON.parse(e.target.result);
+
+                    const batch = db.batch();
+
+                    // استعادة سجلات الحضور
+                    if (backupData.attendance_records) {
+                        for (const [dateKey, recordVal] of Object.entries(backupData.attendance_records)) {
+                            const ref = db.collection("attendance_records").doc(dateKey);
+                            batch.set(ref, recordVal, { merge: true });
+                        }
+                    }
+
+                    // استعادة سجلات السلوكيات
+                    if (backupData.student_behaviors_records) {
+                        for (const [dateKey, recordVal] of Object.entries(backupData.student_behaviors_records)) {
+                            const ref = db.collection("student_behaviors_records").doc(dateKey);
+                            batch.set(ref, recordVal, { merge: true });
+                        }
+                    }
+
+                    await batch.commit();
+                    showToast('تمت استعادة البيانات الاحتياطية بنجاح ☁️', 'success');
+                    event.target.value = '';
+                } catch (err) {
+                    console.error("Restore backup error:", err);
+                    showToast('ملف النسخة الاحتياطية غير صالح أو تالف', 'warning');
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
         }
 
         function renderStudentPortalView() {
