@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة متابعة الحضور والسلوكيات المدرسية - أ/ عبدالعزيز الفيفي</title>
 
-    <!-- 🌐 وسوم المعاينة الذكية للواتساب والمنصات (Open Graph Meta Tags) -->
     <meta property="og:title" content="منصة المتابعة اليومية والسلوكية - أ/ عبدالعزيز الفيفي (ثانوية الأمير عبدالمجيد)">
     <meta property="og:description" content="لوحة تفاعلية متكاملة لمتابعة حضور وغياب الطلاب وسجلات المشاركات والسلوك المدرسية سحابياً.">
     <meta property="og:image" content="https://i.ibb.co/3W68N7b/school-logo.png">
@@ -39,18 +38,16 @@
             transform: scale(1.2);
             box-shadow: 0 0 0 2px #fff, 0 0 0 4px #4f46e5;
         }
-        /* خلفيات الصفوف (طالبين في كل صف) بتدرج سماوي أغمق وأوضح */
         .row-container-even {
             background-color: #ffffff;
             border: 1px solid #e2e8f0;
         }
         .row-container-odd {
-            background-color: #bae6fd55; /* درجة سماوي أغمق وأكثر بروزاً ووضوحاً */
+            background-color: #bae6fd55;
             border: 1px solid #7dd3fc;
         }
     </style>
 
-    <!-- ⚡ سكربت فوري يعمل قبل رسم الصفحة لمنع ظهور لوحة التحكم نهائياً عند فتح رابط الفئة أو بوابة الطالب -->
     <script>
         (function() {
             const params = new URLSearchParams(window.location.search);
@@ -66,7 +63,6 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- شاشة تحميل فورية تظهر فقط عند فتح رابط فئة مخصصة أو بوابة الطالب -->
     <div id="instantLoader" class="hidden fixed inset-0 bg-slate-100 z-40 flex-col items-center justify-center gap-3">
         <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
         <p class="text-sm font-bold text-indigo-900">جاري تحميل البيانات من السحابة...</p>
@@ -79,7 +75,6 @@
 
     <header class="bg-gradient-to-l from-indigo-950 via-indigo-900 to-slate-900 text-white shadow-xl z-50 relative border-b border-indigo-800/80">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
-            <!-- العنوان والشعار -->
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 bg-indigo-800/90 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-600/60">
                     <i class="fa-solid fa-graduation-cap text-2xl text-amber-300"></i>
@@ -90,12 +85,11 @@
                 </div>
             </div>
 
-            <!-- 🕒 البطاقة الموحدة لليوم والتاريخ والساعة الحية + منتقي تاريخ الرصد -->
             <div class="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-2xl shadow-lg flex items-center gap-3.5">
                 <div class="text-right">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span id="selectedDayLabel" class="bg-amber-400 text-indigo-950 text-xs font-black px-2.5 py-0.5 rounded-lg shadow-sm">--</span>
-                        <input type="date" id="selectedDate" class="bg-indigo-950/70 border border-indigo-400/30 rounded-lg px-2 py-0.5 text-xs font-black text-white focus:outline-none focus:ring-1 focus:ring-amber-300 cursor-pointer" title="اختر تاريخ الرصد">
+                        <input type="date" id="selectedDate" onchange="onDateInputChanged(this.value)" class="bg-indigo-950/70 border border-indigo-400/30 rounded-lg px-2 py-0.5 text-xs font-black text-white focus:outline-none focus:ring-1 focus:ring-amber-300 cursor-pointer" title="اختر تاريخ الرصد">
                         <button id="todayBtn" class="bg-white/15 hover:bg-amber-400 hover:text-indigo-950 text-white px-2 py-0.5 rounded-lg text-[11px] font-bold transition" title="العودة لتاريخ اليوم">اليوم</button>
                     </div>
                     <div id="selectedHijriLabel" class="text-[11px] text-indigo-200 font-semibold mt-1.5">--</div>
@@ -107,7 +101,6 @@
                 </div>
             </div>
 
-            <!-- أدوات التحكم والفصول -->
             <div class="flex items-center gap-2.5 flex-wrap justify-center">
                 <div class="bg-indigo-800/80 border border-indigo-700 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-inner">
                     <i class="fa-solid fa-users text-amber-300 text-xs"></i>
@@ -126,7 +119,6 @@
 
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
 
-        <!-- 🎓 شاشة دخول الطالب الموحدة عبر البريد الإلكتروني -->
         <div id="studentLoginContainer" class="hidden max-w-md mx-auto mt-6">
             <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
                 <div class="bg-gradient-to-l from-indigo-950 via-indigo-900 to-slate-900 p-6 text-white text-center space-y-2">
@@ -159,7 +151,6 @@
             </div>
         </div>
 
-        <!-- بوابة الطالب الفردي -->
         <div id="studentPortalContainer" class="hidden space-y-6 max-w-4xl mx-auto">
             <div id="studentSwitchAccountBar" class="hidden flex justify-between items-center bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200">
                 <span class="text-xs font-bold text-slate-600"><i class="fa-solid fa-shield-check text-emerald-600 ml-1"></i> تم التحقق عبر البريد الإلكتروني</span>
@@ -235,7 +226,6 @@
 
         <div id="mainDashboardContainer" class="space-y-6">
 
-            <!-- شريط البحث وإضافة الطلاب والمشاركة -->
             <div id="dailySection" class="space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col lg:flex-row justify-between items-center gap-3">
                     <div class="flex items-center gap-2.5 w-full lg:w-auto flex-wrap">
@@ -268,9 +258,7 @@
                     </div>
                 </div>
 
-                <!-- 📚 البطاقات الأربع العلوية الملونة -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <!-- 1. عنوان الدرس -->
                     <div id="lessonTitleCard" onclick="openLessonModal('title')" class="bg-white transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-3 group" title="اضغط لكتابة أو تعديل عنوان الدرس واختيار لونه">
                         <div class="min-w-0 flex-grow">
                             <div class="flex items-center gap-1.5">
@@ -284,7 +272,6 @@
                         </div>
                     </div>
 
-                    <!-- 2. المهمة المطلوبة اليوم -->
                     <div id="lessonHomeworkCard" onclick="openLessonModal('homework')" class="bg-white transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-3 group" title="اضغط لكتابة أو تعديل المهمة المطلوبة اليوم واختيار لونها">
                         <div class="min-w-0 flex-grow">
                             <span id="lessonHomeworkLabel" class="text-xs text-emerald-700 font-black block">المهمة المطلوبة اليوم</span>
@@ -295,7 +282,6 @@
                         </div>
                     </div>
 
-                    <!-- 3. ملاحظة -->
                     <div id="lessonNoteCard" onclick="openLessonModal('note')" class="bg-white transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-3 group" title="اضغط لكتابة أو تعديل ملاحظة اليوم واختيار لونها">
                         <div class="min-w-0 flex-grow">
                             <span id="lessonNoteLabel" class="text-xs text-amber-700 font-black block">ملاحظة وتنبيه</span>
@@ -306,7 +292,6 @@
                         </div>
                     </div>
 
-                    <!-- 4. إجمالي طلاب الفصل -->
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-3">
                         <div>
                             <span class="text-xs text-slate-500 font-bold block">إجمالي طلاب الفصل</span>
@@ -318,7 +303,6 @@
                     </div>
                 </div>
 
-                <!-- لوحة أزرار الحضور والأنشطة التفاعلية -->
                 <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-xl border border-indigo-800 text-white p-6 space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-indigo-800/60">
                         <div class="flex items-center gap-3">
@@ -331,7 +315,6 @@
                             </div>
                         </div>
 
-                        <!-- ☁️ أيقونة متصل ومزامن -->
                         <div id="cloudBadge" class="bg-indigo-950/80 border border-indigo-700/80 px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold shadow-inner">
                             <i id="cloudIcon" class="fa-solid fa-cloud text-amber-400"></i>
                             <span id="cloudStatus" class="text-indigo-100">متصل ومزامن</span>
@@ -391,7 +374,6 @@
                             <i class="fa-solid fa-chevron-left text-xs text-blue-300/60"></i>
                         </div>
 
-                        <!-- زر الغياب المتكرر -->
                         <div onclick="openCategoryFullModal('high_absent')" class="bg-white/10 hover:bg-red-600/30 border border-red-500/30 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition shadow-sm group">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 bg-red-500/20 text-red-300 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
@@ -482,8 +464,8 @@
                             <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (كل صف يضم طالبين بتدرج لون سماوي أوضح وأغمق)</h3>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <button onclick="openBatchActionModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm" title="رصد جماعي لمجموعة طلاب في تاريخ معين">
-                                <i class="fa-solid fa-users-gear"></i> رصد جماعي سريع
+                            <button onclick="openBatchActionModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm" title="رصد جماعي لمجموعة طلاب في تاريخ معين مع استبعاد الغائبين تلقائياً">
+                                <i class="fa-solid fa-users-gear"></i> رصد جماعي سريع (ذكي للحاضرين)
                             </button>
                             <button onclick="openAddModalWithClass()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-indigo-200" title="نسخ طلاب الفصل الحالي لصق سريع">
                                 <i class="fa-regular fa-copy"></i> نسخ طلاب الفصل
@@ -504,7 +486,6 @@
                         </div>
                     </div>
 
-                    <!-- عرض الصفوف (كل صف يضم طالبين) -->
                     <div class="p-4">
                         <div id="studentsGridContainer" class="space-y-4"></div>
                     </div>
@@ -521,18 +502,17 @@
         </div>
     </main>
 
-    <!-- فوتر الصفحة مع حفظ حقوق النشر 2026 -->
     <footer class="bg-slate-900 text-slate-400 py-4 text-center text-xs border-t border-slate-800 mt-auto">
         <p>منصة المتابعة اليومية والسلوكية © 2026 | إعداد المعلم: <strong class="text-amber-300">أ/ عبدالعزيز الفيفي</strong> - ثانوية الأمير عبدالمجيد | جميع الحقوق محفوظة</p>
     </footer>
 
-    <!-- ⚡ نافذة الرصد الجماعي السريع -->
+    <!-- ⚡ نافذة الرصد الجماعي السريع (مع الفلترة الذكية للحاضرين وخيار تجاوز الغياب) -->
     <div id="batchActionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold flex items-center gap-2">
                     <i class="fa-solid fa-users-gear text-amber-300"></i>
-                    الرصد الجماعي السريع لمجموعة طلاب
+                    الرصد الجماعي السريع (يظهر الحاضرون تلقائياً)
                 </h3>
                 <button onclick="closeBatchActionModal()" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -543,7 +523,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">اختر تاريخ الرصد:</label>
-                        <input type="date" id="batchActionDate" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <input type="date" id="batchActionDate" onchange="onBatchDateChanged(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">اختر الحدث أو السجل المراد إضافته:</label>
@@ -553,8 +533,16 @@
                     </div>
                 </div>
 
+                <!-- خيار ذكي: السماح برصد الغائبين عند الحاجة -->
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="allowAbsentBatchCheckbox" onchange="refreshBatchStudentsList()" class="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500 cursor-pointer">
+                        <label for="allowAbsentBatchCheckbox" class="text-xs font-bold text-amber-900 cursor-pointer">عرض ورصد الطلاب الغائبين في هذا التاريخ أيضاً (تجاوز قيد الحضور)</label>
+                    </div>
+                </div>
+
                 <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 flex items-center justify-between">
-                    <span class="text-xs font-bold text-indigo-900">حدد الطلاب المستهدفين (الفصل الحالي):</span>
+                    <span id="batchListHeaderLabel" class="text-xs font-bold text-indigo-900">الطلاب الحاضرون في هذا التاريخ:</span>
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="toggleSelectAllBatch(true)" class="bg-white text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">تحديد الكل</button>
                         <button type="button" onclick="toggleSelectAllBatch(false)" class="bg-white text-rose-700 border border-rose-200 px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-rose-50 transition">إلغاء التحديد</button>
@@ -574,7 +562,6 @@
         </div>
     </div>
 
-    <!-- 📝 نافذة تعديل الدرس اليومي والمهمة والملاحظة مع اختيار الألوان -->
     <div id="lessonEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
@@ -593,7 +580,6 @@
                     <span>الفصل: <strong id="lessonModalClassLabel">--</strong></span>
                 </div>
 
-                <!-- 1. عنوان الدرس + أزرار الألوان -->
                 <div class="bg-slate-50/80 p-3 rounded-xl border border-slate-200/80 space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="text-xs font-black text-slate-700">1. عنوان الدرس اليومي:</label>
@@ -609,7 +595,6 @@
                     <input type="text" id="lessonTitleInput" placeholder="مثال: الجملة الاسمية ونواسخها..." class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
 
-                <!-- 2. المهمة المطلوبة اليوم + أزرار الألوان -->
                 <div class="bg-slate-50/80 p-3 rounded-xl border border-slate-200/80 space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="text-xs font-black text-slate-700">2. المهمة المطلوبة اليوم:</label>
@@ -625,7 +610,6 @@
                     <input type="text" id="lessonHomeworkInput" placeholder="مثال: حل تدريبات ص 45 في الكتاب..." class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
 
-                <!-- 3. ملاحظة وتنبيه + أزرار الألوان -->
                 <div class="bg-slate-50/80 p-3 rounded-xl border border-slate-200/80 space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="text-xs font-black text-slate-700">3. ملاحظة وتنبيه للطلاب:</label>
@@ -652,7 +636,6 @@
         </div>
     </div>
 
-    <!-- نافذة مشاركة رابط بوابة الطلاب الموحدة -->
     <div id="studentPortalShareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-sky-800 text-white flex justify-between items-center">
@@ -691,7 +674,6 @@
         </div>
     </div>
 
-    <!-- نافذة تفاصيل الفئة -->
     <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
         <div id="fullCategoryModalBox" class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
             <div id="fullModalHeader" class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
@@ -918,7 +900,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             { icon: '📝', name: 'ملاحظة خطية مخصصة', score: 0.0, color: '#4f46e5', isCustomNote: true }
         ];
 
-        // 🎨 ثيمات الألوان للبطاقات الثلاث
         const cardColorThemes = {
             white: {
                 card: 'bg-white border-slate-200 hover:border-slate-300',
@@ -994,7 +975,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         const classSelector = document.getElementById('classSelector');
         const modalGroupSelector = document.getElementById('modalGroupSelector');
 
-        // 🕒 تحديث الساعة الرقمية الحية كل ثانية
         function updateLiveClock() {
             const now = new Date();
             let hours = now.getHours();
@@ -1044,7 +1024,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         }
 
-        // 📚 دوال البطاقات الثلاث التفاعلية + الألوان
         function getLessonDocKey() {
             const safeGroup = (activeGroup || 'الجميع').replace(/\//g, '_');
             return `${currentDate}__${safeGroup}`;
@@ -1214,7 +1193,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             updateShareUrl();
         });
 
-        // 🎓 معالجة دخول الطالب بالبريد الإلكتروني
         function handleStudentEmailLogin(e) {
             e.preventDefault();
             const emailInput = document.getElementById('studentLoginEmailInput');
@@ -1342,7 +1320,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const cloudStatus = document.getElementById('cloudStatus');
             const cloudIcon = document.getElementById('cloudIcon');
 
-            // 📚 مزامنة الدروس والمهام والملاحظات وألوانها سحابياً
             db.collection("daily_lessons").onSnapshot((snapshot) => {
                 dailyLessonsData = {};
                 snapshot.forEach(doc => {
@@ -1423,6 +1400,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 }
                 if (!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) {
                     renderTable();
+                }
+                // إذا كانت نافذة الرصد الجماعي مفتوحة، نحدث القائمة لتنعكس حالة الحضور والغياب الجديدة
+                const batchModal = document.getElementById('batchActionModal');
+                if (batchModal && !batchModal.classList.contains('hidden')) {
+                    refreshBatchStudentsList();
                 }
                 checkAndRenderPendingCategory();
                 refreshOpenCategoryModalIfActive();
@@ -1965,10 +1947,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
-        // ⚡ دوال نافذة الرصد الجماعي السريع
+        // 🧠 الرصد الذكي: عرض الحاضرين فقط في التاريخ المحدد افتراضياً، مع إمكانية إظهار الغائبين إذا دعت الحاجة
         function openBatchActionModal() {
             if (isReadOnly) return;
             document.getElementById('batchActionDate').value = currentDate;
+            document.getElementById('allowAbsentBatchCheckbox').checked = false;
             
             const selectEl = document.getElementById('batchActionSelect');
             selectEl.innerHTML = '<option value="">-- اختر الحدث --</option>';
@@ -1978,33 +1961,70 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 }
             });
 
+            refreshBatchStudentsList();
+            document.getElementById('batchActionModal').classList.remove('hidden');
+        }
+
+        function onBatchDateChanged(newDateStr) {
+            refreshBatchStudentsList();
+        }
+
+        function refreshBatchStudentsList() {
+            const targetDate = document.getElementById('batchActionDate').value || currentDate;
+            const allowAbsent = document.getElementById('allowAbsentBatchCheckbox').checked;
+            const headerLabel = document.getElementById('batchListHeaderLabel');
+
+            const dayRecords = allAttendanceRecords[targetDate] || {};
+
             const activeStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
-                return actGroup === 'الجميع' || sGroup === actGroup;
+                const matchesGroup = (actGroup === 'الجميع' || sGroup === actGroup);
+                if (!matchesGroup) return false;
+
+                if (allowAbsent) return true; // عرض الجميع إذا تفعيل تجاوز الغياب
+
+                const recordObj = dayRecords[s.id];
+                const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                
+                // الطالب يُعتبر حاضراً إذا كانت حالته حاضر (present) أو متأخر (late). إذا لم تُسجل حالته بعد أو غائب فلا يظهر افتراضياً.
+                return (status === 'present' || status === 'late');
             });
+
+            if (allowAbsent) {
+                headerLabel.textContent = "جميع طلاب الفصل (مع إمكانية رصد الغائبين):";
+            } else {
+                headerLabel.textContent = `الطلاب الحاضرون أو المتأخرون فقط في تاريخ (${targetDate}):`;
+            }
 
             const container = document.getElementById('batchStudentsListContainer');
             container.innerHTML = '';
 
             if (activeStudents.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-slate-400 font-bold text-xs">لا توجد طلاب مسجلون في هذا الفصل</div>`;
+                container.innerHTML = `<div class="p-4 text-center text-slate-400 font-bold text-xs">لا توجد طلاب مسجلون بحالة "حاضر" أو "متأخر" في هذا التاريخ. (قم بتغيير التاريخ أو تفعيل خيار عرض الغائبين أعلاه).</div>`;
             } else {
                 activeStudents.forEach(st => {
+                    const recordObj = dayRecords[st.id];
+                    const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    let statusTag = "";
+                    if (status === 'present') statusTag = '<span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">حاضر</span>';
+                    else if (status === 'late') statusTag = '<span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">متأخر</span>';
+                    else if (status === 'absent') statusTag = '<span class="text-[10px] bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded font-bold">غائب ⚠️</span>';
+                    else statusTag = '<span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">لم يُرصد حضوره</span>';
+
                     const label = document.createElement('label');
                     label.className = "flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200 text-xs font-bold hover:bg-indigo-50/50 cursor-pointer transition";
                     label.innerHTML = `
                         <div class="flex items-center gap-2">
                             <input type="checkbox" name="batchStudentCheckbox" value="${st.id}" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
                             <span class="text-slate-800">${escapeHtml(st.name)}</span>
+                            ${statusTag}
                         </div>
                         <span class="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">${escapeHtml(st.group)}</span>
                     `;
                     container.appendChild(label);
                 });
             }
-
-            document.getElementById('batchActionModal').classList.remove('hidden');
         }
 
         function closeBatchActionModal() {
@@ -2072,6 +2092,15 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 console.error("Batch action error:", err);
                 showToast('حدث خطأ أثناء الرصد الجماعي', 'warning');
             }
+        }
+
+        function onDateInputChanged(newDateStr) {
+            currentDate = newDateStr;
+            updateSelectedDateLabels();
+            renderDailyLessonCards();
+            fetchAttendanceForDate(currentDate);
+            fetchBehaviorsForDate(currentDate);
+            renderSingleDayReport();
         }
 
         function renderSingleDayReport() {
@@ -2614,7 +2643,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             emptyState.classList.add('hidden');
             studentsGridContainer.innerHTML = '';
 
-            // تجميع الطلاب في صفوف (كل صف يحتوي على طالبين)
             for (let i = 0; i < filteredStudents.length; i += 2) {
                 const student1 = filteredStudents[i];
                 const student2 = filteredStudents[i+1];
@@ -2624,7 +2652,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 const rowDiv = document.createElement('div');
                 rowDiv.className = `${rowClassStyle} rounded-3xl p-4 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-4`;
 
-                // دالة توليد بطاقة الطالب الداخلية
                 const buildStudentCardHTML = (student) => {
                     const recordObj = attendanceData[student.id];
                     const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : (recordObj || 'unmarked');
@@ -2799,7 +2826,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (student2) {
                     rowHTML += buildStudentCardHTML(student2);
                 } else {
-                    rowHTML += `<div></div>`; // لضبط المحاذاة إذا كان عدد الطلاب فردياً في الصف الأخير
+                    rowHTML += `<div></div>`;
                 }
 
                 rowDiv.innerHTML = rowHTML;
@@ -3163,7 +3190,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 let translatedStatus = 'غير محدد';
                 if (status === 'present') translatedStatus = `حاضر (${timeStr})`;
                 if (status === 'absent') translatedStatus = `غائب (${timeStr})`;
-                if (status === 'late') translatedStatus = `متأخر (${timeStr})`;
+                if (status === 'late') translatedStatus, `متأخر (${timeStr})`;
                 if (status === 'excused') translatedStatus = `بعذر (${timeStr})`;
 
                 csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}","${translatedStatus}"\n`;
