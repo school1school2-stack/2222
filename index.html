@@ -248,7 +248,7 @@
                             </div>
                             <div>
                                 <h3 class="text-base font-bold">لوحة أزرار الحضور والأنشطة اليومية السريعة</h3>
-                                <p class="text-xs text-indigo-200">اضغط على أي أيقونة أو زر لعرض قائمة الطلاب الخاصة به بشكل مرتب ومنظم</p>
+                                <p class="text-xs text-indigo-200">اضغط على أي أيقونة أو زر لعرض قائمة الطلاب الخاصة به وتعديلها مباشرة</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 bg-indigo-950/80 px-3 py-1.5 rounded-xl border border-indigo-800">
@@ -450,7 +450,7 @@
 
     <!-- نافذة تفاصيل الفئة -->
     <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
-        <div id="fullCategoryModalBox" class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
+        <div id="fullCategoryModalBox" class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
             <div id="fullModalHeader" class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-3">
                     <div id="fullModalIcon" class="text-2xl"></div>
@@ -788,6 +788,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         }
 
+        // تحديث نافذة الفئة المفتوحة تلقائياً عند أي تعديل فوري من المعلم
+        function refreshOpenCategoryModalIfActive() {
+            const modal = document.getElementById('fullCategoryModal');
+            if (modal && !modal.classList.contains('hidden') && currentModalCategory) {
+                openCategoryFullModal(currentModalCategory);
+            }
+        }
+
         function initCloudSync() {
             const cloudStatus = document.getElementById('cloudStatus');
             const cloudIcon = document.getElementById('cloudIcon');
@@ -844,6 +852,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 fetchAttendanceForDate(currentDate);
                 fetchBehaviorsForDate(currentDate);
                 checkAndRenderPendingCategory();
+                refreshOpenCategoryModalIfActive();
             }, (error) => {
                 console.error("Students fetch error:", error);
                 cloudStatus.textContent = "خطأ في الاتصال بالسحابة";
@@ -863,6 +872,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     renderTable();
                 }
                 checkAndRenderPendingCategory();
+                refreshOpenCategoryModalIfActive();
             });
 
             db.collection("student_behaviors_records").onSnapshot((snapshot) => {
@@ -878,6 +888,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     renderTable();
                 }
                 checkAndRenderPendingCategory();
+                refreshOpenCategoryModalIfActive();
             });
         }
 
@@ -1586,6 +1597,51 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
         }
 
+        // تغيير حالة حضور الطالب مباشرة من داخل نافذة الفئة لتاريخ محدد
+        window.setStatusForDate = async function(studentId, dateStr, status) {
+            if (isReadOnly || isStudentPortal) return;
+            try {
+                const docRef = db.collection("attendance_records").doc(dateStr);
+                const doc = await docRef.get();
+                let updatedRecords = doc.exists ? (doc.data().records || {}) : {};
+
+                if (status === 'unmarked' || status === '') {
+                    delete updatedRecords[studentId];
+                } else {
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                    updatedRecords[studentId] = {
+                        status: status,
+                        time: timeString
+                    };
+                }
+
+                await docRef.set({
+                    records: updatedRecords,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showToast('تم تعديل حالة الطالب سحابياً ☁️', 'cloud');
+            } catch (error) {
+                console.error("Error updating status in modal:", error);
+                showToast('فشل التعديل السحابي', 'warning');
+            }
+        };
+
+        // بناء أداة التعديل السريع للحالة داخل النافذة المنبثقة (تظهر للمعلم فقط)
+        function getModalStatusEditorHTML(studentId, targetDate, currentStatus) {
+            if (isReadOnly) return '';
+            return `
+                <select onchange="setStatusForDate('${studentId}', '${targetDate}', this.value)" class="py-1 px-2 text-xs font-bold border border-indigo-200 rounded-lg bg-white text-indigo-900 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer" title="تعديل الحالة مباشرة">
+                    <option value="present" ${currentStatus === 'present' ? 'selected' : ''}>✅ حاضر</option>
+                    <option value="absent" ${currentStatus === 'absent' ? 'selected' : ''}>❌ غائب</option>
+                    <option value="late" ${currentStatus === 'late' ? 'selected' : ''}>⏰ متأخر</option>
+                    <option value="excused" ${currentStatus === 'excused' ? 'selected' : ''}>📝 بعذر</option>
+                    <option value="unmarked">🗑️ مسح الحالة</option>
+                </select>
+            `;
+        }
+
         function openCategoryFullModal(categoryType) {
             const targetDate = document.getElementById('singleReportDate').value;
             const dayRecords = allAttendanceRecords[targetDate] || {};
@@ -1606,7 +1662,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 document.getElementById('fullModalBottomCloseBtn').classList.add('hidden');
                 modal.classList.remove('bg-slate-900/50', 'backdrop-blur-sm');
                 modal.classList.add('bg-slate-100', 'pt-28');
-                modalBox.classList.remove('max-w-xl', 'max-h-[85vh]');
+                modalBox.classList.remove('max-w-2xl', 'max-h-[85vh]');
                 modalBox.classList.add('max-w-3xl', 'max-h-[80vh]');
             }
 
@@ -1698,7 +1754,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         let studentPortalLink = `${baseUrl}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
 
                         const card = document.createElement('div');
-                        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
                         card.innerHTML = `
                             <div class="flex items-center gap-3">
                                 <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
@@ -1726,7 +1782,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         listCount++;
                         const statusTag = status === 'late' ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold mr-1">متأخر</span>' : '<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold mr-1">بعذر</span>';
                         const card = document.createElement('div');
-                        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
                         card.innerHTML = `
                             <div class="flex items-center gap-3">
                                 <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
@@ -1735,8 +1791,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                     <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
                                 </div>
                             </div>
-                            <div class="text-left">
+                            <div class="flex items-center gap-2">
                                 <span class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700">⏰ ${timeStr}</span>
+                                ${getModalStatusEditorHTML(student.id, targetDate, status)}
                             </div>
                         `;
                         content.appendChild(card);
@@ -1753,7 +1810,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     if (status === statusName) {
                         listCount++;
                         const card = document.createElement('div');
-                        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
                         card.innerHTML = `
                             <div class="flex items-center gap-3">
                                 <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
@@ -1762,8 +1819,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                     <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
                                 </div>
                             </div>
-                            <div class="text-left">
+                            <div class="flex items-center gap-2">
                                 <span class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700">⏰ ${timeStr}</span>
+                                ${getModalStatusEditorHTML(student.id, targetDate, status)}
                             </div>
                         `;
                         content.appendChild(card);
@@ -1773,7 +1831,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 filteredStudents.forEach((student) => {
                     Object.keys(allBehaviorsRecords).forEach(d => {
                         const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
-                        logs.forEach((item) => {
+                        logs.forEach((item, logIdx) => {
                             const name = item.name || '';
                             const timeStr = item.time || '-';
                             const iconSymbol = item.icon || '⭐';
@@ -1800,8 +1858,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             if (matchesCategory) {
                                 listCount++;
                                 const card = document.createElement('div');
-                                card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                                card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
                                 let pulseBadgeHTML = (!isParticipation && !isCustomNote) ? '<span class="pulse-badge text-[10px] bg-rose-500 text-white px-1.5 py-0.5 rounded font-bold mr-1">دائم ⚠️</span>' : '';
+                                let deleteActionBtn = !isReadOnly ? `
+                                    <button onclick="removeBehaviorLogFromDate('${student.id}', '${d}', ${logIdx})" class="bg-rose-100 hover:bg-rose-600 text-rose-700 hover:text-white px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-sm" title="حذف وإزالة من هذه القائمة">
+                                        <i class="fa-solid fa-trash-can"></i> حذف
+                                    </button>
+                                ` : '';
 
                                 card.innerHTML = `
                                     <div class="flex items-center gap-3">
@@ -1811,11 +1874,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                             <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
                                         </div>
                                     </div>
-                                    <div class="text-left flex flex-col items-end gap-1">
-                                        <span class="text-xs font-bold text-indigo-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 flex items-center gap-1">
-                                            <span>${iconSymbol}</span> <span>${escapeHtml(name)}</span> ${pulseBadgeHTML}
-                                        </span>
-                                        <span class="text-[10px] font-mono text-slate-500">التاريخ: ${d} ⏰ ${timeStr}</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="text-left flex flex-col items-end gap-1">
+                                            <span class="text-xs font-bold text-indigo-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 flex items-center gap-1">
+                                                <span>${iconSymbol}</span> <span>${escapeHtml(name)}</span> ${pulseBadgeHTML}
+                                            </span>
+                                            <span class="text-[10px] font-mono text-slate-500">التاريخ: ${d} ⏰ ${timeStr}</span>
+                                        </div>
+                                        ${deleteActionBtn}
                                     </div>
                                 `;
                                 content.appendChild(card);
@@ -1835,6 +1901,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function closeCategoryFullModal() {
             document.getElementById('fullCategoryModal').classList.add('hidden');
+            currentModalCategory = null;
         }
 
         function fetchAttendanceForDate(dateStr) {
@@ -2251,6 +2318,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     renderStudentPortalView();
                 } else {
                     renderTable();
+                    refreshOpenCategoryModalIfActive();
                 }
 
                 showToast('تم حذف السجل بنجاح ☁️', 'info');
