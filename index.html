@@ -506,7 +506,7 @@
         <p>منصة المتابعة اليومية والسلوكية © 2026 | إعداد المعلم: <strong class="text-amber-300">أ/ عبدالعزيز الفيفي</strong> - ثانوية الأمير عبدالمجيد | جميع الحقوق محفوظة</p>
     </footer>
 
-    <!-- ⚡ نافذة الرصد الجماعي السريع (مع الفلترة الذكية للحاضرين وخيار تجاوز الغياب) -->
+    <!-- ⚡ نافذة الرصد الجماعي السريع (مع الفلترة الذكية للحاضرين وخيار تجاوز الغياب وملاحظة خطية) -->
     <div id="batchActionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
@@ -527,10 +527,16 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">اختر الحدث أو السجل المراد إضافته:</label>
-                        <select id="batchActionSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <select id="batchActionSelect" onchange="onBatchActionSelectChanged(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                             <option value="">-- اختر الحدث --</option>
                         </select>
                     </div>
+                </div>
+
+                <!-- ✍️ حقل كتابة الملاحظة الخطية الجماعية (يظهر فقط عند اختيار ملاحظة خطية) -->
+                <div id="batchCustomNoteWrapper" class="hidden bg-indigo-50/70 border border-indigo-200 rounded-xl p-3 space-y-1.5">
+                    <label class="block text-xs font-black text-indigo-900">اكتب نص الملاحظة الخطية الجماعية:</label>
+                    <textarea id="batchCustomNoteInput" rows="2" placeholder="اكتب الملاحظة هنا ليتم إضافتها لجميع الطلاب المختارين..." class="w-full bg-white border border-indigo-300 rounded-lg p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none leading-relaxed"></textarea>
                 </div>
 
                 <!-- خيار ذكي: السماح برصد الغائبين عند الحاجة -->
@@ -1401,7 +1407,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) {
                     renderTable();
                 }
-                // إذا كانت نافذة الرصد الجماعي مفتوحة، نحدث القائمة لتنعكس حالة الحضور والغياب الجديدة
                 const batchModal = document.getElementById('batchActionModal');
                 if (batchModal && !batchModal.classList.contains('hidden')) {
                     refreshBatchStudentsList();
@@ -1947,22 +1952,38 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
-        // 🧠 الرصد الذكي: عرض الحاضرين فقط في التاريخ المحدد افتراضياً، مع إمكانية إظهار الغائبين إذا دعت الحاجة
+        // 🧠 الرصد الذكي: عرض الحاضرين فقط في التاريخ المحدد افتراضياً، مع دعم الملاحظة الخطية الجماعية
         function openBatchActionModal() {
             if (isReadOnly) return;
             document.getElementById('batchActionDate').value = currentDate;
             document.getElementById('allowAbsentBatchCheckbox').checked = false;
+            document.getElementById('batchCustomNoteWrapper').classList.add('hidden');
+            document.getElementById('batchCustomNoteInput').value = '';
             
             const selectEl = document.getElementById('batchActionSelect');
             selectEl.innerHTML = '<option value="">-- اختر الحدث --</option>';
             defaultActions.forEach((act, idx) => {
-                if (!act.isCustomNote) {
-                    selectEl.innerHTML += `<option value="${idx}">${act.icon} ${act.name} ${act.score !== 0 ? '(' + (act.score > 0 ? '+' + act.score : act.score) + ')' : ''}</option>`;
-                }
+                selectEl.innerHTML += `<option value="${idx}">${act.icon} ${act.name} ${act.score !== 0 ? '(' + (act.score > 0 ? '+' + act.score : act.score) + ')' : ''}</option>`;
             });
 
             refreshBatchStudentsList();
             document.getElementById('batchActionModal').classList.remove('hidden');
+        }
+
+        function onBatchActionSelectChanged(val) {
+            const noteWrapper = document.getElementById('batchCustomNoteWrapper');
+            const noteInput = document.getElementById('batchCustomNoteInput');
+            if (val === "") {
+                noteWrapper.classList.add('hidden');
+                return;
+            }
+            const action = defaultActions[parseInt(val)];
+            if (action && action.isCustomNote) {
+                noteWrapper.classList.remove('hidden');
+                setTimeout(() => noteInput.focus(), 50);
+            } else {
+                noteWrapper.classList.add('hidden');
+            }
         }
 
         function onBatchDateChanged(newDateStr) {
@@ -1982,12 +2003,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 const matchesGroup = (actGroup === 'الجميع' || sGroup === actGroup);
                 if (!matchesGroup) return false;
 
-                if (allowAbsent) return true; // عرض الجميع إذا تفعيل تجاوز الغياب
+                if (allowAbsent) return true;
 
                 const recordObj = dayRecords[s.id];
                 const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
                 
-                // الطالب يُعتبر حاضراً إذا كانت حالته حاضر (present) أو متأخر (late). إذا لم تُسجل حالته بعد أو غائب فلا يظهر افتراضياً.
                 return (status === 'present' || status === 'late');
             });
 
@@ -2059,6 +2079,20 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const action = defaultActions[parseInt(selectVal)];
             if (!action) return;
 
+            let finalName = action.name;
+            let isCustom = false;
+
+            if (action.isCustomNote) {
+                const customText = document.getElementById('batchCustomNoteInput').value.trim();
+                if (!customText) {
+                    showToast('يرجى كتابة نص الملاحظة الخطية أولاً', 'warning');
+                    document.getElementById('batchCustomNoteInput').focus();
+                    return;
+                }
+                finalName = customText;
+                isCustom = true;
+            }
+
             try {
                 showToast('جاري الرصد الجماعي السحابي...', 'cloud');
                 const docRef = db.collection("student_behaviors_records").doc(targetDate);
@@ -2073,12 +2107,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     if (!dayBehaviors[studentId]) {
                         dayBehaviors[studentId] = [];
                     }
-                    dayBehaviors[studentId].push({
+                    const entry = {
                         icon: action.icon,
-                        name: action.name,
+                        name: finalName,
                         score: action.score,
                         time: timeString
-                    });
+                    };
+                    if (isCustom) entry.isCustomNote = true;
+                    dayBehaviors[studentId].push(entry);
                 });
 
                 await docRef.set({
@@ -2086,7 +2122,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
-                showToast(`تم رصد (${action.name}) بنجاح لـ ${checkboxes.length} طالب سحابياً ☁️`, 'success');
+                showToast(`تم رصد (${finalName}) بنجاح لـ ${checkboxes.length} طالب سحابياً ☁️`, 'success');
                 closeBatchActionModal();
             } catch (err) {
                 console.error("Batch action error:", err);
@@ -3190,7 +3226,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 let translatedStatus = 'غير محدد';
                 if (status === 'present') translatedStatus = `حاضر (${timeStr})`;
                 if (status === 'absent') translatedStatus = `غائب (${timeStr})`;
-                if (status === 'late') translatedStatus, `متأخر (${timeStr})`;
+                if (status === 'late') translatedStatus = `متأخر (${timeStr})`;
                 if (status === 'excused') translatedStatus = `بعذر (${timeStr})`;
 
                 csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}","${translatedStatus}"\n`;
