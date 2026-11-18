@@ -430,7 +430,7 @@
 
     <!-- نافذة تفاصيل الفئة -->
     <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
+        <div id="fullCategoryModalBox" class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
             <div id="fullModalHeader" class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-3">
                     <div id="fullModalIcon" class="text-2xl"></div>
@@ -439,7 +439,7 @@
                         <p id="fullModalSubtitle" class="text-xs text-indigo-200 mt-0.5">التاريخ والفصل</p>
                     </div>
                 </div>
-                <button onclick="closeCategoryFullModal()" class="text-indigo-200 hover:text-white transition">
+                <button id="fullModalTopCloseBtn" onclick="closeCategoryFullModal()" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -456,7 +456,7 @@
                         <i class="fa-brands fa-whatsapp"></i> مشاركة رابط هذه الفئة عبر واتساب
                     </button>
                 </div>
-                <button onclick="closeCategoryFullModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">إغلاق</button>
+                <button id="fullModalBottomCloseBtn" onclick="closeCategoryFullModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">إغلاق</button>
             </div>
         </div>
     </div>
@@ -669,6 +669,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         let allBehaviorsRecords = {};
         let currentCustomNoteStudentId = null;
         let currentModalCategory = null;
+        window.pendingViewCategory = null;
 
         const selectedDateInput = document.getElementById('selectedDate');
         const studentsTableBody = document.getElementById('studentsTableBody');
@@ -686,15 +687,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const urlParams = new URLSearchParams(window.location.search);
             targetStudentId = urlParams.get('student');
             const viewCategory = urlParams.get('category');
+            const paramDate = urlParams.get('date');
 
-            if (targetStudentId) {
-                isStudentPortal = true;
-                document.getElementById('mainDashboardContainer').classList.add('hidden');
-                document.querySelector('header').classList.add('hidden');
-                document.getElementById('studentPortalContainer').classList.remove('hidden');
-            } else if (urlParams.get('mode') === 'view') {
-                isReadOnly = true;
-                applyReadOnlyMode();
+            if (paramDate) {
+                currentDate = paramDate;
             }
 
             const paramGroup = urlParams.get('group');
@@ -705,16 +701,27 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             selectedDateInput.value = currentDate;
             document.getElementById('singleReportDate').value = currentDate;
 
+            if (targetStudentId) {
+                isStudentPortal = true;
+                document.getElementById('mainDashboardContainer').classList.add('hidden');
+                document.querySelector('header').classList.add('hidden');
+                document.getElementById('studentPortalContainer').classList.remove('hidden');
+            } else if (viewCategory) {
+                isReadOnly = true;
+                window.pendingViewCategory = viewCategory;
+                document.getElementById('mainDashboardContainer').classList.add('hidden');
+                document.getElementById('readOnlyBanner').classList.remove('hidden');
+                document.getElementById('bannerText').textContent = 'تقرير فئة مخصص للاطلاع فقط';
+                document.getElementById('manageGroupsBtn').classList.add('hidden');
+                document.getElementById('classSelector').disabled = true;
+            } else if (urlParams.get('mode') === 'view') {
+                isReadOnly = true;
+                applyReadOnlyMode();
+            }
+
             initCloudSync();
             setupEventListeners();
             updateShareUrl();
-
-            // عند فتح المدير للرابط المخصص، تفتح النافذة وتلك الفئة وحدها تلقائياً أمامه
-            if (viewCategory && !targetStudentId) {
-                setTimeout(() => {
-                    openCategoryFullModal(viewCategory);
-                }, 900);
-            }
         });
 
         function applyReadOnlyMode() {
@@ -751,6 +758,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (foundEmail) return foundEmail.toLowerCase();
             }
             return `s${docId.substring(0, 6)}@rb.moe.gov.sa`;
+        }
+
+        function checkAndRenderPendingCategory() {
+            if (window.pendingViewCategory && students.length > 0) {
+                openCategoryFullModal(window.pendingViewCategory);
+            }
         }
 
         function initCloudSync() {
@@ -806,6 +819,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                 fetchAttendanceForDate(currentDate);
                 fetchBehaviorsForDate(currentDate);
+                checkAndRenderPendingCategory();
             }, (error) => {
                 console.error("Students fetch error:", error);
                 cloudStatus.textContent = "خطأ في الاتصال بالسحابة";
@@ -821,9 +835,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
-                if (!isStudentPortal) {
+                if (!isStudentPortal && !window.pendingViewCategory) {
                     renderTable();
                 }
+                checkAndRenderPendingCategory();
             });
 
             db.collection("student_behaviors_records").onSnapshot((snapshot) => {
@@ -835,9 +850,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
-                if (!isStudentPortal) {
+                if (!isStudentPortal && !window.pendingViewCategory) {
                     renderTable();
                 }
+                checkAndRenderPendingCategory();
             });
         }
 
@@ -1157,85 +1173,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function openMainQuickModal(categoryType) {
             const targetDate = selectedDateInput.value;
-            const dayRecords = allAttendanceRecords[targetDate] || {};
-
-            currentModalCategory = categoryType;
-            const modal = document.getElementById('fullCategoryModal');
-            const header = document.getElementById('fullModalHeader');
-            const title = document.getElementById('fullModalTitle');
-            const subtitle = document.getElementById('fullModalSubtitle');
-            const icon = document.getElementById('fullModalIcon');
-            const content = document.getElementById('fullModalContent');
-            const countBadge = document.getElementById('fullModalCountBadge');
-
-            content.innerHTML = '';
-            let listCount = 0;
-            let headerBgClass = "bg-indigo-900";
-            let typeTitle = "";
-
-            if (categoryType === 'present') {
-                typeTitle = "قائمة الطلاب الحاضرين اليوم";
-                headerBgClass = "bg-emerald-700";
-                icon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
-            } else if (categoryType === 'absent') {
-                typeTitle = "قائمة الطلاب الغائبين اليوم";
-                headerBgClass = "bg-rose-700";
-                icon.innerHTML = `<i class="fa-solid fa-circle-xmark"></i>`;
-            } else if (categoryType === 'other') {
-                typeTitle = "قائمة الطلاب (المتأخرين أو بعذر) اليوم";
-                headerBgClass = "bg-amber-600";
-                icon.innerHTML = `<i class="fa-solid fa-clock"></i>`;
-            }
-
-            header.className = `p-5 text-white flex justify-between items-center ${headerBgClass}`;
-            title.textContent = typeTitle;
-            subtitle.textContent = `تاريخ اليوم: ${targetDate} | الفصل: ${activeGroup}`;
-
-            const filteredStudents = students.filter(s => {
-                const sGroup = (s.group || '').trim();
-                const actGroup = activeGroup.trim();
-                return actGroup === 'الجميع' || sGroup === actGroup;
-            });
-
-            filteredStudents.forEach((student) => {
-                const recordObj = dayRecords[student.id];
-                if (!recordObj) return;
-
-                const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
-
-                let matches = false;
-                if (categoryType === 'present' && status === 'present') matches = true;
-                if (categoryType === 'absent' && status === 'absent') matches = true;
-                if (categoryType === 'other' && (status === 'late' || status === 'excused')) matches = true;
-
-                if (matches) {
-                    listCount++;
-                    const statusTag = status === 'late' ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold mr-1">متأخر</span>' : (status === 'excused' ? '<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold mr-1">بعذر</span>' : '');
-                    const card = document.createElement('div');
-                    card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
-                    card.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
-                            <div>
-                                <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)} ${statusTag}</h4>
-                                <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
-                            </div>
-                        </div>
-                        <div class="text-left">
-                            <span class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700">⏰ ${timeStr}</span>
-                        </div>
-                    `;
-                    content.appendChild(card);
-                }
-            });
-
-            if (listCount === 0) {
-                content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold">لا يوجد طلاب مسجلون تحت هذه الفئة اليوم</div>`;
-            }
-
-            countBadge.textContent = `العدد الإجمالي: ${listCount} طالب`;
-            modal.classList.remove('hidden');
+            document.getElementById('singleReportDate').value = targetDate;
+            openCategoryFullModal(categoryType);
         }
 
         function updateGroupDropdowns() {
@@ -1593,21 +1532,22 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.body.removeChild(link);
         }
 
-        // 🌐 رابط مخصص لكل فئة على حدة، يفتحها للمدير مباشرة عند النقر
+        // 🌐 رابط مخصص لكل فئة على حدة يفتحها مستقلة تماماً للمدير
         function sendCurrentModalToWhatsApp() {
             let baseUrl = "https://school1school2-stack.github.io/2222/";
             if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
                 baseUrl = window.location.origin + window.location.pathname;
             }
             
-            // يدمج الفئة المحددة بدقة في الرابط (مثل absent أو homework_not أو forgot_file)
-            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}&category=${encodeURIComponent(currentModalCategory)}`;
+            const targetDate = document.getElementById('singleReportDate').value;
+            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}&category=${encodeURIComponent(currentModalCategory)}&date=${encodeURIComponent(targetDate)}`;
             
             const categoryNames = {
                 'present': 'قائمة الطلاب الحاضرين',
                 'absent': 'قائمة الطلاب الغائبين',
                 'late': 'قائمة الطلاب المتأخرين',
                 'excused': 'قائمة الأعذار والحالات الأخرى',
+                'other': 'قائمة المتأخرين وبعذر',
                 'high_absent': 'قائمة الغياب المتكرر (3 أيام فأكثر)',
                 'participations': 'تقرير المشاركات والتفاعل',
                 'homework_done': 'تقرير حل الواجبات',
@@ -1618,8 +1558,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             };
 
             const catTitle = categoryNames[currentModalCategory] || 'تقرير الفئة المحددة';
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aالاطلاع على (${catTitle}) للفصل: (${activeGroup}) عبر الرابط:%0A${shareUrl}`;
-            window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
+            const rawMessage = `سعادة مدير المدرسة المحترم،\n\nالاطلاع على (${catTitle}) للفصل: (${activeGroup}) بتاريخ (${targetDate}) عبر الرابط:\n${shareUrl}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
         }
 
         function openCategoryFullModal(categoryType) {
@@ -1628,12 +1568,24 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             currentModalCategory = categoryType;
             const modal = document.getElementById('fullCategoryModal');
+            const modalBox = document.getElementById('fullCategoryModalBox');
             const header = document.getElementById('fullModalHeader');
             const title = document.getElementById('fullModalTitle');
             const subtitle = document.getElementById('fullModalSubtitle');
             const icon = document.getElementById('fullModalIcon');
             const content = document.getElementById('fullModalContent');
             const countBadge = document.getElementById('fullModalCountBadge');
+
+            // إذا كان المدير يفتح رابط الفئة المستقلة، نجعل النافذة ثابتة وواسعة ونخفي زر الواتساب والإغلاق
+            if (window.pendingViewCategory) {
+                document.getElementById('modalWhatsAppBtn').classList.add('hidden');
+                document.getElementById('fullModalTopCloseBtn').classList.add('hidden');
+                document.getElementById('fullModalBottomCloseBtn').classList.add('hidden');
+                modal.classList.remove('bg-slate-900/50', 'backdrop-blur-sm');
+                modal.classList.add('bg-slate-100', 'pt-20');
+                modalBox.classList.remove('max-w-xl', 'max-h-[85vh]');
+                modalBox.classList.add('max-w-3xl', 'max-h-[82vh]');
+            }
 
             content.innerHTML = '';
             let listCount = 0;
@@ -1661,6 +1613,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 headerBgClass = "bg-slate-700";
                 icon.innerHTML = `<i class="fa-solid fa-file-signature"></i>`;
                 statusName = "excused";
+            } else if (categoryType === 'other') {
+                typeTitle = "قائمة الطلاب (المتأخرين أو بعذر)";
+                headerBgClass = "bg-amber-600";
+                icon.innerHTML = `<i class="fa-solid fa-clock"></i>`;
             } else if (categoryType === 'high_absent') {
                 typeTitle = "قائمة الطلاب المتجاوزين لـ 3 أيام غياب فأكثر";
                 headerBgClass = "bg-red-700";
@@ -1731,6 +1687,33 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             <div class="flex items-center gap-2">
                                 <span class="text-xs font-black text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">${absentCount} أيام غياب</span>
                                 <a href="${studentPortalLink}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-bold transition">الملف</a>
+                            </div>
+                        `;
+                        content.appendChild(card);
+                    }
+                });
+            } else if (categoryType === 'other') {
+                filteredStudents.forEach((student) => {
+                    const recordObj = dayRecords[student.id];
+                    if (!recordObj) return;
+                    const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    const timeStr = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '-';
+
+                    if (status === 'late' || status === 'excused') {
+                        listCount++;
+                        const statusTag = status === 'late' ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold mr-1">متأخر</span>' : '<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold mr-1">بعذر</span>';
+                        const card = document.createElement('div');
+                        card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
+                        card.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)} ${statusTag}</h4>
+                                    <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                                </div>
+                            </div>
+                            <div class="text-left">
+                                <span class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700">⏰ ${timeStr}</span>
                             </div>
                         `;
                         content.appendChild(card);
@@ -1820,7 +1803,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             if (listCount === 0) {
-                content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold">لا يوجد طلاب مسجلون تحت هذه الفئة اليوم</div>`;
+                content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold">لا يوجد طلاب مسجلون تحت هذه الفئة في هذا التاريخ</div>`;
             }
 
             countBadge.textContent = `العدد الإجمالي: ${listCount} طالب`;
@@ -1838,7 +1821,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 } else {
                     attendanceData = {};
                 }
-                if(!isStudentPortal) renderTable();
+                if(!isStudentPortal && !window.pendingViewCategory) renderTable();
             }, (error) => {
                 console.error("Attendance fetch error:", error);
             });
@@ -1851,7 +1834,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 } else {
                     studentBehaviorsData = {};
                 }
-                if(!isStudentPortal) renderTable();
+                if(!isStudentPortal && !window.pendingViewCategory) renderTable();
             }, (error) => {
                 console.error("Behaviors fetch error:", error);
             });
@@ -1868,7 +1851,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function renderTable() {
-            if (isStudentPortal) return;
+            if (isStudentPortal || window.pendingViewCategory) return;
             const searchTerm = searchInput.value.trim().toLowerCase();
 
             const filteredStudents = students.filter(s => {
@@ -2297,15 +2280,19 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (isStudentPortal) return;
             selectedDateInput.addEventListener('change', (e) => {
                 currentDate = e.target.value;
+                document.getElementById('singleReportDate').value = currentDate;
                 fetchAttendanceForDate(currentDate);
                 fetchBehaviorsForDate(currentDate);
+                renderSingleDayReport();
             });
 
             document.getElementById('todayBtn').addEventListener('click', () => {
                 currentDate = new Date().toISOString().split('T')[0];
                 selectedDateInput.value = currentDate;
+                document.getElementById('singleReportDate').value = currentDate;
                 fetchAttendanceForDate(currentDate);
                 fetchBehaviorsForDate(currentDate);
+                renderSingleDayReport();
             });
 
             searchInput.addEventListener('input', renderTable);
@@ -2481,8 +2468,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function sendReportToWhatsAppManager() {
             const shareUrl = document.getElementById('shareUrlInput').value;
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aيمكنكم الاطلاع على لوحة المتابعة الكاملة للفصل: (${activeGroup}) عبر الرابط:%0A${shareUrl}`;
-            window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
+            const rawMessage = `سعادة مدير المدرسة المحترم،\n\nيمكنكم الاطلاع على لوحة المتابعة الكاملة للفصل: (${activeGroup}) عبر الرابط:\n${shareUrl}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
         }
 
         function showToast(message, type = 'success') {
