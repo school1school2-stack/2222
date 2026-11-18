@@ -709,7 +709,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             setupEventListeners();
             updateShareUrl();
 
-            // إذا فتح المدير رابط خاص بفئة معينة، افتح النافذة المنبثقة تلقائياً أمامه لتلك الفئة فقط
+            // عند فتح المدير للرابط المخصص، تفتح النافذة وتلك الفئة وحدها تلقائياً أمامه
             if (viewCategory && !targetStudentId) {
                 setTimeout(() => {
                     openCategoryFullModal(viewCategory);
@@ -1593,14 +1593,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.body.removeChild(link);
         }
 
-        // 🌐 يولد رابطاً مباشراً يفتح نافذة الفئة المحددة وحدها فوراً للمدير عند الضغط عليه
+        // 🌐 رابط مخصص لكل فئة على حدة، يفتحها للمدير مباشرة عند النقر
         function sendCurrentModalToWhatsApp() {
             let baseUrl = "https://school1school2-stack.github.io/2222/";
             if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
                 baseUrl = window.location.origin + window.location.pathname;
             }
             
-            // الرابط يتضمن وضع العرض والفصل والفئة المحددة وحدها لتفتح بشكل مباشر أمام المدير
+            // يدمج الفئة المحددة بدقة في الرابط (مثل absent أو homework_not أو forgot_file)
             const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}&category=${encodeURIComponent(currentModalCategory)}`;
             
             const categoryNames = {
