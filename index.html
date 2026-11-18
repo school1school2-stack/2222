@@ -709,11 +709,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             setupEventListeners();
             updateShareUrl();
 
-            // إذا فتح المستخدم رابط خاص بفئة معينة، افتح النافذة المنبثقة مباشرة لعرضها وحدها
+            // إذا فتح المدير رابط خاص بفئة معينة، افتح النافذة المنبثقة تلقائياً أمامه لتلك الفئة فقط
             if (viewCategory && !targetStudentId) {
                 setTimeout(() => {
                     openCategoryFullModal(viewCategory);
-                }, 800);
+                }, 900);
             }
         });
 
@@ -1593,13 +1593,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.body.removeChild(link);
         }
 
-        // 🌐 هذا الزر يشارك رابطاً مخصصاً لتلك الفئة وحدها مع وسوم المعاينة الذكية
+        // 🌐 يولد رابطاً مباشراً يفتح نافذة الفئة المحددة وحدها فوراً للمدير عند الضغط عليه
         function sendCurrentModalToWhatsApp() {
             let baseUrl = "https://school1school2-stack.github.io/2222/";
             if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
                 baseUrl = window.location.origin + window.location.pathname;
             }
-            // يرسل رابط المنصة مضافاً إليه رقم الفئة والفصل ليظهر التقرير المعني وحده عند فتحه
+            
+            // الرابط يتضمن وضع العرض والفصل والفئة المحددة وحدها لتفتح بشكل مباشر أمام المدير
             const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}&category=${encodeURIComponent(currentModalCategory)}`;
             
             const categoryNames = {
@@ -1616,7 +1617,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 'behaviors': 'تقرير الملاحظات والسلوكيات'
             };
 
-            const catTitle = categoryNames[currentModalCategory] || 'تقرير المتابعة اليومية';
+            const catTitle = categoryNames[currentModalCategory] || 'تقرير الفئة المحددة';
             const message = `سعادة مدير المدرسة المحترم،%0A%0Aالاطلاع على (${catTitle}) للفصل: (${activeGroup}) عبر الرابط:%0A${shareUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
