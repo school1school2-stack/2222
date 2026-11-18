@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة متابعة الحضور والسلوكيات المدرسية</title>
+    <title>منصة متابعة الحضور والسلوكيات المدرسية - أ/ عبدالعزيز الفيفي</title>
 
     <!-- 🌐 وسوم المعاينة الذكية للواتساب والمنصات (Open Graph Meta Tags) -->
-    <meta property="og:title" content="منصة المتابعة اليومية والسلوكية - إدارة الحضور">
+    <meta property="og:title" content="منصة المتابعة اليومية والسلوكية - أ/ عبدالعزيز الفيفي (ثانوية الأمير عبدالمجيد)">
     <meta property="og:description" content="لوحة تفاعلية متكاملة لمتابعة حضور وغياب الطلاب وسجلات المشاركات والسلوك المدرسية سحابياً.">
     <meta property="og:image" content="https://i.ibb.co/3W68N7b/school-logo.png">
     <meta property="og:url" content="https://school1school2-stack.github.io/2222/">
@@ -65,7 +65,7 @@
 
     <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2 z-50 relative">
         <i class="fa-solid fa-shield-halved text-amber-300 text-lg"></i>
-        <span id="bannerText">وضع العرض الشامل (للقراءة والاطلاع فقط)</span>
+        <span id="bannerText">وضع العرض الشامل (للقراءة والاطلاع فقط) - إعداد: أ/ عبدالعزيز الفيفي</span>
     </div>
 
     <header class="bg-gradient-to-l from-indigo-950 via-indigo-900 to-slate-900 text-white shadow-xl z-50 relative border-b border-indigo-800/80">
@@ -259,7 +259,7 @@
                     </div>
                 </div>
 
-                <!-- 📚 البطاقات الأربع العلوية الملونة: (1: عنوان الدرس | 2: المهمة المطلوبة اليوم | 3: ملاحظة | 4: إجمالي طلاب الفصل) -->
+                <!-- 📚 البطاقات الأربع العلوية الملونة -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- 1. عنوان الدرس -->
                     <div id="lessonTitleCard" onclick="openLessonModal('title')" class="bg-white transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-3 group" title="اضغط لكتابة أو تعديل عنوان الدرس واختيار لونه">
@@ -318,7 +318,7 @@
                             </div>
                             <div>
                                 <h3 class="text-base font-bold">لوحة أزرار الحضور والأنشطة اليومية السريعة</h3>
-                                <p class="text-xs text-indigo-200">اضغط على أي أيقونة أو زر لعرض قائمة الطلاب الخاصة به وتعديلها مباشرة</p>
+                                <p class="text-xs text-indigo-200">إعداد المعلم: <strong>أ/ عبدالعزيز الفيفي</strong> - ثانوية الأمير عبدالمجيد</p>
                             </div>
                         </div>
 
@@ -470,7 +470,7 @@
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-indigo-600"></i>
-                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب</h3>
+                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (إعداد: أ/ عبدالعزيز الفيفي)</h3>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button onclick="openAddModalWithClass()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-indigo-200" title="نسخ طلاب الفصل الحالي لصق سريع">
@@ -519,6 +519,11 @@
             </div>
         </div>
     </main>
+
+    <!-- فوتر الصفحة مع حفظ حقوق النشر 2026 -->
+    <footer class="bg-slate-900 text-slate-400 py-4 text-center text-xs border-t border-slate-800 mt-auto">
+        <p>منصة المتابعة اليومية والسلوكية © 2026 | إعداد المعلم: <strong class="text-amber-300">أ/ عبدالعزيز الفيفي</strong> - ثانوية الأمير عبدالمجيد | جميع الحقوق محفوظة</p>
+    </footer>
 
     <!-- 📝 نافذة تعديل الدرس اليومي والمهمة والملاحظة مع اختيار الألوان -->
     <div id="lessonEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -1147,7 +1152,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 window.pendingViewCategory = viewCategory;
                 document.getElementById('mainDashboardContainer').classList.add('hidden');
                 document.getElementById('readOnlyBanner').classList.remove('hidden');
-                document.getElementById('bannerText').textContent = 'تقرير فئة مخصص للاطلاع فقط';
+                document.getElementById('bannerText').textContent = 'تقرير فئة مخصص للاطلاع فقط - إعداد: أ/ عبدالعزيز الفيفي';
                 document.getElementById('manageGroupsBtn').classList.add('hidden');
                 document.getElementById('classSelector').disabled = true;
             } else if (urlParams.get('mode') === 'view') {
@@ -1230,13 +1235,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function sendStudentPortalToWhatsApp() {
             const portalUrl = document.getElementById('studentPortalShareUrlInput').value;
-            const rawMessage = `أبنائي الطلاب،\n\nيمكنكم الاطلاع على سجل الحضور والغياب والواجبات والملاحظات الخاصة بكم مباشرة عبر إدخال بريدكم الإلكتروني المدرسي في الرابط التالي:\n${portalUrl}`;
+            const rawMessage = `أبنائي الطلاب،\n\nيمكنكم الاطلاع على سجل الحضور والغياب والواجبات والملاحظات الخاصة بكم مباشرة عبر إدخال بريدكم الإلكتروني المدرسي في الرابط التالي:\n${portalUrl}\n\nإعداد المعلم: أ/ عبدالعزيز الفيفي (ثانوية الأمير عبدالمجيد)`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
         }
 
         function applyReadOnlyMode() {
             document.getElementById('readOnlyBanner').classList.remove('hidden');
-            document.getElementById('bannerText').textContent = 'وضع العرض (للقراءة والاطلاع فقط - لا يمكن التعديل)';
+            document.getElementById('bannerText').textContent = 'وضع العرض (للقراءة والاطلاع فقط - لا يمكن التعديل) - إعداد: أ/ عبدالعزيز الفيفي';
 
             document.getElementById('manageGroupsBtn').classList.add('hidden');
             document.getElementById('quickAddControls').classList.add('hidden');
@@ -2083,7 +2088,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             };
 
             const catTitle = categoryNames[currentModalCategory] || 'تقرير الفئة المحددة';
-            const rawMessage = `سعادة مدير المدرسة المحترم،\n\nالاطلاع على (${catTitle}) للفصل: (${activeGroup}) ليوم (${dayName}) بتاريخ (${targetDate}) عبر الرابط:\n${shareUrl}`;
+            const rawMessage = `سعادة مدير المدرسة المحترم،\n\nالاطلاع على (${catTitle}) للفصل: (${activeGroup}) ليوم (${dayName}) بتاريخ (${targetDate}) عبر الرابط:\n${shareUrl}\n\nإعداد المعلم: أ/ عبدالعزيز الفيفي (ثانوية الأمير عبدالمجيد)`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
         }
 
@@ -2217,7 +2222,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             header.className = `p-5 text-white flex justify-between items-center ${headerBgClass}`;
             title.textContent = typeTitle;
-            subtitle.textContent = `اليوم: ${dayName} | التاريخ: ${targetDate} | الفصل: ${activeGroup}`;
+            subtitle.textContent = `اليوم: ${dayName} | التاريخ: ${targetDate} | الفصل: ${activeGroup} (إعداد: أ/ عبدالعزيز الفيفي)`;
 
             const filteredStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
@@ -3028,7 +3033,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function sendReportToWhatsAppManager() {
             const shareUrl = document.getElementById('shareUrlInput').value;
-            const rawMessage = `سعادة مدير المدرسة المحترم،\n\nيمكنكم الاطلاع على لوحة المتابعة الكاملة للفصل: (${activeGroup}) عبر الرابط:\n${shareUrl}`;
+            const rawMessage = `سعادة مدير المدرسة المحترم،\n\nيمكنكم الاطلاع على لوحة المتابعة الكاملة للفصل: (${activeGroup}) عبر الرابط:\n${shareUrl}\n\nإعداد المعلم: أ/ عبدالعزيز الفيفي (ثانوية الأمير عبدالمجيد)`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
         }
 
