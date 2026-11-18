@@ -34,7 +34,7 @@
 
     <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2">
         <i class="fa-solid fa-shield-halved text-amber-300 text-lg"></i>
-        <span id="bannerText">وضع العرض الشامل للمدير (للقراءة والاطلاع فقط - لا يمكن التعديل)</span>
+        <span id="bannerText">وضع العرض الشامل (للقراءة والاطلاع فقط)</span>
     </div>
 
     <header class="bg-indigo-900 text-white shadow-xl">
@@ -428,7 +428,7 @@
         </div>
     </main>
 
-    <!-- نافذة تفاصيل الفئة مع زر المشاركة الذي يرسل رابط الصفحة كبطاقة أنيقة -->
+    <!-- نافذة تفاصيل الفئة -->
     <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
             <div id="fullModalHeader" class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
@@ -452,9 +452,8 @@
                     <button id="modalExportBtn" onclick="exportCurrentModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm inline-flex items-center gap-1">
                         <i class="fa-solid fa-file-excel"></i> تصدير القائمة
                     </button>
-                    <!-- هذا الزر يرسل رابط المنصة مع كود المعاينة الذكية للواتساب مباشرة -->
                     <button id="modalWhatsAppBtn" onclick="sendCurrentModalToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1 shadow-sm">
-                        <i class="fa-brands fa-whatsapp"></i> مشاركة الرابط عبر واتساب
+                        <i class="fa-brands fa-whatsapp"></i> مشاركة رابط هذه الفئة عبر واتساب
                     </button>
                 </div>
                 <button onclick="closeCategoryFullModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">إغلاق</button>
@@ -686,6 +685,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             targetStudentId = urlParams.get('student');
+            const viewCategory = urlParams.get('category');
 
             if (targetStudentId) {
                 isStudentPortal = true;
@@ -708,11 +708,18 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             initCloudSync();
             setupEventListeners();
             updateShareUrl();
+
+            // إذا فتح المستخدم رابط خاص بفئة معينة، افتح النافذة المنبثقة مباشرة لعرضها وحدها
+            if (viewCategory && !targetStudentId) {
+                setTimeout(() => {
+                    openCategoryFullModal(viewCategory);
+                }, 800);
+            }
         });
 
         function applyReadOnlyMode() {
             document.getElementById('readOnlyBanner').classList.remove('hidden');
-            document.getElementById('bannerText').textContent = 'وضع العرض الشامل للمدير (للقراءة والاطلاع فقط - لا يمكن التعديل)';
+            document.getElementById('bannerText').textContent = 'وضع العرض (للقراءة والاطلاع فقط - لا يمكن التعديل)';
 
             document.getElementById('manageGroupsBtn').classList.add('hidden');
             document.getElementById('quickAddControls').classList.add('hidden');
@@ -1586,13 +1593,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.body.removeChild(link);
         }
 
-        // 🌐 تعديل مهم: يرسل رابط المنصة مع وسوم المعاينة الذكية (Open Graph) للواتساب
+        // 🌐 هذا الزر يشارك رابطاً مخصصاً لتلك الفئة وحدها مع وسوم المعاينة الذكية
         function sendCurrentModalToWhatsApp() {
             let baseUrl = "https://school1school2-stack.github.io/2222/";
             if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
                 baseUrl = window.location.origin + window.location.pathname;
             }
-            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}`;
+            // يرسل رابط المنصة مضافاً إليه رقم الفئة والفصل ليظهر التقرير المعني وحده عند فتحه
+            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}&category=${encodeURIComponent(currentModalCategory)}`;
             
             const categoryNames = {
                 'present': 'قائمة الطلاب الحاضرين',
@@ -1609,7 +1617,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             };
 
             const catTitle = categoryNames[currentModalCategory] || 'تقرير المتابعة اليومية';
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aالاطلاع على (${catTitle}) للفصل: (${activeGroup}) (وضع العرض للقراءة فقط) عبر الرابط:%0A${shareUrl}`;
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aالاطلاع على (${catTitle}) للفصل: (${activeGroup}) عبر الرابط:%0A${shareUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
 
@@ -2472,7 +2480,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function sendReportToWhatsAppManager() {
             const shareUrl = document.getElementById('shareUrlInput').value;
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aيمكنكم الاطلاع على لوحة المتابعة الكاملة للفصل: (${activeGroup}) (للقراءة والعرض فقط) عبر الرابط:%0A${shareUrl}`;
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aيمكنكم الاطلاع على لوحة المتابعة الكاملة للفصل: (${activeGroup}) عبر الرابط:%0A${shareUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
 
