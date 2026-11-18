@@ -12,6 +12,29 @@
     <meta property="og:url" content="https://school1school2-stack.github.io/2222/">
     <meta property="og:type" content="website">
 
+    <!-- ⚡ إخفاء فوري للصفحة الرئيسية قبل الرسم إذا كان الرابط مخصصاً لفئة أو لطالب -->
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('category')) {
+                document.documentElement.classList.add('is-category-view');
+            } else if (params.get('student')) {
+                document.documentElement.classList.add('is-student-view');
+            }
+        })();
+    </script>
+    <style>
+        .is-category-view #mainDashboardContainer,
+        .is-category-view #manageGroupsBtn,
+        .is-student-view #mainDashboardContainer,
+        .is-student-view header {
+            display: none !important;
+        }
+        .is-category-view #instantLoader {
+            display: flex !important;
+        }
+    </style>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -32,12 +55,18 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-    <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2">
+    <!-- شاشة تحميل فورية تظهر للمدير ريثما تُجلب بيانات الفئة من السحابة -->
+    <div id="instantLoader" class="hidden fixed inset-0 bg-slate-100 z-40 flex-col items-center justify-center gap-3">
+        <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-900 rounded-full animate-spin"></div>
+        <p class="text-sm font-bold text-indigo-900">جاري تحميل بيانات التقرير المخصص...</p>
+    </div>
+
+    <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2 relative z-50">
         <i class="fa-solid fa-shield-halved text-amber-300 text-lg"></i>
         <span id="bannerText">وضع العرض الشامل (للقراءة والاطلاع فقط)</span>
     </div>
 
-    <header class="bg-indigo-900 text-white shadow-xl">
+    <header class="bg-indigo-900 text-white shadow-xl relative z-50">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 bg-indigo-800 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-700">
@@ -762,6 +791,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function checkAndRenderPendingCategory() {
             if (window.pendingViewCategory && students.length > 0) {
+                const loader = document.getElementById('instantLoader');
+                if (loader) loader.style.setProperty('display', 'none', 'important');
                 openCategoryFullModal(window.pendingViewCategory);
             }
         }
@@ -1576,15 +1607,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const content = document.getElementById('fullModalContent');
             const countBadge = document.getElementById('fullModalCountBadge');
 
-            // إذا كان المدير يفتح رابط الفئة المستقلة، نجعل النافذة ثابتة وواسعة ونخفي زر الواتساب والإغلاق
             if (window.pendingViewCategory) {
                 document.getElementById('modalWhatsAppBtn').classList.add('hidden');
                 document.getElementById('fullModalTopCloseBtn').classList.add('hidden');
                 document.getElementById('fullModalBottomCloseBtn').classList.add('hidden');
                 modal.classList.remove('bg-slate-900/50', 'backdrop-blur-sm');
-                modal.classList.add('bg-slate-100', 'pt-20');
+                modal.classList.add('bg-slate-100', 'pt-28');
                 modalBox.classList.remove('max-w-xl', 'max-h-[85vh]');
-                modalBox.classList.add('max-w-3xl', 'max-h-[82vh]');
+                modalBox.classList.add('max-w-3xl', 'max-h-[80vh]');
             }
 
             content.innerHTML = '';
