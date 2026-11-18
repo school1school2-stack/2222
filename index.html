@@ -28,18 +28,17 @@
             50% { transform: scale(1.03); opacity: 0.9; }
         }
         .pulse-badge { animation: pulse-soft 2s infinite ease-in-out; }
-        /* تحسين مظهر أيقونة التقويم داخل المنتقي الموحد */
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(84%) sepia(56%) saturate(600%) hue-rotate(355deg) brightness(103%) contrast(103%);
             cursor: pointer;
         }
     </style>
 
-    <!-- ⚡ سكربت فوري يعمل قبل رسم الصفحة لمنع ظهور لوحة التحكم نهائياً عند فتح رابط الفئة -->
+    <!-- ⚡ سكربت فوري يعمل قبل رسم الصفحة لمنع ظهور لوحة التحكم نهائياً عند فتح رابط الفئة أو بوابة الطالب -->
     <script>
         (function() {
             const params = new URLSearchParams(window.location.search);
-            if (params.get('category') || params.get('student')) {
+            if (params.get('category') || params.get('student') || params.get('portal') === 'student') {
                 document.documentElement.classList.add('direct-view-mode');
             }
         })();
@@ -51,10 +50,10 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- شاشة تحميل فورية تظهر فقط عند فتح رابط فئة مخصصة حتى تصل البيانات -->
+    <!-- شاشة تحميل فورية تظهر فقط عند فتح رابط فئة مخصصة أو بوابة الطالب -->
     <div id="instantLoader" class="hidden fixed inset-0 bg-slate-100 z-40 flex-col items-center justify-center gap-3">
         <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-sm font-bold text-indigo-900">جاري تحميل بيانات التقرير من السحابة...</p>
+        <p class="text-sm font-bold text-indigo-900">جاري تحميل البيانات من السحابة...</p>
     </div>
 
     <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2 z-50 relative">
@@ -92,7 +91,7 @@
                 </div>
             </div>
 
-            <!-- أدوات التحكم والفصول -->
+            <!-- أدوات التحكم والفصول (تم نقل أيقونة متصل ومزامن للأسفل) -->
             <div class="flex items-center gap-2.5 flex-wrap justify-center">
                 <div class="bg-indigo-800/80 border border-indigo-700 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-inner">
                     <i class="fa-solid fa-users text-amber-300 text-xs"></i>
@@ -105,19 +104,54 @@
                 <button id="manageGroupsBtn" onclick="openManageGroupsModal()" class="bg-indigo-800 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-indigo-700 shadow-sm" title="إدارة الفصول والمجموعات">
                     <i class="fa-solid fa-folder-plus text-amber-300"></i> الفصول
                 </button>
-
-                <div id="cloudBadge" class="bg-indigo-950/70 border border-indigo-800 px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs font-mono">
-                    <i id="cloudIcon" class="fa-solid fa-cloud text-amber-400"></i>
-                    <span id="cloudStatus" class="text-indigo-200">متصل</span>
-                </div>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
 
+        <!-- 🎓 شاشة دخول الطالب الموحدة عبر البريد الإلكتروني -->
+        <div id="studentLoginContainer" class="hidden max-w-md mx-auto mt-6">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-l from-indigo-950 via-indigo-900 to-slate-900 p-6 text-white text-center space-y-2">
+                    <div class="w-16 h-16 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center mx-auto text-3xl text-amber-300 shadow-inner">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <h2 class="text-xl font-black">بوابة متابعة الطالب</h2>
+                    <p class="text-xs text-indigo-200">أدخل بريدك الإلكتروني المدرسي للاطلاع على سجل الحضور والواجبات والملاحظات</p>
+                </div>
+
+                <form onsubmit="handleStudentEmailLogin(event)" class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">البريد الإلكتروني المسجل في المنصة:</label>
+                        <div class="relative">
+                            <i class="fa-regular fa-envelope absolute right-3.5 top-3.5 text-slate-400"></i>
+                            <input type="email" id="studentLoginEmailInput" required dir="ltr" placeholder="s123456@rb.moe.gov.sa" class="w-full bg-slate-50 border border-slate-300 rounded-xl pr-10 pl-4 py-3 text-sm font-mono font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-left">
+                        </div>
+                    </div>
+
+                    <div id="studentLoginError" class="hidden bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-circle-exclamation text-rose-600 shrink-0"></i>
+                        <span id="studentLoginErrorText">البريد الإلكتروني غير مسجل، تأكد من كتابته بشكل صحيح.</span>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-md">
+                        <i class="fa-solid fa-arrow-left-to-bracket"></i>
+                        عرض سجلي الآن
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <!-- بوابة الطالب الفردي -->
         <div id="studentPortalContainer" class="hidden space-y-6 max-w-4xl mx-auto">
+            <div id="studentSwitchAccountBar" class="hidden flex justify-between items-center bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200">
+                <span class="text-xs font-bold text-slate-600"><i class="fa-solid fa-shield-check text-emerald-600 ml-1"></i> تم التحقق عبر البريد الإلكتروني</span>
+                <button onclick="logoutStudentPortal()" class="bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200">
+                    <i class="fa-solid fa-right-from-bracket"></i> تسجيل خروج / استعلام لبريد آخر
+                </button>
+            </div>
+
             <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-0"></div>
                 <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -185,7 +219,7 @@
 
         <div id="mainDashboardContainer" class="space-y-6">
 
-            <!-- شريط البحث وإضافة الطلاب والمشاركة (بدون تكرار التاريخ) -->
+            <!-- شريط البحث وإضافة الطلاب والمشاركة -->
             <div id="dailySection" class="space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col lg:flex-row justify-between items-center gap-3">
                     <div class="flex items-center gap-2.5 w-full lg:w-auto flex-wrap">
@@ -206,6 +240,10 @@
                     <div class="flex items-center gap-2.5 w-full lg:w-auto justify-end flex-wrap">
                         <button id="openAddModalBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-users-rectangle"></i> قائمة الطلاب والإيميلات
+                        </button>
+
+                        <button id="shareStudentPortalBtn" onclick="openStudentPortalShareModal()" class="bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="رابط موحد يدخل منه الطالب بإيميله">
+                            <i class="fa-solid fa-user-graduate"></i> بوابة الطلاب (دخول بالإيميل)
                         </button>
 
                         <button id="shareManagerBtn" onclick="shareReportWithManager()" class="bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
@@ -256,15 +294,23 @@
                     </div>
                 </div>
 
-                <!-- لوحة أزرار الحضور والأنشطة التفاعلية (بدون تكرار التاريخ) -->
+                <!-- لوحة أزرار الحضور والأنشطة التفاعلية (مع أيقونة متصل ومزامن مكان التاريخ السابق) -->
                 <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-xl border border-indigo-800 text-white p-6 space-y-4">
-                    <div class="flex items-center gap-3 pb-3 border-b border-indigo-800/60">
-                        <div class="w-10 h-10 bg-indigo-800 rounded-xl flex items-center justify-center border border-indigo-700">
-                            <i class="fa-solid fa-file-invoice text-amber-300 text-lg"></i>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-indigo-800/60">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-indigo-800 rounded-xl flex items-center justify-center border border-indigo-700">
+                                <i class="fa-solid fa-file-invoice text-amber-300 text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold">لوحة أزرار الحضور والأنشطة اليومية السريعة</h3>
+                                <p class="text-xs text-indigo-200">اضغط على أي أيقونة أو زر لعرض قائمة الطلاب الخاصة به وتعديلها مباشرة</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-base font-bold">لوحة أزرار الحضور والأنشطة اليومية السريعة</h3>
-                            <p class="text-xs text-indigo-200">اضغط على أي أيقونة أو زر لعرض قائمة الطلاب الخاصة به وتعديلها مباشرة</p>
+
+                        <!-- ☁️ أيقونة متصل ومزامن منقولة هنا -->
+                        <div id="cloudBadge" class="bg-indigo-950/80 border border-indigo-700/80 px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold shadow-inner">
+                            <i id="cloudIcon" class="fa-solid fa-cloud text-amber-400"></i>
+                            <span id="cloudStatus" class="text-indigo-100">متصل ومزامن</span>
                         </div>
                     </div>
 
@@ -458,6 +504,45 @@
             </div>
         </div>
     </main>
+
+    <!-- نافذة مشاركة رابط بوابة الطلاب الموحدة -->
+    <div id="studentPortalShareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
+            <div class="p-5 bg-sky-800 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-user-graduate text-amber-300"></i>
+                    بوابة دخول الطلاب الموحدة
+                </h3>
+                <button onclick="closeStudentPortalShareModal()" class="text-sky-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-600 leading-relaxed font-semibold">
+                    شارك هذا الرابط الموحد مع جميع طلابك؛ حيث يقوم كل طالب بإدخال <span class="text-sky-700 font-black">بريده الإلكتروني فقط</span> لتفتح له صفحته الشخصية ويعرف حضوره وغيابه والمتأخرات والملاحظات مباشرة:
+                </p>
+
+                <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
+                    <input type="text" id="studentPortalShareUrlInput" readonly value="" dir="ltr" class="bg-transparent text-xs font-mono font-bold text-slate-700 w-full focus:outline-none">
+                    <button onclick="copyStudentPortalShareUrl()" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0">
+                        <i class="fa-regular fa-copy"></i> نسخ
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    <button onclick="sendStudentPortalToWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        إرسال رابط بوابة الطلاب عبر واتساب
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeStudentPortalShareModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">إغلاق</button>
+            </div>
+        </div>
+    </div>
 
     <!-- نافذة تفاصيل الفئة -->
     <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
@@ -688,6 +773,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         let isReadOnly = false; 
         let isStudentPortal = false;
+        let isUnifiedStudentLogin = false;
         let targetStudentId = null;
         let activeGroup = 'الجميع'; 
         let groups = ['أول - أول', 'أول - ثاني', 'ثاني - أول']; 
@@ -731,7 +817,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (ampmEl) ampmEl.textContent = ampm;
         }
 
-        // الحصول على اسم اليوم من نص التاريخ (YYYY-MM-DD)
         function getArabicDayNameFromStr(dateStr) {
             if (!dateStr) return '';
             const parts = dateStr.split('-');
@@ -741,7 +826,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             return daysAr[dt.getDay()] || '';
         }
 
-        // تحديث اسم اليوم والتاريخ الهجري في البطاقة الموحدة بناءً على التاريخ المختار
         function updateSelectedDateLabels() {
             const dayName = getArabicDayNameFromStr(currentDate);
             const selDayEl = document.getElementById('selectedDayLabel');
@@ -772,6 +856,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             const urlParams = new URLSearchParams(window.location.search);
             targetStudentId = urlParams.get('student');
+            const portalMode = urlParams.get('portal');
             const viewCategory = urlParams.get('category');
             const paramDate = urlParams.get('date');
 
@@ -787,7 +872,15 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             selectedDateInput.value = currentDate;
             updateSelectedDateLabels();
 
-            if (targetStudentId) {
+            if (portalMode === 'student') {
+                isUnifiedStudentLogin = true;
+                isReadOnly = true;
+                document.getElementById('mainDashboardContainer').classList.add('hidden');
+                document.querySelector('header').classList.add('hidden');
+                document.getElementById('studentLoginContainer').classList.remove('hidden');
+                const loader = document.getElementById('instantLoader');
+                if (loader) loader.style.setProperty('display', 'none', 'important');
+            } else if (targetStudentId) {
                 isStudentPortal = true;
                 document.getElementById('mainDashboardContainer').classList.add('hidden');
                 document.querySelector('header').classList.add('hidden');
@@ -810,6 +903,81 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             updateShareUrl();
         });
 
+        // 🎓 معالجة دخول الطالب بالبريد الإلكتروني
+        function handleStudentEmailLogin(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById('studentLoginEmailInput');
+            const errorBox = document.getElementById('studentLoginError');
+            const errorText = document.getElementById('studentLoginErrorText');
+            const enteredEmail = emailInput.value.trim().toLowerCase();
+
+            if (!enteredEmail) return;
+
+            if (students.length === 0) {
+                errorText.textContent = "جاري تحميل بيانات الطلاب من السحابة، يرجى المحاولة بعد ثوانٍ...";
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            const matchedStudent = students.find(s => s.email.trim().toLowerCase() === enteredEmail);
+            if (!matchedStudent) {
+                errorText.textContent = "عذراً، هذا البريد الإلكتروني غير مسجل في المنصة. تأكد من كتابته بشكل صحيح.";
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            errorBox.classList.add('hidden');
+            targetStudentId = matchedStudent.id;
+            isStudentPortal = true;
+            isReadOnly = true;
+
+            document.getElementById('studentLoginContainer').classList.add('hidden');
+            document.getElementById('studentPortalContainer').classList.remove('hidden');
+            document.getElementById('studentSwitchAccountBar').classList.remove('hidden');
+            renderStudentPortalView();
+        }
+
+        function logoutStudentPortal() {
+            targetStudentId = null;
+            isStudentPortal = false;
+            document.getElementById('studentPortalContainer').classList.add('hidden');
+            document.getElementById('studentSwitchAccountBar').classList.add('hidden');
+            document.getElementById('studentLoginInput');
+            document.getElementById('studentLoginEmailInput').value = '';
+            document.getElementById('studentLoginContainer').classList.remove('hidden');
+        }
+
+        function getBasePortalUrl() {
+            let baseUrl = "https://school1school2-stack.github.io/2222/";
+            if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
+                baseUrl = window.location.origin + window.location.pathname;
+            }
+            return baseUrl;
+        }
+
+        function openStudentPortalShareModal() {
+            const portalUrl = `${getBasePortalUrl()}?portal=student`;
+            document.getElementById('studentPortalShareUrlInput').value = portalUrl;
+            document.getElementById('studentPortalShareModal').classList.remove('hidden');
+        }
+
+        function closeStudentPortalShareModal() {
+            document.getElementById('studentPortalShareModal').classList.add('hidden');
+        }
+
+        function copyStudentPortalShareUrl() {
+            const input = document.getElementById('studentPortalShareUrlInput');
+            input.select();
+            document.execCommand('copy');
+            showToast('تم نسخ رابط بوابة الطلاب بنجاح 📋', 'success');
+        }
+
+        function sendStudentPortalToWhatsApp() {
+            const portalUrl = document.getElementById('studentPortalShareUrlInput').value;
+            const rawMessage = `أبنائي الطلاب،\n\nيمكنكم الاطلاع على سجل الحضور والغياب والواجبات والملاحظات الخاصة بكم مباشرة عبر إدخال بريدكم الإلكتروني المدرسي في الرابط التالي:\n${portalUrl}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
+        }
+
         function applyReadOnlyMode() {
             document.getElementById('readOnlyBanner').classList.remove('hidden');
             document.getElementById('bannerText').textContent = 'وضع العرض (للقراءة والاطلاع فقط - لا يمكن التعديل)';
@@ -817,6 +985,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('manageGroupsBtn').classList.add('hidden');
             document.getElementById('quickAddControls').classList.add('hidden');
             document.getElementById('openAddModalBtn').classList.add('hidden');
+            document.getElementById('shareStudentPortalBtn').classList.add('hidden');
             document.getElementById('shareManagerBtn').classList.add('hidden');
 
             const deleteClassBtn = document.querySelector('button[onclick="deleteCurrentClassData()"]');
@@ -828,11 +997,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function updateShareUrl() {
-            let baseUrl = "https://school1school2-stack.github.io/2222/";
-            if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
-                baseUrl = window.location.origin + window.location.pathname;
-            }
-            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}`;
+            const shareUrl = `${getBasePortalUrl()}?mode=view&group=${encodeURIComponent(activeGroup)}`;
             document.getElementById('shareUrlInput').value = shareUrl;
         }
 
@@ -905,8 +1070,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                 students.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
 
-                cloudStatus.textContent = "متصل ومزامن";
-                cloudIcon.className = "fa-solid fa-cloud text-emerald-400";
+                if (cloudStatus) cloudStatus.textContent = "متصل ومزامن";
+                if (cloudIcon) cloudIcon.className = "fa-solid fa-cloud text-emerald-400";
                 
                 if (isStudentPortal && students.length > 0) {
                     const loader = document.getElementById('instantLoader');
@@ -920,8 +1085,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 refreshOpenCategoryModalIfActive();
             }, (error) => {
                 console.error("Students fetch error:", error);
-                cloudStatus.textContent = "خطأ في الاتصال";
-                cloudIcon.className = "fa-solid fa-cloud text-rose-400";
+                if (cloudStatus) cloudStatus.textContent = "خطأ في الاتصال";
+                if (cloudIcon) cloudIcon.className = "fa-solid fa-cloud text-rose-400";
             });
 
             db.collection("attendance_records").onSnapshot((snapshot) => {
@@ -933,7 +1098,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
-                if (!isStudentPortal && !window.pendingViewCategory) {
+                if (!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) {
                     renderTable();
                 }
                 checkAndRenderPendingCategory();
@@ -949,7 +1114,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (isStudentPortal) {
                     renderStudentPortalView();
                 }
-                if (!isStudentPortal && !window.pendingViewCategory) {
+                if (!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) {
                     renderTable();
                 }
                 checkAndRenderPendingCategory();
@@ -1479,7 +1644,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function renderSingleDayReport() {
-            if (isStudentPortal) return;
+            if (isStudentPortal || isUnifiedStudentLogin) return;
             updateSelectedDateLabels();
             const targetDate = currentDate;
             const dayRecords = allAttendanceRecords[targetDate] || {};
@@ -1632,14 +1797,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function sendCurrentModalToWhatsApp() {
-            let baseUrl = "https://school1school2-stack.github.io/2222/";
-            if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
-                baseUrl = window.location.origin + window.location.pathname;
-            }
-            
             const targetDate = currentDate;
             const dayName = getArabicDayNameFromStr(targetDate);
-            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}&category=${encodeURIComponent(currentModalCategory)}&date=${encodeURIComponent(targetDate)}`;
+            const shareUrl = `${getBasePortalUrl()}?mode=view&group=${encodeURIComponent(activeGroup)}&category=${encodeURIComponent(currentModalCategory)}&date=${encodeURIComponent(targetDate)}`;
             
             const categoryNames = {
                 'present': 'قائمة الطلاب الحاضرين',
@@ -1810,11 +1970,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                     if (absentCount >= 3) {
                         listCount++;
-                        let baseUrl = "https://school1school2-stack.github.io/2222/";
-                        if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
-                            baseUrl = window.location.origin + window.location.pathname;
-                        }
-                        let studentPortalLink = `${baseUrl}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
+                        let studentPortalLink = `${getBasePortalUrl()}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
 
                         const card = document.createElement('div');
                         card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
@@ -1974,7 +2130,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 } else {
                     attendanceData = {};
                 }
-                if(!isStudentPortal && !window.pendingViewCategory) renderTable();
+                if(!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) renderTable();
             }, (error) => {
                 console.error("Attendance fetch error:", error);
             });
@@ -1987,7 +2143,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 } else {
                     studentBehaviorsData = {};
                 }
-                if(!isStudentPortal && !window.pendingViewCategory) renderTable();
+                if(!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) renderTable();
             }, (error) => {
                 console.error("Behaviors fetch error:", error);
             });
@@ -2004,7 +2160,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function renderTable() {
-            if (isStudentPortal || window.pendingViewCategory) return;
+            if (isStudentPortal || isUnifiedStudentLogin || window.pendingViewCategory) return;
             const searchTerm = searchInput.value.trim().toLowerCase();
 
             const filteredStudents = students.filter(s => {
@@ -2132,11 +2288,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 });
                 logsHTML += `</div>`;
 
-                let baseUrl = "https://school1school2-stack.github.io/2222/";
-                if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
-                    baseUrl = window.location.origin + window.location.pathname;
-                }
-                let studentPortalLink = `${baseUrl}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
+                let studentPortalLink = `${getBasePortalUrl()}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
 
                 if (isReadOnly) {
                     const readOnlyLogsHTML = logsHTML.replace(/<button onclick="event\.stopPropagation\(\); removeBehaviorLogFromDate.*?<\/button>/g, '');
@@ -2405,7 +2557,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         };
 
         function updateStats() {
-            if (isStudentPortal) return;
+            if (isStudentPortal || isUnifiedStudentLogin) return;
             let presentCount = 0;
             let absentCount = 0;
             let otherCount = 0;
@@ -2431,7 +2583,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function setupEventListeners() {
-            if (isStudentPortal) return;
+            if (isStudentPortal || isUnifiedStudentLogin) return;
             selectedDateInput.addEventListener('change', (e) => {
                 currentDate = e.target.value;
                 updateSelectedDateLabels();
