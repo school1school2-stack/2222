@@ -252,75 +252,52 @@
                     </div>
                 </div>
 
-                <!-- 📚 بطاقة عرض الدرس اليومي والواجب للطلاب على السبورة الذكية -->
-                <div class="bg-gradient-to-l from-indigo-900 via-indigo-800 to-slate-900 rounded-2xl shadow-lg border border-indigo-700/80 p-4 sm:p-5 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
-                    <div class="flex items-start sm:items-center gap-4 z-10 w-full">
-                        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-amber-400 text-indigo-950 rounded-2xl flex items-center justify-center text-2xl shadow-md shrink-0">
-                            <i class="fa-solid fa-book-open-reader"></i>
+                <!-- 📚 البطاقات الأربع العلوية: (1: عنوان الدرس | 2: المهمة المطلوبة اليوم | 3: ملاحظة | 4: إجمالي طلاب الفصل) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- 1. عنوان الدرس (مكان الحاضرون اليوم سابقاً) -->
+                    <div onclick="openLessonModal('title')" class="bg-white hover:bg-indigo-50/60 transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 flex items-center justify-between gap-3 group" title="اضغط لكتابة أو تعديل عنوان الدرس">
+                        <div class="min-w-0 flex-grow">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs text-indigo-700 font-black">عنوان الدرس</span>
+                                <span class="text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.2 rounded font-bold">الكفايات اللغوية</span>
+                            </div>
+                            <span id="displayLessonTitle" class="text-sm sm:text-base font-black text-slate-800 mt-1 block truncate">اضغط لتحديد عنوان الدرس...</span>
                         </div>
-                        <div class="space-y-1.5 flex-grow">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-lg text-xs font-black">
-                                    المادة: الكفايات اللغوية
-                                </span>
-                                <span id="lessonClassBadge" class="bg-white/10 text-indigo-100 px-2.5 py-0.5 rounded-lg text-xs font-bold">
-                                    جميع الفصول
-                                </span>
-                            </div>
-                            <h2 id="displayLessonTitle" class="text-lg sm:text-xl font-black text-white tracking-wide">
-                                لم يتم تحديد عنوان الدرس اليوم
-                            </h2>
-                            <div id="displayLessonHomeworkWrap" class="hidden flex items-center gap-2 text-xs sm:text-sm text-emerald-300 font-bold bg-emerald-950/50 border border-emerald-500/30 px-3 py-1 rounded-xl w-fit">
-                                <i class="fa-solid fa-pencil text-amber-300"></i>
-                                <span>الواجب / المطلوب:</span>
-                                <span id="displayLessonHomework" class="text-white"></span>
-                            </div>
+                        <div class="w-10 h-10 bg-indigo-50 group-hover:bg-indigo-600 group-hover:text-white transition rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                            <i class="fa-solid fa-book-open-reader text-lg"></i>
                         </div>
                     </div>
 
-                    <button id="editLessonBtn" onclick="openLessonModal()" class="z-10 bg-white/15 hover:bg-amber-400 hover:text-indigo-950 text-white border border-white/25 px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-2 shrink-0 shadow-sm self-end md:self-center">
-                        <i class="fa-solid fa-pen-to-square"></i> تعديل الدرس
-                    </button>
-                </div>
+                    <!-- 2. المهمة المطلوبة اليوم (مكان الغائبون اليوم سابقاً) -->
+                    <div onclick="openLessonModal('homework')" class="bg-white hover:bg-emerald-50/60 transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-emerald-300 flex items-center justify-between gap-3 group" title="اضغط لكتابة أو تعديل المهمة المطلوبة اليوم">
+                        <div class="min-w-0 flex-grow">
+                            <span class="text-xs text-emerald-700 font-black block">المهمة المطلوبة اليوم</span>
+                            <span id="displayLessonHomework" class="text-sm sm:text-base font-black text-slate-800 mt-1 block truncate">اضغط لتحديد المهمة / الواجب...</span>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-50 group-hover:bg-emerald-600 group-hover:text-white transition rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                            <i class="fa-solid fa-list-check text-lg"></i>
+                        </div>
+                    </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <!-- 3. ملاحظة (مكان متأخر / بعذر سابقاً) -->
+                    <div onclick="openLessonModal('note')" class="bg-white hover:bg-amber-50/60 transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-amber-300 flex items-center justify-between gap-3 group" title="اضغط لكتابة أو تعديل ملاحظة اليوم">
+                        <div class="min-w-0 flex-grow">
+                            <span class="text-xs text-amber-700 font-black block">ملاحظة وتنبيه</span>
+                            <span id="displayLessonNote" class="text-sm sm:text-base font-black text-slate-800 mt-1 block truncate">اضغط لإضافة ملاحظة للطلاب...</span>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-50 group-hover:bg-amber-500 group-hover:text-white transition rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                            <i class="fa-solid fa-note-sticky text-lg"></i>
+                        </div>
+                    </div>
+
+                    <!-- 4. إجمالي طلاب الفصل (في الأخير) -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-3">
                         <div>
                             <span class="text-xs text-slate-500 font-bold block">إجمالي طلاب الفصل</span>
                             <span id="statTotal" class="text-2xl font-black text-slate-900 mt-1 block">0</span>
                         </div>
-                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                        <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-700 shrink-0">
                             <i class="fa-solid fa-users text-lg"></i>
-                        </div>
-                    </div>
-
-                    <div onclick="openMainQuickModal('present')" class="bg-white hover:bg-emerald-50/50 transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-emerald-600 font-bold block">الحاضرون اليوم</span>
-                            <span id="statPresent" class="text-2xl font-black text-emerald-700 mt-1 block">0</span>
-                        </div>
-                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-                            <i class="fa-solid fa-user-check text-lg"></i>
-                        </div>
-                    </div>
-
-                    <div onclick="openMainQuickModal('absent')" class="bg-white hover:bg-rose-50/50 transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-rose-600 font-bold block">الغائبون اليوم</span>
-                            <span id="statAbsent" class="text-2xl font-black text-rose-700 mt-1 block">0</span>
-                        </div>
-                        <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
-                            <i class="fa-solid fa-user-xmark text-lg"></i>
-                        </div>
-                    </div>
-
-                    <div onclick="openMainQuickModal('other')" class="bg-white hover:bg-amber-50/50 transition cursor-pointer p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-amber-600 font-bold block">متأخر / بعذر</span>
-                            <span id="statOther" class="text-2xl font-black text-amber-700 mt-1 block">0</span>
-                        </div>
-                        <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
-                            <i class="fa-solid fa-clock text-lg"></i>
                         </div>
                     </div>
                 </div>
@@ -536,13 +513,13 @@
         </div>
     </main>
 
-    <!-- 📝 نافذة تعديل الدرس اليومي والواجب -->
+    <!-- 📝 نافذة تعديل الدرس اليومي والمهمة والملاحظة -->
     <div id="lessonEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
                 <h3 class="text-lg font-bold flex items-center gap-2">
                     <i class="fa-solid fa-book-open text-amber-300"></i>
-                    تحديد درس اليوم (الكفايات اللغوية)
+                    تحديث بيانات الحصة اليومية
                 </h3>
                 <button onclick="closeLessonModal()" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -551,18 +528,23 @@
             
             <div class="p-6 space-y-4">
                 <div class="bg-indigo-50 text-indigo-900 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-100 flex items-center justify-between">
+                    <span>المادة: <strong>الكفايات اللغوية</strong></span>
                     <span>الفصل: <strong id="lessonModalClassLabel">--</strong></span>
-                    <span>التاريخ: <strong id="lessonModalDateLabel" class="font-mono">--</strong></span>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">عنوان الدرس اليومي:</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">1. عنوان الدرس اليومي:</label>
                     <input type="text" id="lessonTitleInput" placeholder="مثال: الجملة الاسمية ونواسخها..." class="w-full border border-slate-300 rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1.5">الواجب أو المطلوب من الطلاب (اختياري):</label>
-                    <input type="text" id="lessonHomeworkInput" placeholder="مثال: حل تدريبات ص 45 في الكتاب..." class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">2. المهمة المطلوبة اليوم (الواجب / النشاط):</label>
+                    <input type="text" id="lessonHomeworkInput" placeholder="مثال: حل تدريبات ص 45 في الكتاب..." class="w-full border border-slate-300 rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">3. ملاحظة / تنبيه للطلاب:</label>
+                    <input type="text" id="lessonNoteInput" placeholder="مثال: إحضار ملف الإنجاز الحصة القادمة..." class="w-full border border-slate-300 rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none">
                 </div>
             </div>
 
@@ -894,8 +876,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const parts = dateStr.split('-');
             if (parts.length !== 3) return '';
             const dt = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-            const daysAr = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-            return daysAr[dt.getDay()] || '';
+            const daysAr = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الخميس', 'السبت'];
+            const daysProper = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            return daysProper[dt.getDay()] || '';
         }
 
         function updateSelectedDateLabels() {
@@ -922,55 +905,69 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         }
 
-        // 📚 دوال الدرس اليومي والواجب
+        // 📚 دوال البطاقات الثلاث التفاعلية (عنوان الدرس / المهمة المطلوبة / ملاحظة)
         function getLessonDocKey() {
             const safeGroup = (activeGroup || 'الجميع').replace(/\//g, '_');
             return `${currentDate}__${safeGroup}`;
         }
 
-        function renderDailyLessonBanner() {
-            const classBadge = document.getElementById('lessonClassBadge');
+        function renderDailyLessonCards() {
             const titleEl = document.getElementById('displayLessonTitle');
-            const hwWrap = document.getElementById('displayLessonHomeworkWrap');
             const hwEl = document.getElementById('displayLessonHomework');
-
-            if (classBadge) {
-                classBadge.textContent = activeGroup === 'الجميع' ? 'جميع الفصول' : `الفصل: ${activeGroup}`;
-            }
+            const noteEl = document.getElementById('displayLessonNote');
+            if (!titleEl || !hwEl || !noteEl) return;
 
             const key = getLessonDocKey();
             const fallbackKey = `${currentDate}__الجميع`;
-            const lessonObj = dailyLessonsData[key] || dailyLessonsData[fallbackKey] || null;
+            const lessonObj = dailyLessonsData[key] || dailyLessonsData[fallbackKey] || {};
 
-            if (lessonObj && lessonObj.title) {
-                titleEl.textContent = `درس اليوم: ${lessonObj.title}`;
-                titleEl.classList.remove('text-indigo-200/80');
-                titleEl.classList.add('text-white');
+            if (lessonObj.title && lessonObj.title.trim() !== '') {
+                titleEl.textContent = lessonObj.title;
+                titleEl.classList.remove('text-slate-400', 'font-bold');
+                titleEl.classList.add('text-slate-900', 'font-black');
             } else {
-                titleEl.textContent = 'لم يتم تحديد عنوان الدرس اليوم';
-                titleEl.classList.remove('text-white');
-                titleEl.classList.add('text-indigo-200/80');
+                titleEl.textContent = isReadOnly ? 'لم يُحدد عنوان الدرس' : 'اضغط لتحديد عنوان الدرس...';
+                titleEl.classList.remove('text-slate-900', 'font-black');
+                titleEl.classList.add('text-slate-400', 'font-bold');
             }
 
-            if (lessonObj && lessonObj.homework && lessonObj.homework.trim() !== '') {
+            if (lessonObj.homework && lessonObj.homework.trim() !== '') {
                 hwEl.textContent = lessonObj.homework;
-                hwWrap.classList.remove('hidden');
+                hwEl.classList.remove('text-slate-400', 'font-bold');
+                hwEl.classList.add('text-slate-900', 'font-black');
             } else {
-                hwWrap.classList.add('hidden');
+                hwEl.textContent = isReadOnly ? 'لا توجد مهمة محددة' : 'اضغط لتحديد المهمة / الواجب...';
+                hwEl.classList.remove('text-slate-900', 'font-black');
+                hwEl.classList.add('text-slate-400', 'font-bold');
+            }
+
+            if (lessonObj.note && lessonObj.note.trim() !== '') {
+                noteEl.textContent = lessonObj.note;
+                noteEl.classList.remove('text-slate-400', 'font-bold');
+                noteEl.classList.add('text-slate-900', 'font-black');
+            } else {
+                noteEl.textContent = isReadOnly ? 'لا توجد ملاحظات' : 'اضغط لإضافة ملاحظة للطلاب...';
+                noteEl.classList.remove('text-slate-900', 'font-black');
+                noteEl.classList.add('text-slate-400', 'font-bold');
             }
         }
 
-        function openLessonModal() {
+        function openLessonModal(focusField = 'title') {
             if (isReadOnly) return;
             const key = getLessonDocKey();
             const existing = dailyLessonsData[key] || {};
 
             document.getElementById('lessonModalClassLabel').textContent = activeGroup;
-            document.getElementById('lessonModalDateLabel').textContent = currentDate;
             document.getElementById('lessonTitleInput').value = existing.title || '';
             document.getElementById('lessonHomeworkInput').value = existing.homework || '';
+            document.getElementById('lessonNoteInput').value = existing.note || '';
             document.getElementById('lessonEditModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('lessonTitleInput').focus(), 100);
+
+            setTimeout(() => {
+                if (focusField === 'homework') document.getElementById('lessonHomeworkInput').focus();
+                else if (focusField === 'note') document.getElementById('lessonNoteInput').focus();
+                else document.getElementById('lessonTitleInput').focus();
+            }, 100);
         }
 
         function closeLessonModal() {
@@ -981,6 +978,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (isReadOnly) return;
             const titleVal = document.getElementById('lessonTitleInput').value.trim();
             const hwVal = document.getElementById('lessonHomeworkInput').value.trim();
+            const noteVal = document.getElementById('lessonNoteInput').value.trim();
             const key = getLessonDocKey();
 
             try {
@@ -989,13 +987,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     group: activeGroup,
                     title: titleVal,
                     homework: hwVal,
+                    note: noteVal,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                showToast('تم تحديث عنوان الدرس اليومي بنجاح ☁️', 'cloud');
+                showToast('تم حفظ بيانات الدرس والمهمة والملاحظة سحابياً ☁️', 'cloud');
                 closeLessonModal();
             } catch (err) {
                 console.error("Save lesson error:", err);
-                showToast('حدث خطأ أثناء حفظ الدرس', 'warning');
+                showToast('حدث خطأ أثناء الحفظ', 'warning');
             }
         }
 
@@ -1020,7 +1019,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             selectedDateInput.value = currentDate;
             updateSelectedDateLabels();
-            renderDailyLessonBanner();
+            renderDailyLessonCards();
 
             if (portalMode === 'student') {
                 isUnifiedStudentLogin = true;
@@ -1136,8 +1135,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('openAddModalBtn').classList.add('hidden');
             document.getElementById('shareStudentPortalBtn').classList.add('hidden');
             document.getElementById('shareManagerBtn').classList.add('hidden');
-            const editLessonBtn = document.getElementById('editLessonBtn');
-            if (editLessonBtn) editLessonBtn.classList.add('hidden');
 
             const deleteClassBtn = document.querySelector('button[onclick="deleteCurrentClassData()"]');
             const copyClassBtn = document.querySelector('button[onclick="openAddModalWithClass()"]');
@@ -1181,13 +1178,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const cloudStatus = document.getElementById('cloudStatus');
             const cloudIcon = document.getElementById('cloudIcon');
 
-            // 📚 مزامنة الدروس اليومية سحابياً
+            // 📚 مزامنة الدروس والمهام والملاحظات سحابياً
             db.collection("daily_lessons").onSnapshot((snapshot) => {
                 dailyLessonsData = {};
                 snapshot.forEach(doc => {
                     dailyLessonsData[doc.id] = doc.data();
                 });
-                renderDailyLessonBanner();
+                renderDailyLessonCards();
             }, (error) => {
                 console.error("Daily lessons fetch error:", error);
             });
@@ -1598,10 +1595,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('portalCategoryModal').classList.add('hidden');
         }
 
-        function openMainQuickModal(categoryType) {
-            openCategoryFullModal(categoryType);
-        }
-
         function updateGroupDropdowns() {
             classSelector.innerHTML = '<option value="الجميع">جميع الفصول والمجموعات</option>';
             groups.forEach(grp => {
@@ -1627,7 +1620,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         function changeActiveGroup(groupName) {
             activeGroup = groupName.trim();
             updateShareUrl();
-            renderDailyLessonBanner();
+            renderDailyLessonCards();
             renderTable();
             renderSingleDayReport();
         }
@@ -1725,7 +1718,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 await db.collection("attendance_groups").doc("list").set({ groups: groups });
                 showToast('تم حذف الفصل بنجاح', 'info');
                 updateGroupDropdowns();
-                renderDailyLessonBanner();
+                renderDailyLessonCards();
             } catch (err) {
                 console.error("Group deletion error:", err);
                 showToast('حدث خطأ أثناء الحذف', 'warning');
@@ -1759,7 +1752,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                 showToast(`تم تغيير اسم الفصل إلى (${trimmedNewName}) بنجاح ☁️`, 'cloud');
                 updateGroupDropdowns();
-                renderDailyLessonBanner();
+                renderDailyLessonCards();
             } catch (err) {
                 console.error("Rename group error:", err);
                 showToast('حدث خطأ أثناء إعادة تسمية الفصل', 'warning');
@@ -2723,28 +2716,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function updateStats() {
             if (isStudentPortal || isUnifiedStudentLogin) return;
-            let presentCount = 0;
-            let absentCount = 0;
-            let otherCount = 0;
-
             const activeStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
                 return actGroup === 'الجميع' || sGroup === actGroup;
             });
 
-            activeStudents.forEach(student => {
-                const recordObj = attendanceData[student.id];
-                const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                if (status === 'present') presentCount++;
-                else if (status === 'absent') absentCount++;
-                else if (status === 'late' || status === 'excused') otherCount++;
-            });
-
-            document.getElementById('statTotal').textContent = activeStudents.length;
-            document.getElementById('statPresent').textContent = presentCount;
-            document.getElementById('statAbsent').textContent = absentCount;
-            document.getElementById('statOther').textContent = otherCount;
+            const totalEl = document.getElementById('statTotal');
+            if (totalEl) totalEl.textContent = activeStudents.length;
         }
 
         function setupEventListeners() {
@@ -2752,7 +2731,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             selectedDateInput.addEventListener('change', (e) => {
                 currentDate = e.target.value;
                 updateSelectedDateLabels();
-                renderDailyLessonBanner();
+                renderDailyLessonCards();
                 fetchAttendanceForDate(currentDate);
                 fetchBehaviorsForDate(currentDate);
                 renderSingleDayReport();
@@ -2762,7 +2741,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 currentDate = new Date().toISOString().split('T')[0];
                 selectedDateInput.value = currentDate;
                 updateSelectedDateLabels();
-                renderDailyLessonBanner();
+                renderDailyLessonCards();
                 fetchAttendanceForDate(currentDate);
                 fetchBehaviorsForDate(currentDate);
                 renderSingleDayReport();
