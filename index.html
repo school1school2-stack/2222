@@ -428,7 +428,7 @@
         </div>
     </main>
 
-    <!-- نافذة تفاصيل الفئة مع أزرار المشاركة والتصدير الخاصة بكل زر -->
+    <!-- نافذة تفاصيل الفئة مع زر المشاركة الذي يرسل رابط الصفحة كبطاقة أنيقة -->
     <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
             <div id="fullModalHeader" class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
@@ -449,12 +449,12 @@
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center shrink-0 flex-wrap gap-2">
                 <div class="flex items-center gap-2 flex-wrap">
                     <span id="fullModalCountBadge" class="text-xs font-bold text-slate-600 bg-slate-200 px-3 py-1.5 rounded-xl">الإجمالي: 0</span>
-                    <!-- أزرار مشاركة وتصدير تظهر ديناميكياً لكل زر -->
                     <button id="modalExportBtn" onclick="exportCurrentModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm inline-flex items-center gap-1">
                         <i class="fa-solid fa-file-excel"></i> تصدير القائمة
                     </button>
+                    <!-- هذا الزر يرسل رابط المنصة مع كود المعاينة الذكية للواتساب مباشرة -->
                     <button id="modalWhatsAppBtn" onclick="sendCurrentModalToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1 shadow-sm">
-                        <i class="fa-brands fa-whatsapp"></i> مشاركة عبر واتساب
+                        <i class="fa-brands fa-whatsapp"></i> مشاركة الرابط عبر واتساب
                     </button>
                 </div>
                 <button onclick="closeCategoryFullModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">إغلاق</button>
@@ -669,7 +669,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         let allAttendanceRecords = {}; 
         let allBehaviorsRecords = {};
         let currentCustomNoteStudentId = null;
-        let currentModalCategory = null; // لتخزين الفئة الحالية المفتوحة في النافذة
+        let currentModalCategory = null;
 
         const selectedDateInput = document.getElementById('selectedDate');
         const studentsTableBody = document.getElementById('studentsTableBody');
@@ -1515,7 +1515,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('dayBehaviorsCount').textContent = behCount;
         }
 
-        // دالة تصدير بيانات النافذة الحالية CSV
         function exportCurrentModalCSV() {
             const targetDate = document.getElementById('singleReportDate').value;
             const filteredStudents = students.filter(s => {
@@ -1525,8 +1524,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
 
             let csvContent = "\uFEFF";
-            let titleName = "تقرير";
-
             if (currentModalCategory === 'present' || currentModalCategory === 'absent' || currentModalCategory === 'late' || currentModalCategory === 'excused' || currentModalCategory === 'other' || currentModalCategory === 'high_absent') {
                 csvContent += `اسم الطالب,البريد الإلكتروني,الفصل,الحالة/التفاصيل\n`;
                 filteredStudents.forEach(student => {
@@ -1589,54 +1586,30 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.body.removeChild(link);
         }
 
-        // دالة إرسال تقرير الفئة الحالية للواتساب
+        // 🌐 تعديل مهم: يرسل رابط المنصة مع وسوم المعاينة الذكية (Open Graph) للواتساب
         function sendCurrentModalToWhatsApp() {
-            const targetDate = document.getElementById('singleReportDate').value;
-            const filteredStudents = students.filter(s => {
-                const sGroup = (s.group || '').trim();
-                const actGroup = activeGroup.trim();
-                return actGroup === 'الجميع' || sGroup === actGroup;
-            });
-
-            let listText = "";
-            let count = 0;
-
-            filteredStudents.forEach(student => {
-                const dayRecords = allAttendanceRecords[targetDate] || {};
-                const recordObj = dayRecords[student.id];
-                const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-
-                let absentCount = 0;
-                Object.keys(allAttendanceRecords).forEach(d => {
-                    const rec = (allAttendanceRecords[d] || {})[student.id];
-                    const st = typeof rec === 'object' && rec !== null ? rec.status : rec;
-                    if (st === 'absent') absentCount++;
-                });
-
-                let match = false;
-                if (currentModalCategory === 'present' && status === 'present') match = true;
-                if (currentModalCategory === 'absent' && status === 'absent') match = true;
-                if (currentModalCategory === 'late' && status === 'late') match = true;
-                if (currentModalCategory === 'excused' && status === 'excused') match = true;
-                if (currentModalCategory === 'other' && (status === 'late' || status === 'excused')) match = true;
-                if (currentModalCategory === 'high_absent' && absentCount >= 3) match = true;
-
-                if (match) {
-                    count++;
-                    listText += `%0A- ${student.name} (${student.group})`;
-                }
-            });
-
+            let baseUrl = "https://school1school2-stack.github.io/2222/";
+            if (window.location.href.includes("github.io") || window.location.origin.includes("http")) {
+                baseUrl = window.location.origin + window.location.pathname;
+            }
+            const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}`;
+            
             const categoryNames = {
-                'present': 'الحاضرون اليوم',
-                'absent': 'الغائبون اليوم',
-                'late': 'المتأخرون اليوم',
-                'excused': 'بعذر / أخرى',
-                'high_absent': 'غياب 3 أيام فأكثر'
+                'present': 'قائمة الطلاب الحاضرين',
+                'absent': 'قائمة الطلاب الغائبين',
+                'late': 'قائمة الطلاب المتأخرين',
+                'excused': 'قائمة الأعذار والحالات الأخرى',
+                'high_absent': 'قائمة الغياب المتكرر (3 أيام فأكثر)',
+                'participations': 'تقرير المشاركات والتفاعل',
+                'homework_done': 'تقرير حل الواجبات',
+                'homework_not': 'تقرير عدم حل الواجبات',
+                'research': 'تقرير إنجاز الملف والبحوث',
+                'forgot_file': 'تقرير نسيان الملف',
+                'behaviors': 'تقرير الملاحظات والسلوكيات'
             };
 
-            const catTitle = categoryNames[currentModalCategory] || 'تقرير الأنشطة';
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقريراً عن (${catTitle}) للفصل (${activeGroup}) بتاريخ ${targetDate}:%0A${listText}%0A%0Aالإجمالي: ${count} طالب.`;
+            const catTitle = categoryNames[currentModalCategory] || 'تقرير المتابعة اليومية';
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aالاطلاع على (${catTitle}) للفصل: (${activeGroup}) (وضع العرض للقراءة فقط) عبر الرابط:%0A${shareUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
         }
 
