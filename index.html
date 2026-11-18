@@ -12,29 +12,6 @@
     <meta property="og:url" content="https://school1school2-stack.github.io/2222/">
     <meta property="og:type" content="website">
 
-    <!-- ⚡ إخفاء فوري للصفحة الرئيسية قبل الرسم إذا كان الرابط مخصصاً لفئة أو لطالب -->
-    <script>
-        (function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('category')) {
-                document.documentElement.classList.add('is-category-view');
-            } else if (params.get('student')) {
-                document.documentElement.classList.add('is-student-view');
-            }
-        })();
-    </script>
-    <style>
-        .is-category-view #mainDashboardContainer,
-        .is-category-view #manageGroupsBtn,
-        .is-student-view #mainDashboardContainer,
-        .is-student-view header {
-            display: none !important;
-        }
-        .is-category-view #instantLoader {
-            display: flex !important;
-        }
-    </style>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -52,21 +29,35 @@
         }
         .pulse-badge { animation: pulse-soft 2s infinite ease-in-out; }
     </style>
+
+    <!-- ⚡ سكربت فوري يعمل قبل رسم الصفحة لمنع ظهور لوحة التحكم نهائياً عند فتح رابط الفئة -->
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('category') || params.get('student')) {
+                document.documentElement.classList.add('direct-view-mode');
+            }
+        })();
+    </script>
+    <style>
+        html.direct-view-mode #mainDashboardContainer { display: none !important; }
+        html.direct-view-mode #instantLoader { display: flex !important; }
+    </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- شاشة تحميل فورية تظهر للمدير ريثما تُجلب بيانات الفئة من السحابة -->
+    <!-- شاشة تحميل فورية تظهر فقط عند فتح رابط فئة مخصصة حتى تصل البيانات -->
     <div id="instantLoader" class="hidden fixed inset-0 bg-slate-100 z-40 flex-col items-center justify-center gap-3">
-        <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-900 rounded-full animate-spin"></div>
-        <p class="text-sm font-bold text-indigo-900">جاري تحميل بيانات التقرير المخصص...</p>
+        <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm font-bold text-indigo-900">جاري تحميل بيانات التقرير من السحابة...</p>
     </div>
 
-    <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2 relative z-50">
+    <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2 z-50 relative">
         <i class="fa-solid fa-shield-halved text-amber-300 text-lg"></i>
         <span id="bannerText">وضع العرض الشامل (للقراءة والاطلاع فقط)</span>
     </div>
 
-    <header class="bg-indigo-900 text-white shadow-xl relative z-50">
+    <header class="bg-indigo-900 text-white shadow-xl z-50 relative">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 bg-indigo-800 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-700">
@@ -458,7 +449,7 @@
     </main>
 
     <!-- نافذة تفاصيل الفئة -->
-    <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
         <div id="fullCategoryModalBox" class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
             <div id="fullModalHeader" class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-3">
@@ -845,6 +836,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 cloudIcon.className = "fa-solid fa-cloud text-emerald-400";
                 
                 if (isStudentPortal && students.length > 0) {
+                    const loader = document.getElementById('instantLoader');
+                    if (loader) loader.style.setProperty('display', 'none', 'important');
                     renderStudentPortalView();
                 }
 
