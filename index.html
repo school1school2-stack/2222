@@ -470,7 +470,7 @@
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-indigo-600"></i>
-                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (إعداد: أ/ عبدالعزيز الفيفي)</h3>
+                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (طالبين في كل صف)</h3>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button onclick="openAddModalWithClass()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-indigo-200" title="نسخ طلاب الفصل الحالي لصق سريع">
@@ -492,20 +492,9 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-right border-collapse">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-600 text-xs font-bold border-b border-slate-200">
-                                    <th class="p-4">اسم الطالب والبريد الإلكتروني</th>
-                                    <th class="p-4 text-center">الفصل / المجموعة</th>
-                                    <th class="p-4 text-center">الحالة الحالية</th>
-                                    <th class="p-4 text-center">تسجيل الحضور السريع</th>
-                                    <th class="p-4 text-center">السلوك والمشاركات التفاعلية</th>
-                                    <th class="p-4 text-center">إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentsTableBody" class="text-xs divide-y divide-slate-100"></tbody>
-                        </table>
+                    <!-- عرض الطلاب في بطاقات كبيرة (طالبين في الصف) -->
+                    <div class="p-4">
+                        <div id="studentsGridContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
 
                     <div id="emptyState" class="hidden p-12 text-center space-y-3">
@@ -934,7 +923,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         window.pendingViewCategory = null;
 
         const selectedDateInput = document.getElementById('selectedDate');
-        const studentsTableBody = document.getElementById('studentsTableBody');
+        const studentsGridContainer = document.getElementById('studentsGridContainer');
         const emptyState = document.getElementById('emptyState');
         const searchInput = document.getElementById('searchInput');
         const addModal = document.getElementById('addModal');
@@ -2445,14 +2434,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             filteredStudents.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
 
             if (filteredStudents.length === 0) {
-                studentsTableBody.innerHTML = '';
+                studentsGridContainer.innerHTML = '';
                 emptyState.classList.remove('hidden');
                 updateStats();
                 return;
             }
 
             emptyState.classList.add('hidden');
-            studentsTableBody.innerHTML = '';
+            studentsGridContainer.innerHTML = '';
 
             filteredStudents.forEach((student) => {
                 const recordObj = attendanceData[student.id];
@@ -2471,26 +2460,23 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 });
 
                 const attendanceBadgesHTML = `
-                    <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200" title="إجمالي أيام الحضور">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200" title="إجمالي أيام الحضور">
                             <i class="fa-solid fa-circle-check text-[10px]"></i> ${stPresentCount} حضور
                         </span>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200" title="إجمالي أيام الغياب">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200" title="إجمالي أيام الغياب">
                             <i class="fa-solid fa-circle-xmark text-[10px]"></i> ${stAbsentCount} غياب
                         </span>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="إجمالي أيام التأخر">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="إجمالي أيام التأخر">
                             <i class="fa-solid fa-clock text-[10px]"></i> ${stLateCount} تأخر
                         </span>
                     </div>
                 `;
 
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-slate-50 transition border-b border-slate-100';
-
                 let statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">غير محدد</span>`;
                 if (status === 'present') {
                     statusBadge = `
-                        <div class="flex flex-col items-center gap-1">
+                        <div class="flex items-center gap-2">
                             <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
                                 <i class="fa-solid fa-check text-emerald-600"></i> حاضر
                             </span>
@@ -2498,7 +2484,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>`;
                 } else if (status === 'absent') {
                     statusBadge = `
-                        <div class="flex flex-col items-center gap-1">
+                        <div class="flex items-center gap-2">
                             <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800">
                                 <i class="fa-solid fa-xmark text-rose-600"></i> غائب
                             </span>
@@ -2506,7 +2492,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>`;
                 } else if (status === 'late') {
                     statusBadge = `
-                        <div class="flex flex-col items-center gap-1">
+                        <div class="flex items-center gap-2">
                             <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
                                 <i class="fa-solid fa-clock text-amber-600"></i> متأخر
                             </span>
@@ -2514,7 +2500,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>`;
                 } else if (status === 'excused') {
                     statusBadge = `
-                        <div class="flex flex-col items-center gap-1">
+                        <div class="flex items-center gap-2">
                             <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
                                 <i class="fa-solid fa-file-signature text-blue-600"></i> بعذر
                             </span>
@@ -2522,7 +2508,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         </div>`;
                 }
 
-                let behaviorOptionsHTML = `<option value="">+ اختر مشاركة أو ملاحظة...</option>`;
+                let behaviorOptionsHTML = `<option value="">+ رصد مشاركة أو ملاحظة...</option>`;
                 defaultActions.forEach((act, idx) => {
                     behaviorOptionsHTML += `<option value="${idx}">${act.icon} ${act.name} ${act.score !== 0 ? '(' + (act.score > 0 ? '+' + act.score : act.score) + ')' : ''}</option>`;
                 });
@@ -2544,103 +2530,123 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     });
                 });
 
-                let logsHTML = `<div class="flex flex-wrap gap-1 mt-1 max-w-[220px] max-h-[85px] overflow-y-auto custom-scrollbar p-0.5">`;
-                combinedLogs.forEach((log) => {
-                    let badgeColor = log.score > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : (log.score < 0 ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-indigo-50 text-indigo-700 border-indigo-200");
-                    let pulseStyle = log.isPermanent ? " pulse-badge" : "";
-                    
-                    logsHTML += `
-                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${badgeColor}${pulseStyle}" title="اليوم: ${getArabicDayNameFromStr(log.originDate)} ${log.originDate} - ${log.time}">
-                            <span>${log.icon}</span>
-                            <span>${escapeHtml(log.name)}</span>
-                            <button onclick="event.stopPropagation(); removeBehaviorLogFromDate('${student.id}', '${log.originDate}', ${log.logIdx})" class="text-slate-400 hover:text-rose-600 mr-0.5 font-bold" title="حذف">×</button>
-                        </span>
-                    `;
-                });
+                let logsHTML = `<div class="flex flex-wrap gap-1 mt-2 max-h-[100px] overflow-y-auto custom-scrollbar p-1 bg-slate-50/80 rounded-xl border border-slate-100">`;
+                if (combinedLogs.length === 0) {
+                    logsHTML += `<span class="text-slate-400 text-xs italic px-2 py-1">لا توجد تقييمات مسجلة</span>`;
+                } else {
+                    combinedLogs.forEach((log) => {
+                        let badgeColor = log.score > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : (log.score < 0 ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-indigo-50 text-indigo-700 border-indigo-200");
+                        let pulseStyle = log.isPermanent ? " pulse-badge" : "";
+                        
+                        logsHTML += `
+                            <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg border ${badgeColor}${pulseStyle}" title="اليوم: ${getArabicDayNameFromStr(log.originDate)} ${log.originDate} - ${log.time}">
+                                <span>${log.icon}</span>
+                                <span>${escapeHtml(log.name)}</span>
+                                <button onclick="event.stopPropagation(); removeBehaviorLogFromDate('${student.id}', '${log.originDate}', ${log.logIdx})" class="text-slate-400 hover:text-rose-600 mr-1 font-bold" title="حذف">×</button>
+                            </span>
+                        `;
+                    });
+                }
                 logsHTML += `</div>`;
 
                 let studentPortalLink = `${getBasePortalUrl()}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'bg-white rounded-3xl shadow-md border border-slate-200 p-5 flex flex-col justify-between gap-4 hover:shadow-lg transition relative overflow-hidden';
 
                 if (isReadOnly) {
-                    const readOnlyLogsHTML = logsHTML.replace(/<button onclick="event\.stopPropagation\(\); removeBehaviorLogFromDate.*?<\/button>/g, '');
-
-                    row.innerHTML = `
-                        <td class="p-4">
-                            <div class="font-bold text-slate-800">${escapeHtml(student.name)}</div>
-                            <div class="text-xs font-medium mt-0.5 px-2 py-0.5 rounded-md inline-block" style="color: #c53030; background-color: #fdf8f2; box-shadow: 0 1px 2px rgba(217, 119, 6, 0.1);">${escapeHtml(student.email)}</div>
-                            ${attendanceBadgesHTML}
-                        </td>
-                        <td class="p-4 text-center font-semibold text-slate-600">
-                            <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
-                                ${escapeHtml(student.group)}
-                            </span>
-                        </td>
-                        <td class="p-4 text-center">${statusBadge}</td>
-                        <td class="p-4 text-center text-slate-400 text-[11px] font-bold">
-                            <i class="fa-solid fa-lock text-slate-300 ml-1"></i> للعرض فقط
-                        </td>
-                        <td class="p-4">
-                            <div class="flex flex-col gap-1 items-center">
-                                ${combinedLogs.length > 0 ? readOnlyLogsHTML : '<span class="text-slate-400 text-[11px]">لا توجد ملاحظات مسجلة</span>'}
+                    cardDiv.innerHTML = `
+                        <div class="flex justify-between items-start gap-3">
+                            <div>
+                                <h3 class="text-base font-black text-slate-900">${escapeHtml(student.name)}</h3>
+                                <p class="text-xs font-medium text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md inline-block mt-1">${escapeHtml(student.email)}</p>
                             </div>
-                        </td>
-                        <td class="p-4 text-center">
-                            <a href="${studentPortalLink}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2.5 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center gap-1" title="فتح ملف الطالب">
-                                <i class="fa-solid fa-up-right-from-square"></i> ملف الطالب
+                            <div class="flex items-center gap-2">
+                                <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-xl text-xs font-bold border border-indigo-100">${escapeHtml(student.group)}</span>
+                                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-user-graduate text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-500">حالة اليوم:</span>
+                                ${statusBadge}
+                            </div>
+                            ${attendanceBadgesHTML}
+                        </div>
+
+                        <div class="space-y-1">
+                            <span class="text-xs font-bold text-slate-700 block">سجل التقييمات:</span>
+                            ${logsHTML}
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                            <a href="${studentPortalLink}" target="_blank" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                <i class="fa-solid fa-up-right-from-square"></i> عرض ملف الطالب التفصيلي
                             </a>
-                        </td>
+                            <span class="text-[11px] text-slate-400 font-bold"><i class="fa-solid fa-lock ml-1"></i> للعرض فقط</span>
+                        </div>
                     `;
                 } else {
-                    row.innerHTML = `
-                        <td class="p-4">
-                            <div class="font-bold text-slate-800">${escapeHtml(student.name)}</div>
-                            <div class="text-xs font-medium mt-0.5 px-2 py-0.5 rounded-md inline-block" style="color: #c53030; background-color: #fdf8f2; box-shadow: 0 1px 2px rgba(217, 119, 6, 0.1);">${escapeHtml(student.email)}</div>
+                    cardDiv.innerHTML = `
+                        <div class="flex justify-between items-start gap-3">
+                            <div>
+                                <h3 class="text-base font-black text-slate-900">${escapeHtml(student.name)}</h3>
+                                <p class="text-xs font-medium text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md inline-block mt-1">${escapeHtml(student.email)}</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-xl text-xs font-bold border border-indigo-100">${escapeHtml(student.group)}</span>
+                                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-user-graduate text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2.5 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-500">الحالة اليومية:</span>
+                                ${statusBadge}
+                            </div>
                             ${attendanceBadgesHTML}
-                        </td>
-                        <td class="p-4 text-center font-semibold text-slate-600">
-                            <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-indigo-100">
-                                ${escapeHtml(student.group)}
-                            </span>
-                        </td>
-                        <td class="p-4 text-center">${statusBadge}</td>
-                        <td class="p-4">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <button onclick="setStatus('${student.id}', 'present')" class="flex-1 max-w-[85px] py-1.5 px-2 rounded-lg text-xs font-bold border transition ${status === 'present' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}">
-                                    <i class="fa-solid fa-check"></i> حاضر
-                                </button>
-                                <button onclick="setStatus('${student.id}', 'absent')" class="flex-1 max-w-[85px] py-1.5 px-2 rounded-lg text-xs font-bold border transition ${status === 'absent' ? 'bg-rose-600 text-white border-rose-600 shadow-sm' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'}">
-                                    <i class="fa-solid fa-xmark"></i> غائب
-                                </button>
-                                <select onchange="setStatus('${student.id}', this.value)" class="py-1.5 px-2 text-xs border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                    <option value="" ${status === 'unmarked' ? 'selected' : ''}>أخرى...</option>
-                                    <option value="late" ${status === 'late' ? 'selected' : ''}>متأخر</option>
-                                    <option value="excused" ${status === 'excused' ? 'selected' : ''}>بعذر</option>
-                                    <option value="unmarked">مسح الحضور</option>
-                                </select>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            <div class="flex flex-col gap-1">
-                                <select onchange="handleBehaviorDropdown('${student.id}', this)" class="py-1.5 px-2 text-xs border border-indigo-200 rounded-lg bg-indigo-50/50 text-indigo-900 font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                    ${behaviorOptionsHTML}
-                                </select>
-                                ${combinedLogs.length > 0 ? logsHTML : ''}
-                            </div>
-                        </td>
-                        <td class="p-4 text-center">
-                            <div class="flex items-center justify-center gap-2">
-                                <a href="${studentPortalLink}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-2 rounded-lg text-xs font-bold transition" title="فتح رابط التقرير الخاص بالطالب">
-                                    <i class="fa-solid fa-link"></i>
-                                </a>
-                                <button onclick="deleteStudent('${student.id}')" class="text-slate-400 hover:text-rose-600 transition p-1 rounded-lg hover:bg-rose-50" title="حذف الطالب من السجل والسحابة">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                </button>
-                            </div>
-                        </td>
+                        </div>
+
+                        <!-- أزرار الحضور السريع -->
+                        <div class="grid grid-cols-4 gap-2">
+                            <button onclick="setStatus('${student.id}', 'present')" class="py-2 px-2 rounded-xl text-xs font-bold border transition ${status === 'present' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}">
+                                <i class="fa-solid fa-check"></i> حاضر
+                            </button>
+                            <button onclick="setStatus('${student.id}', 'absent')" class="py-2 px-2 rounded-xl text-xs font-bold border transition ${status === 'absent' ? 'bg-rose-600 text-white border-rose-600 shadow-sm' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'}">
+                                <i class="fa-solid fa-xmark"></i> غائب
+                            </button>
+                            <button onclick="setStatus('${student.id}', 'late')" class="py-2 px-2 rounded-xl text-xs font-bold border transition ${status === 'late' ? 'bg-amber-600 text-white border-amber-600 shadow-sm' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'}">
+                                <i class="fa-solid fa-clock"></i> متأخر
+                            </button>
+                            <button onclick="setStatus('${student.id}', 'excused')" class="py-2 px-2 rounded-xl text-xs font-bold border transition ${status === 'excused' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'}">
+                                <i class="fa-solid fa-file-signature"></i> بعذر
+                            </button>
+                        </div>
+
+                        <!-- قائمة رصد السلوك والمشاركة -->
+                        <div class="space-y-1">
+                            <select onchange="handleBehaviorDropdown('${student.id}', this)" class="w-full py-2 px-3 text-xs border border-indigo-200 rounded-xl bg-indigo-50/60 text-indigo-900 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                ${behaviorOptionsHTML}
+                            </select>
+                            ${logsHTML}
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                            <a href="${studentPortalLink}" target="_blank" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                <i class="fa-solid fa-link"></i> رابط الطالب الفردي
+                            </a>
+                            <button onclick="deleteStudent('${student.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-bold flex items-center gap-1 transition" title="حذف الطالب">
+                                <i class="fa-regular fa-trash-can"></i> حذف
+                            </button>
+                        </div>
                     `;
                 }
 
-                studentsTableBody.appendChild(row);
+                studentsGridContainer.appendChild(cardDiv);
             });
 
             updateStats();
@@ -3062,13 +3068,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function escapeHtml(str) {
             return String(str).replace(/[&<>"']/g, function(m) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                }[m];
+                for (let k in { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }) {
+                    if (k === m) return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+                }
+                return m;
             });
         }
     </script>
