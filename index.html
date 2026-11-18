@@ -39,6 +39,13 @@
             transform: scale(1.2);
             box-shadow: 0 0 0 2px #fff, 0 0 0 4px #4f46e5;
         }
+        /* تدرج خفيف وناعم لصفوف البطاقات المتجاورة */
+        .student-row-even {
+            background-color: #ffffff;
+        }
+        .student-row-odd {
+            background-color: #f0f9ff66; /* سماوي فاتح جداً وشفاف */
+        }
     </style>
 
     <!-- ⚡ سكربت فوري يعمل قبل رسم الصفحة لمنع ظهور لوحة التحكم نهائياً عند فتح رابط الفئة أو بوابة الطالب -->
@@ -470,7 +477,7 @@
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-indigo-600"></i>
-                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (طالبين في كل صف)</h3>
+                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (طالبين في كل صف بتدرج ألوان خفيف)</h3>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button onclick="openAddModalWithClass()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-indigo-200" title="نسخ طلاب الفصل الحالي لصق سريع">
@@ -2443,7 +2450,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             emptyState.classList.add('hidden');
             studentsGridContainer.innerHTML = '';
 
-            filteredStudents.forEach((student) => {
+            filteredStudents.forEach((student, index) => {
                 const recordObj = attendanceData[student.id];
                 const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : (recordObj || 'unmarked');
                 const timestamp = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '';
@@ -2549,9 +2556,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 }
                 logsHTML += `</div>`;
 
+                // 🎨 تدرج خفيف للصفوف (زوجي أبيض، فردي سماوي خفيف جداً)
+                const rowColorClass = index % 2 === 0 ? 'student-row-even' : 'student-row-odd';
+
                 let studentPortalLink = `${getBasePortalUrl()}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
                 const cardDiv = document.createElement('div');
-                cardDiv.className = 'bg-white rounded-3xl shadow-md border border-slate-200 p-5 flex flex-col justify-between gap-4 hover:shadow-lg transition relative overflow-hidden';
+                cardDiv.className = `${rowColorClass} rounded-3xl shadow-md border border-slate-200 p-5 flex flex-col justify-between gap-4 hover:shadow-lg transition relative overflow-hidden`;
 
                 if (isReadOnly) {
                     cardDiv.innerHTML = `
