@@ -28,6 +28,11 @@
             50% { transform: scale(1.03); opacity: 0.9; }
         }
         .pulse-badge { animation: pulse-soft 2s infinite ease-in-out; }
+        /* تحسين مظهر أيقونة التقويم داخل المنتقي الموحد */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(84%) sepia(56%) saturate(600%) hue-rotate(355deg) brightness(103%) contrast(103%);
+            cursor: pointer;
+        }
     </style>
 
     <!-- ⚡ سكربت فوري يعمل قبل رسم الصفحة لمنع ظهور لوحة التحكم نهائياً عند فتح رابط الفئة -->
@@ -70,19 +75,17 @@
                 </div>
             </div>
 
-            <!-- 🕒 بطاقة اليوم والتاريخ والساعة الحية البارزة -->
+            <!-- 🕒 البطاقة الموحدة لليوم والتاريخ والساعة الحية + منتقي تاريخ الرصد -->
             <div class="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-2xl shadow-lg flex items-center gap-3.5">
-                <div class="w-10 h-10 bg-amber-400/20 border border-amber-300/40 rounded-xl flex items-center justify-center text-amber-300 shrink-0">
-                    <i class="fa-regular fa-clock text-xl"></i>
-                </div>
                 <div class="text-right">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span id="liveDayName" class="bg-amber-400 text-indigo-950 text-xs font-black px-2.5 py-0.5 rounded-lg shadow-sm">--</span>
-                        <span id="liveGregorianDate" class="text-xs font-bold text-white">--</span>
+                        <span id="selectedDayLabel" class="bg-amber-400 text-indigo-950 text-xs font-black px-2.5 py-0.5 rounded-lg shadow-sm">--</span>
+                        <input type="date" id="selectedDate" class="bg-indigo-950/70 border border-indigo-400/30 rounded-lg px-2 py-0.5 text-xs font-black text-white focus:outline-none focus:ring-1 focus:ring-amber-300 cursor-pointer" title="اختر تاريخ الرصد">
+                        <button id="todayBtn" class="bg-white/15 hover:bg-amber-400 hover:text-indigo-950 text-white px-2 py-0.5 rounded-lg text-[11px] font-bold transition" title="العودة لتاريخ اليوم">اليوم</button>
                     </div>
-                    <div id="liveHijriDate" class="text-[11px] text-indigo-200 font-semibold mt-1">--</div>
+                    <div id="selectedHijriLabel" class="text-[11px] text-indigo-200 font-semibold mt-1.5">--</div>
                 </div>
-                <div class="h-9 w-px bg-white/20 mx-0.5"></div>
+                <div class="h-10 w-px bg-white/20 mx-0.5"></div>
                 <div class="text-center min-w-[92px]">
                     <div id="liveDigitalClock" class="text-lg font-black text-amber-300 tracking-wider font-mono leading-none" dir="ltr">00:00:00</div>
                     <span id="liveAmPm" class="text-[10px] font-bold text-indigo-200 block mt-1">--</span>
@@ -182,38 +185,30 @@
 
         <div id="mainDashboardContainer" class="space-y-6">
 
-            <!-- الرصد اليومي المباشر -->
+            <!-- شريط البحث وإضافة الطلاب والمشاركة (بدون تكرار التاريخ) -->
             <div id="dailySection" class="space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col lg:flex-row justify-between items-center gap-3">
                     <div class="flex items-center gap-2.5 w-full lg:w-auto flex-wrap">
-                        <div class="flex items-center gap-2 bg-indigo-50/70 border border-indigo-200 px-3 py-2 rounded-xl">
-                            <i class="fa-regular fa-calendar-check text-indigo-600"></i>
-                            <span class="text-xs font-bold text-slate-700">تاريخ الرصد:</span>
-                            <span id="selectedDayLabel" class="bg-indigo-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-md">--</span>
-                            <input type="date" id="selectedDate" class="bg-transparent text-xs font-black text-indigo-950 focus:outline-none cursor-pointer">
-                        </div>
-                        <button id="todayBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition">اليوم</button>
-                    </div>
-
-                    <div class="flex items-center gap-3 w-full lg:w-auto justify-end flex-wrap">
                         <div class="relative flex-grow sm:flex-grow-0">
                             <i class="fa-solid fa-search absolute right-3 top-3 text-slate-400 text-xs"></i>
                             <input type="text" id="searchInput" placeholder="بحث عن طالب..." class="w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                         </div>
 
-                        <div id="quickAddControls" class="flex items-center gap-2">
-                            <input type="text" id="quickStudentInput" list="presetStudentsList" placeholder="اسم طالب جديد..." class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs w-36 sm:w-44 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <div id="quickAddControls" class="flex items-center gap-2 flex-grow sm:flex-grow-0">
+                            <input type="text" id="quickStudentInput" list="presetStudentsList" placeholder="اسم طالب جديد..." class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs w-40 sm:w-48 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                             <datalist id="presetStudentsList"></datalist>
-                            <button id="addQuickStudentBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm">
+                            <button id="addQuickStudentBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm shrink-0">
                                 <i class="fa-solid fa-user-plus"></i> إضافة
                             </button>
                         </div>
+                    </div>
 
-                        <button id="openAddModalBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                    <div class="flex items-center gap-2.5 w-full lg:w-auto justify-end flex-wrap">
+                        <button id="openAddModalBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-users-rectangle"></i> قائمة الطلاب والإيميلات
                         </button>
 
-                        <button id="shareManagerBtn" onclick="shareReportWithManager()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                        <button id="shareManagerBtn" onclick="shareReportWithManager()" class="bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-paper-plane"></i> مشاركة مع المدير
                         </button>
                     </div>
@@ -261,22 +256,15 @@
                     </div>
                 </div>
 
-                <!-- لوحة أزرار الحضور والأنشطة التفاعلية -->
+                <!-- لوحة أزرار الحضور والأنشطة التفاعلية (بدون تكرار التاريخ) -->
                 <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-xl border border-indigo-800 text-white p-6 space-y-4">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-indigo-800/60">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-indigo-800 rounded-xl flex items-center justify-center border border-indigo-700">
-                                <i class="fa-solid fa-file-invoice text-amber-300 text-lg"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-base font-bold">لوحة أزرار الحضور والأنشطة اليومية السريعة</h3>
-                                <p class="text-xs text-indigo-200">اضغط على أي أيقونة أو زر لعرض قائمة الطلاب الخاصة به وتعديلها مباشرة</p>
-                            </div>
+                    <div class="flex items-center gap-3 pb-3 border-b border-indigo-800/60">
+                        <div class="w-10 h-10 bg-indigo-800 rounded-xl flex items-center justify-center border border-indigo-700">
+                            <i class="fa-solid fa-file-invoice text-amber-300 text-lg"></i>
                         </div>
-                        <div class="flex items-center gap-2 bg-indigo-950/80 px-3 py-1.5 rounded-xl border border-indigo-800">
-                            <i class="fa-regular fa-calendar text-amber-300 text-xs"></i>
-                            <span id="reportDayLabel" class="text-[11px] font-bold text-indigo-200">--</span>
-                            <input type="date" id="singleReportDate" onchange="renderSingleDayReport()" class="bg-transparent text-xs font-bold text-amber-300 focus:outline-none cursor-pointer">
+                        <div>
+                            <h3 class="text-base font-bold">لوحة أزرار الحضور والأنشطة اليومية السريعة</h3>
+                            <p class="text-xs text-indigo-200">اضغط على أي أيقونة أو زر لعرض قائمة الطلاب الخاصة به وتعديلها مباشرة</p>
                         </div>
                     </div>
 
@@ -726,30 +714,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         const classSelector = document.getElementById('classSelector');
         const modalGroupSelector = document.getElementById('modalGroupSelector');
 
-        // 🕒 تحديث اليوم والتاريخ الهجري والميلادي والساعة الحية كل ثانية
-        function updateLiveClockAndDate() {
+        // 🕒 تحديث الساعة الرقمية الحية كل ثانية
+        function updateLiveClock() {
             const now = new Date();
-            const daysAr = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-            const dayName = daysAr[now.getDay()];
-
-            const gregorianStr = now.toLocaleDateString('ar-SA', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                calendar: 'gregory'
-            });
-
-            let hijriStr = '';
-            try {
-                hijriStr = now.toLocaleDateString('ar-SA-u-ca-islamic', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-            } catch (e) {
-                hijriStr = '';
-            }
-
             let hours = now.getHours();
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
@@ -758,15 +725,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             hours = hours ? hours : 12;
             const hoursStr = String(hours).padStart(2, '0');
 
-            const dayEl = document.getElementById('liveDayName');
-            const gregEl = document.getElementById('liveGregorianDate');
-            const hijriEl = document.getElementById('liveHijriDate');
             const clockEl = document.getElementById('liveDigitalClock');
             const ampmEl = document.getElementById('liveAmPm');
-
-            if (dayEl) dayEl.textContent = `يوم ${dayName}`;
-            if (gregEl) gregEl.textContent = `${gregorianStr} م`;
-            if (hijriEl && hijriStr) hijriEl.textContent = `الموافق: ${hijriStr}`;
             if (clockEl) clockEl.textContent = `${hoursStr}:${minutes}:${seconds}`;
             if (ampmEl) ampmEl.textContent = ampm;
         }
@@ -781,18 +741,34 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             return daysAr[dt.getDay()] || '';
         }
 
+        // تحديث اسم اليوم والتاريخ الهجري في البطاقة الموحدة بناءً على التاريخ المختار
         function updateSelectedDateLabels() {
+            const dayName = getArabicDayNameFromStr(currentDate);
             const selDayEl = document.getElementById('selectedDayLabel');
-            if (selDayEl) selDayEl.textContent = getArabicDayNameFromStr(currentDate);
+            if (selDayEl) selDayEl.textContent = `يوم ${dayName}`;
 
-            const repDate = document.getElementById('singleReportDate')?.value || currentDate;
-            const repDayEl = document.getElementById('reportDayLabel');
-            if (repDayEl) repDayEl.textContent = getArabicDayNameFromStr(repDate);
+            const hijriEl = document.getElementById('selectedHijriLabel');
+            if (hijriEl && currentDate) {
+                const parts = currentDate.split('-');
+                if (parts.length === 3) {
+                    const dt = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                    try {
+                        const hijriStr = dt.toLocaleDateString('ar-SA-u-ca-islamic', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        hijriEl.textContent = `الموافق: ${hijriStr}`;
+                    } catch (e) {
+                        hijriEl.textContent = '';
+                    }
+                }
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            updateLiveClockAndDate();
-            setInterval(updateLiveClockAndDate, 1000);
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
 
             const urlParams = new URLSearchParams(window.location.search);
             targetStudentId = urlParams.get('student');
@@ -809,7 +785,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             selectedDateInput.value = currentDate;
-            document.getElementById('singleReportDate').value = currentDate;
             updateSelectedDateLabels();
 
             if (targetStudentId) {
@@ -1297,9 +1272,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function openMainQuickModal(categoryType) {
-            const targetDate = selectedDateInput.value;
-            document.getElementById('singleReportDate').value = targetDate;
-            updateSelectedDateLabels();
             openCategoryFullModal(categoryType);
         }
 
@@ -1509,7 +1481,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         function renderSingleDayReport() {
             if (isStudentPortal) return;
             updateSelectedDateLabels();
-            const targetDate = document.getElementById('singleReportDate').value;
+            const targetDate = currentDate;
             const dayRecords = allAttendanceRecords[targetDate] || {};
 
             let pCount = 0, aCount = 0, lCount = 0, oCount = 0;
@@ -1589,7 +1561,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function exportCurrentModalCSV() {
-            const targetDate = document.getElementById('singleReportDate').value;
+            const targetDate = currentDate;
             const filteredStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
@@ -1665,7 +1637,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 baseUrl = window.location.origin + window.location.pathname;
             }
             
-            const targetDate = document.getElementById('singleReportDate').value;
+            const targetDate = currentDate;
             const dayName = getArabicDayNameFromStr(targetDate);
             const shareUrl = `${baseUrl}?mode=view&group=${encodeURIComponent(activeGroup)}&category=${encodeURIComponent(currentModalCategory)}&date=${encodeURIComponent(targetDate)}`;
             
@@ -1733,7 +1705,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function openCategoryFullModal(categoryType) {
-            const targetDate = document.getElementById('singleReportDate').value;
+            const targetDate = currentDate;
             const dayName = getArabicDayNameFromStr(targetDate);
             const dayRecords = allAttendanceRecords[targetDate] || {};
 
@@ -2462,7 +2434,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (isStudentPortal) return;
             selectedDateInput.addEventListener('change', (e) => {
                 currentDate = e.target.value;
-                document.getElementById('singleReportDate').value = currentDate;
                 updateSelectedDateLabels();
                 fetchAttendanceForDate(currentDate);
                 fetchBehaviorsForDate(currentDate);
@@ -2472,7 +2443,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('todayBtn').addEventListener('click', () => {
                 currentDate = new Date().toISOString().split('T')[0];
                 selectedDateInput.value = currentDate;
-                document.getElementById('singleReportDate').value = currentDate;
                 updateSelectedDateLabels();
                 fetchAttendanceForDate(currentDate);
                 fetchBehaviorsForDate(currentDate);
