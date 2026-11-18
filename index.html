@@ -231,7 +231,7 @@
                     <div class="flex items-center gap-2.5 w-full lg:w-auto flex-wrap">
                         <div class="relative flex-grow sm:flex-grow-0">
                             <i class="fa-solid fa-search absolute right-3 top-3 text-slate-400 text-xs"></i>
-                            <input type="text" id="searchInput" placeholder="بحث عن طالب..." class="w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <input type="text" id="searchInput" placeholder="بحث بالاسم أو الرقم..." class="w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                         </div>
 
                         <div id="quickAddControls" class="flex items-center gap-2 flex-grow sm:flex-grow-0">
@@ -243,18 +243,16 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2.5 w-full lg:w-auto justify-end flex-wrap">
-                        <button id="openAddModalBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-users-rectangle"></i> قائمة الطلاب والإيميلات
-                        </button>
-
-                        <button id="shareStudentPortalBtn" onclick="openStudentPortalShareModal()" class="bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="رابط موحد يدخل منه الطالب بإيميله">
-                            <i class="fa-solid fa-user-graduate"></i> بوابة الطلاب (دخول بالإيميل)
-                        </button>
-
-                        <button id="shareManagerBtn" onclick="shareReportWithManager()" class="bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-paper-plane"></i> مشاركة مع المدير
-                        </button>
+                    <!-- 🔽 القائمة المنسدلة العلوية للإدارة والبوابات والمشاركة -->
+                    <div id="topAdminDropdownContainer" class="flex items-center gap-2.5 w-full lg:w-auto justify-end flex-wrap">
+                        <div class="relative inline-block text-right w-full sm:w-auto">
+                            <select onchange="handleTopBarDropdownAction(this)" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer focus:outline-none">
+                                <option value="" selected disabled>⚙️ إدارة الطلاب والبوابات والمشاركة...</option>
+                                <option value="students_emails">👥 قائمة الطلاب والإيميلات</option>
+                                <option value="student_portal">🎓 بوابة الطلاب (دخول بالإيميل)</option>
+                                <option value="share_manager">📤 مشاركة التقرير مع المدير</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -461,7 +459,7 @@
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-indigo-600"></i>
-                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (كل صف يضم طالبين بتدرج لون سماوي أوضح وأغمق)</h3>
+                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (مرقمة تسلسلياً للنداء السريع)</h3>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             
@@ -477,7 +475,6 @@
                                     <option value="export_excel">📊 تصدير كشف Excel / CSV</option>
                                 </select>
                             </div>
-                            <!-- مخفي لتشغيل الاستعادة عند اختيارها من القائمة المنسدلة -->
                             <input type="file" id="restoreBackupInput" accept=".json" onchange="restoreAttendanceBackupJSON(event)" class="hidden">
 
                         </div>
@@ -503,7 +500,7 @@
         <p>منصة المتابعة اليومية والسلوكية © 2026 | إعداد المعلم: <strong class="text-amber-300">أ/ عبدالعزيز الفيفي</strong> - ثانوية الأمير عبدالمجيد | جميع الحقوق محفوظة</p>
     </footer>
 
-    <!-- ⚡ نافذة الرصد الجماعي السريع (مع الفلترة الذكية للحاضرين وخيار تجاوز الغياب وملاحظة خطية) -->
+    <!-- ⚡ نافذة الرصد الجماعي السريع -->
     <div id="batchActionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
@@ -530,13 +527,11 @@
                     </div>
                 </div>
 
-                <!-- ✍️ حقل كتابة الملاحظة الخطية الجماعية (يظهر فقط عند اختيار ملاحظة خطية) -->
                 <div id="batchCustomNoteWrapper" class="hidden bg-indigo-50/70 border border-indigo-200 rounded-xl p-3 space-y-1.5">
                     <label class="block text-xs font-black text-indigo-900">اكتب نص الملاحظة الخطية الجماعية:</label>
                     <textarea id="batchCustomNoteInput" rows="2" placeholder="اكتب الملاحظة هنا ليتم إضافتها لجميع الطلاب المختارين..." class="w-full bg-white border border-indigo-300 rounded-lg p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none leading-relaxed"></textarea>
                 </div>
 
-                <!-- خيار ذكي: السماح برصد الغائبين عند الحاجة -->
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <input type="checkbox" id="allowAbsentBatchCheckbox" onchange="refreshBatchStudentsList()" class="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500 cursor-pointer">
@@ -978,9 +973,25 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         const classSelector = document.getElementById('classSelector');
         const modalGroupSelector = document.getElementById('modalGroupSelector');
 
+        // 🔽 التحكم بالقائمة المنسدلة العلوية
+        function handleTopBarDropdownAction(selectElem) {
+            const val = selectElem.value;
+            selectElem.value = "";
+            if (!val) return;
+
+            if (val === 'students_emails') {
+                openAddModalWithClass();
+            } else if (val === 'student_portal') {
+                openStudentPortalShareModal();
+            } else if (val === 'share_manager') {
+                shareReportWithManager();
+            }
+        }
+
+        // 🔽 التحكم بالقائمة المنسدلة للكشف
         function handleHeaderDropdownAction(selectElem) {
             const val = selectElem.value;
-            selectElem.value = ""; // إعادة تعيين القائمة
+            selectElem.value = "";
             if (!val) return;
 
             if (val === 'batch_action') {
@@ -996,6 +1007,21 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             } else if (val === 'export_excel') {
                 exportToCSV();
             }
+        }
+
+        // 🔢 دالة حساب الرقم التسلسلي الثابت لكل طالب داخل فصله (أو الكل)
+        function getStudentNumberMap() {
+            const map = {};
+            const groupStudents = students.filter(s => {
+                const sGroup = (s.group || '').trim();
+                const actGroup = activeGroup.trim();
+                return actGroup === 'الجميع' || sGroup === actGroup;
+            }).sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+            groupStudents.forEach((s, idx) => {
+                map[s.id] = idx + 1;
+            });
+            return map;
         }
 
         function updateLiveClock() {
@@ -1295,9 +1321,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             document.getElementById('manageGroupsBtn').classList.add('hidden');
             document.getElementById('quickAddControls').classList.add('hidden');
-            document.getElementById('openAddModalBtn').classList.add('hidden');
-            document.getElementById('shareStudentPortalBtn').classList.add('hidden');
-            document.getElementById('shareManagerBtn').classList.add('hidden');
+            const topDrop = document.getElementById('topAdminDropdownContainer');
+            if (topDrop) topDrop.classList.add('hidden');
 
             document.getElementById('dailySection').classList.remove('hidden');
         }
@@ -1524,7 +1549,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 return;
             }
 
-            document.getElementById('portalStudentName').textContent = student.name;
+            const groupPeers = students.filter(s => s.group === student.group).sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+            const studentNum = groupPeers.findIndex(s => s.id === student.id) + 1;
+
+            document.getElementById('portalStudentName').textContent = `${studentNum > 0 ? '#' + studentNum + ' - ' : ''}${student.name}`;
             document.getElementById('portalStudentDetails').textContent = `الفصل: ${student.group} | البريد: ${student.email}`;
 
             let present = 0, absent = 0, late = 0, excused = 0;
@@ -1796,6 +1824,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function openAddModalWithClass() {
+            if (isReadOnly) return;
+            updateGroupDropdowns();
             if (activeGroup === 'الجميع') {
                 modalGroupSelector.value = groups[0] || '';
             } else {
@@ -1962,7 +1992,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
-        // 🧠 الرصد الذكي: عرض الحاضرين فقط في التاريخ المحدد افتراضياً، مع دعم الملاحظة الخطية الجماعية
         function openBatchActionModal() {
             if (isReadOnly) return;
             document.getElementById('batchActionDate').value = currentDate;
@@ -2004,6 +2033,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const targetDate = document.getElementById('batchActionDate').value || currentDate;
             const allowAbsent = document.getElementById('allowAbsentBatchCheckbox').checked;
             const headerLabel = document.getElementById('batchListHeaderLabel');
+            const numMap = getStudentNumberMap();
 
             const dayRecords = allAttendanceRecords[targetDate] || {};
 
@@ -2034,6 +2064,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 container.innerHTML = `<div class="p-4 text-center text-slate-400 font-bold text-xs">لا توجد طلاب مسجلون بحالة "حاضر" أو "متأخر" في هذا التاريخ. (قم بتغيير التاريخ أو تفعيل خيار عرض الغائبين أعلاه).</div>`;
             } else {
                 activeStudents.forEach(st => {
+                    const stNum = numMap[st.id] || '';
                     const recordObj = dayRecords[st.id];
                     const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
                     let statusTag = "";
@@ -2047,6 +2078,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     label.innerHTML = `
                         <div class="flex items-center gap-2">
                             <input type="checkbox" name="batchStudentCheckbox" value="${st.id}" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                            <span class="bg-indigo-900 text-amber-300 text-[11px] font-black px-2 py-0.5 rounded-md min-w-[26px] text-center">${stNum}</span>
                             <span class="text-slate-800">${escapeHtml(st.name)}</span>
                             ${statusTag}
                         </div>
@@ -2233,6 +2265,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function exportCurrentModalCSV() {
             const targetDate = currentDate;
+            const numMap = getStudentNumberMap();
             const filteredStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
@@ -2241,7 +2274,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             let csvContent = "\uFEFF";
             if (currentModalCategory === 'present' || currentModalCategory === 'absent' || currentModalCategory === 'late' || currentModalCategory === 'excused' || currentModalCategory === 'other' || currentModalCategory === 'high_absent') {
-                csvContent += `اسم الطالب,البريد الإلكتروني,الفصل,الحالة/التفاصيل\n`;
+                csvContent += `الرقم,اسم الطالب,البريد الإلكتروني,الفصل,الحالة/التفاصيل\n`;
                 filteredStudents.forEach(student => {
                     const dayRecords = allAttendanceRecords[targetDate] || {};
                     const recordObj = dayRecords[student.id];
@@ -2263,11 +2296,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     if (currentModalCategory === 'high_absent' && absentCount >= 3) match = true;
 
                     if (match) {
-                        csvContent += `"${student.name}","${student.email}","${student.group}","${currentModalCategory === 'high_absent' ? absentCount + ' أيام غياب' : status}"\n`;
+                        csvContent += `"${numMap[student.id] || ''}","${student.name}","${student.email}","${student.group}","${currentModalCategory === 'high_absent' ? absentCount + ' أيام غياب' : status}"\n`;
                     }
                 });
             } else {
-                csvContent += `اسم الطالب,البريد الإلكتروني,الفصل,السجل/المشاركة,الوقت\n`;
+                csvContent += `الرقم,اسم الطالب,البريد الإلكتروني,الفصل,السجل/المشاركة,الوقت\n`;
                 filteredStudents.forEach(student => {
                     Object.keys(allBehaviorsRecords).forEach(d => {
                         const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
@@ -2286,7 +2319,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                             if (currentModalCategory === 'behaviors' && (isCustomNote || (!isParticipation && item.score < 0))) match = true;
 
                             if (match) {
-                                csvContent += `"${student.name}","${student.email}","${student.group}","${name.replace(/"/g, '""')}","${item.time}"\n`;
+                                csvContent += `"${numMap[student.id] || ''}","${student.name}","${student.email}","${student.group}","${name.replace(/"/g, '""')}","${item.time}"\n`;
                             }
                         });
                     });
@@ -2374,6 +2407,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const targetDate = currentDate;
             const dayName = getArabicDayNameFromStr(targetDate);
             const dayRecords = allAttendanceRecords[targetDate] || {};
+            const numMap = getStudentNumberMap();
 
             currentModalCategory = categoryType;
             const modal = document.getElementById('fullCategoryModal');
@@ -2477,12 +2511,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     if (absentCount >= 3) {
                         listCount++;
                         let studentPortalLink = `${getBasePortalUrl()}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
+                        const stNum = numMap[student.id] || listCount;
 
                         const card = document.createElement('div');
                         card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
                         card.innerHTML = `
                             <div class="flex items-center gap-3">
-                                <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                                <span class="w-7 h-7 bg-indigo-900 text-amber-300 font-black text-xs rounded-lg flex items-center justify-center shadow-sm">${stNum}</span>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
                                     <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
@@ -2505,12 +2540,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                     if (status === 'late' || status === 'excused') {
                         listCount++;
+                        const stNum = numMap[student.id] || listCount;
                         const statusTag = status === 'late' ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold mr-1">متأخر</span>' : '<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold mr-1">بعذر</span>';
                         const card = document.createElement('div');
                         card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
                         card.innerHTML = `
                             <div class="flex items-center gap-3">
-                                <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                                <span class="w-7 h-7 bg-indigo-900 text-amber-300 font-black text-xs rounded-lg flex items-center justify-center shadow-sm">${stNum}</span>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)} ${statusTag}</h4>
                                     <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
@@ -2534,11 +2570,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                     if (status === statusName) {
                         listCount++;
+                        const stNum = numMap[student.id] || listCount;
                         const card = document.createElement('div');
                         card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
                         card.innerHTML = `
                             <div class="flex items-center gap-3">
-                                <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                                <span class="w-7 h-7 bg-indigo-900 text-amber-300 font-black text-xs rounded-lg flex items-center justify-center shadow-sm">${stNum}</span>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
                                     <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
@@ -2554,6 +2591,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 });
             } else {
                 filteredStudents.forEach((student) => {
+                    const stNum = numMap[student.id] || '';
                     Object.keys(allBehaviorsRecords).forEach(d => {
                         const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
                         logs.forEach((item, logIdx) => {
@@ -2593,7 +2631,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                                 card.innerHTML = `
                                     <div class="flex items-center gap-3">
-                                        <span class="w-7 h-7 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg flex items-center justify-center border border-indigo-100">${listCount}</span>
+                                        <span class="w-7 h-7 bg-indigo-900 text-amber-300 font-black text-xs rounded-lg flex items-center justify-center shadow-sm">${stNum || listCount}</span>
                                         <div>
                                             <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
                                             <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
@@ -2668,12 +2706,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         function renderTable() {
             if (isStudentPortal || isUnifiedStudentLogin || window.pendingViewCategory) return;
             const searchTerm = searchInput.value.trim().toLowerCase();
+            const numMap = getStudentNumberMap();
 
             const filteredStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
                 const matchesGroup = (actGroup === 'الجميع' || sGroup === actGroup);
-                const matchesSearch = s.name.toLowerCase().includes(searchTerm) || s.email.toLowerCase().includes(searchTerm);
+                const stNumStr = String(numMap[s.id] || '');
+                const matchesSearch = s.name.toLowerCase().includes(searchTerm) || s.email.toLowerCase().includes(searchTerm) || stNumStr === searchTerm;
                 return matchesGroup && matchesSearch;
             });
 
@@ -2699,6 +2739,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 rowDiv.className = `${rowClassStyle} rounded-3xl p-4 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-4`;
 
                 const buildStudentCardHTML = (student) => {
+                    const studentNumber = numMap[student.id] || '';
                     const recordObj = attendanceData[student.id];
                     const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : (recordObj || 'unmarked');
                     const timestamp = typeof recordObj === 'object' && recordObj !== null ? recordObj.time : '';
@@ -2808,15 +2849,17 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     return `
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col justify-between gap-3 hover:shadow-md transition relative">
                             <div class="flex justify-between items-start gap-3">
-                                <div>
-                                    <h3 class="text-base font-black text-slate-900">${escapeHtml(student.name)}</h3>
-                                    <p class="text-xs font-medium text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md inline-block mt-1">${escapeHtml(student.email)}</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-xl text-xs font-bold border border-indigo-100">${escapeHtml(student.group)}</span>
-                                    <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-                                        <i class="fa-solid fa-user-graduate"></i>
+                                <div class="flex items-start gap-2.5">
+                                    <div class="w-9 h-9 bg-indigo-950 text-amber-300 rounded-xl flex items-center justify-center font-black text-base shadow-sm border border-indigo-800 shrink-0 mt-0.5" title="رقم الطالب للنداء">
+                                        ${studentNumber}
                                     </div>
+                                    <div>
+                                        <h3 class="text-base font-black text-slate-900">${escapeHtml(student.name)}</h3>
+                                        <p class="text-xs font-medium text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md inline-block mt-1">${escapeHtml(student.email)}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-xl text-xs font-bold border border-indigo-100">${escapeHtml(student.group)}</span>
                                 </div>
                             </div>
 
@@ -2901,7 +2944,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         function openCustomNoteModal(studentId) {
             currentCustomNoteStudentId = studentId;
             const student = students.find(s => s.id === studentId);
-            document.getElementById('customNoteStudentName').textContent = `الطالب: ${student ? student.name : ''}`;
+            const numMap = getStudentNumberMap();
+            const stNum = numMap[studentId] ? `#${numMap[studentId]} - ` : '';
+            document.getElementById('customNoteStudentName').textContent = `الطالب: ${stNum}${student ? student.name : ''}`;
             document.getElementById('customNoteInput').value = '';
             document.getElementById('customNoteModal').classList.remove('hidden');
         }
@@ -3135,22 +3180,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 }
             });
 
-            document.getElementById('openAddModalBtn').addEventListener('click', () => {
-                if (isReadOnly) return;
-                updateGroupDropdowns();
-                const activeInGroup = students.filter(s => {
-                    const sGroup = (s.group || '').trim();
-                    const actGroup = activeGroup.trim();
-                    return actGroup === 'الجميع' || sGroup === actGroup;
-                });
-                let textValue = "";
-                activeInGroup.forEach(s => {
-                    textValue += `${s.name}\n${s.email}\n`;
-                });
-                bulkNamesInput.value = textValue;
-                addModal.classList.remove('hidden');
-            });
-
             const closeModal = () => addModal.classList.add('hidden');
             document.getElementById('closeModalBtn').addEventListener('click', closeModal);
             document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
@@ -3212,6 +3241,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         }
 
         function exportToCSV() {
+            const numMap = getStudentNumberMap();
             const activeStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
@@ -3224,7 +3254,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             let csvContent = "\uFEFF"; 
-            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,حالة الحضور ووقت الرصد\n`;
+            csvContent += `الرقم,اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,حالة الحضور ووقت الرصد\n`;
 
             activeStudents.forEach(student => {
                 const recordObj = attendanceData[student.id];
@@ -3237,7 +3267,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 if (status === 'late') translatedStatus = `متأخر (${timeStr})`;
                 if (status === 'excused') translatedStatus = `بعذر (${timeStr})`;
 
-                csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}","${translatedStatus}"\n`;
+                csvContent += `"${numMap[student.id] || ''}","${student.name.replace(/"/g, '""')}","${student.email}","${student.group}","${translatedStatus}"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
