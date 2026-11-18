@@ -3,198 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة الكفايات اللغوية • ثانوية الأمير عبد المجيد</title>
+    <title>منصة متابعة الحضور والسلوكيات المدرسية</title>
+
+    <!-- 🌐 وسوم المعاينة الذكية للواتساب والمنصات (Open Graph Meta Tags) -->
+    <meta property="og:title" content="منصة المتابعة اليومية والسلوكية - إدارة الحضور">
+    <meta property="og:description" content="لوحة تفاعلية متكاملة لمتابعة حضور وغياب الطلاب وسجلات المشاركات والسلوك المدرسية سحابياً.">
+    <meta property="og:image" content="https://i.ibb.co/3W68N7b/school-logo.png">
+    <meta property="og:url" content="https://school1school2-stack.github.io/2222/">
+    <meta property="og:type" content="website">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         body { font-family: 'Cairo', sans-serif; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; border-radius: 8px; }
         @keyframes pulse-soft {
             0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.85; }
+            50% { transform: scale(1.03); opacity: 0.9; }
         }
-        .pulse-badge { animation: pulse-soft 2s infinite; }
-        .color-dot { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
-        .color-dot:hover { transform: scale(1.15); }
-        .color-dot.active-dot { ring: 3px; ring-offset: 2px; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.4); }
+        .pulse-badge { animation: pulse-soft 2s infinite ease-in-out; }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(84%) sepia(56%) saturate(600%) hue-rotate(355deg) brightness(103%) contrast(103%);
+            cursor: pointer;
+        }
+        .color-dot {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .color-dot.active-dot {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #4f46e5;
+        }
+    </style>
+
+    <!-- ⚡ سكربت فوري يعمل قبل رسم الصفحة لمنع ظهور لوحة التحكم نهائياً عند فتح رابط الفئة أو بوابة الطالب -->
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('category') || params.get('student') || params.get('portal') === 'student') {
+                document.documentElement.classList.add('direct-view-mode');
+            }
+        })();
+    </script>
+    <style>
+        html.direct-view-mode #mainDashboardContainer { display: none !important; }
+        html.direct-view-mode #instantLoader { display: flex !important; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-    <div id="instantLoader" class="fixed inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center text-white space-y-4">
-        <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        <div class="text-center">
-            <h2 class="text-lg font-bold">ثانوية الأمير عبد المجيد</h2>
-            <p class="text-xs text-indigo-300 mt-1">إعداد وإشراف: الأستاذ عبد العزيز الفيفي • جاري مزامنة السحابة...</p>
-        </div>
+    <!-- شاشة تحميل فورية تظهر فقط عند فتح رابط فئة مخصصة أو بوابة الطالب -->
+    <div id="instantLoader" class="hidden fixed inset-0 bg-slate-100 z-40 flex-col items-center justify-center gap-3">
+        <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm font-bold text-indigo-900">جاري تحميل البيانات من السحابة...</p>
     </div>
 
-    <!-- شريط وضع القراءة فقط / للاطلاع -->
-    <div id="readOnlyBanner" class="bg-amber-500 text-slate-950 px-4 py-2 text-center text-xs font-bold hidden flex items-center justify-center gap-2 shadow-md">
-        <i class="fa-solid fa-eye"></i>
-        <span id="bannerText">وضع العرض (للقراءة والاطلاع فقط) • ثانوية الأمير عبد المجيد (أ. عبد العزيز الفيفي)</span>
+    <div id="readOnlyBanner" class="hidden bg-indigo-900 text-white px-4 py-3 text-center text-sm font-bold shadow-md flex items-center justify-center gap-2 z-50 relative">
+        <i class="fa-solid fa-shield-halved text-amber-300 text-lg"></i>
+        <span id="bannerText">وضع العرض الشامل (للقراءة والاطلاع فقط)</span>
     </div>
 
-    <!-- 🎓 شاشة تسجيل دخول الطالب بالبريد الإلكتروني (لبوابة الطلاب الموحدة) -->
-    <div id="studentLoginContainer" class="fixed inset-0 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all p-8 text-center space-y-6">
-            <div class="w-16 h-16 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-inner">
-                <i class="fa-solid fa-user-graduate"></i>
-            </div>
-            <div>
-                <span class="text-[10px] bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-black border border-indigo-100">ثانوية الأمير عبد المجيد</span>
-                <h2 class="text-xl font-black text-slate-900 mt-2">بوابة متابعة الطالب</h2>
-                <p class="text-xs text-slate-500 mt-1">مادة الكفايات اللغوية • إشراف: الأستاذ عبد العزيز الفيفي</p>
-            </div>
-
-            <form onsubmit="handleStudentEmailLogin(event)" class="space-y-4 text-right">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">أدخل بريدك الإلكتروني المدرسي:</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-envelope absolute right-3.5 top-3.5 text-slate-400 text-sm"></i>
-                        <input type="email" id="studentLoginEmailInput" required placeholder="s123456@rb.moe.gov.sa" dir="ltr" class="w-full bg-slate-50 border border-slate-200 rounded-xl pr-10 pl-3.5 py-3 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
-                    </div>
-                </div>
-
-                <div id="studentLoginError" class="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs font-bold hidden flex items-center gap-2">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span id="studentLoginErrorText">البريد الإلكتروني غير مسجل</span>
-                </div>
-
-                <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrow-right-to-bracket text-sm">></i>
-                    عرض سجلي الشخصي وحضوري
-                </button>
-            </form>
-
-            <div class="pt-4 border-t border-slate-100 text-[11px] text-slate-400 font-bold">
-                ثانوية الأمير عبد المجيد © 2026
-            </div>
-        </div>
-    </div>
-
-    <!-- رأس الصفحة الرئيسي (Header) -->
-    <header class="bg-slate-900 text-white shadow-lg border-b border-slate-800 sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col lg:flex-row justify-between items-center gap-4">
-            
+    <header class="bg-gradient-to-l from-indigo-950 via-indigo-900 to-slate-900 text-white shadow-xl z-50 relative border-b border-indigo-800/80">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+            <!-- العنوان والشعار -->
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-md border border-indigo-500 text-white text-xl">
-                    <i class="fa-solid fa-school-flag"></i>
+                <div class="w-12 h-12 bg-indigo-800/90 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-600/60">
+                    <i class="fa-solid fa-graduation-cap text-2xl text-amber-300"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-base sm:text-lg font-black tracking-wide">ثانوية الأمير عبد المجيد</h1>
-                        <span class="text-[10px] bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2 py-0.5 rounded-full font-bold">الكفايات اللغوية</span>
-                    </div>
-                    <p class="text-xs text-slate-400">إعداد وإشراف المعلم: <span class="text-amber-400 font-bold">الأستاذ عبد العزيز الفيفي</span></p>
+                    <h1 class="text-xl font-black tracking-wide">منصة المتابعة اليومية والسلوكية</h1>
+                    <p class="text-xs text-indigo-200 mt-0.5">الكفايات اللغوية - إدارة الحضور والسجلات التراكمية</p>
                 </div>
             </div>
 
-            <!-- أداة التحكم بالوقت والتاريخ وفصل الطلاب -->
-            <div class="flex items-center gap-2 flex-wrap justify-center">
-                
-                <!-- 🕒 الساعة الرقمية وحالة اليوم -->
-                <div class="bg-slate-800/90 border border-slate-700 px-3.5 py-1.5 rounded-xl flex items-center gap-2.5 shadow-inner">
-                    <div class="flex items-center gap-1.5">
-                        <i class="fa-regular fa-clock text-amber-400 text-xs"></i>
-                        <span id="liveDigitalClock" class="text-xs font-mono font-bold text-white">00:00:00</span>
-                        <span id="liveAmPm" class="text-[10px] text-slate-400">صباحاً</span>
+            <!-- 🕒 البطاقة الموحدة لليوم والتاريخ والساعة الحية + منتقي تاريخ الرصد -->
+            <div class="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-2xl shadow-lg flex items-center gap-3.5">
+                <div class="text-right">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span id="selectedDayLabel" class="bg-amber-400 text-indigo-950 text-xs font-black px-2.5 py-0.5 rounded-lg shadow-sm">--</span>
+                        <input type="date" id="selectedDate" class="bg-indigo-950/70 border border-indigo-400/30 rounded-lg px-2 py-0.5 text-xs font-black text-white focus:outline-none focus:ring-1 focus:ring-amber-300 cursor-pointer" title="اختر تاريخ الرصد">
+                        <button id="todayBtn" class="bg-white/15 hover:bg-amber-400 hover:text-indigo-950 text-white px-2 py-0.5 rounded-lg text-[11px] font-bold transition" title="العودة لتاريخ اليوم">اليوم</button>
                     </div>
-                    <span class="text-slate-600">|</span>
-                    <span id="selectedDayLabel" class="text-xs font-bold text-indigo-300">يوم الأربعاء</span>
-                    <span id="selectedHijriLabel" class="text-[11px] text-slate-400 hidden sm:inline"></span>
+                    <div id="selectedHijriLabel" class="text-[11px] text-indigo-200 font-semibold mt-1.5">--</div>
                 </div>
-
-                <!-- اختيار التاريخ -->
-                <div class="flex items-center gap-1 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl shadow-inner">
-                    <i class="fa-regular fa-calendar text-indigo-400 text-xs"></i>
-                    <input type="date" id="selectedDate" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
-                    <button id="todayBtn" class="text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-0.5 rounded transition font-bold">اليوم</button>
+                <div class="h-10 w-px bg-white/20 mx-0.5"></div>
+                <div class="text-center min-w-[92px]">
+                    <div id="liveDigitalClock" class="text-lg font-black text-amber-300 tracking-wider font-mono leading-none" dir="ltr">00:00:00</div>
+                    <span id="liveAmPm" class="text-[10px] font-bold text-indigo-200 block mt-1">--</span>
                 </div>
+            </div>
 
-                <!-- اختيار الفصل / المجموعة -->
-                <div class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl shadow-inner">
-                    <i class="fa-solid fa-users-rectangle text-amber-400 text-xs"></i>
-                    <select id="classSelector" onchange="changeActiveGroup(this.value)" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
-                        <option value="الجميع" class="bg-slate-900">جميع الفصول</option>
+            <!-- أدوات التحكم والفصول -->
+            <div class="flex items-center gap-2.5 flex-wrap justify-center">
+                <div class="bg-indigo-800/80 border border-indigo-700 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-inner">
+                    <i class="fa-solid fa-users text-amber-300 text-xs"></i>
+                    <span class="text-xs font-bold text-indigo-100">الفصل:</span>
+                    <select id="classSelector" onchange="changeActiveGroup(this.value)" class="bg-indigo-950 text-white text-xs font-bold px-2 py-1 rounded-lg border border-indigo-600 focus:outline-none focus:ring-1 focus:ring-amber-300">
+                        <option value="الجميع">جميع الفصول</option>
                     </select>
-                    <button id="manageGroupsBtn" onclick="openManageGroupsModal()" class="text-xs text-indigo-300 hover:text-white transition ml-1" title="إدارة الفصول">
-                        <i class="fa-solid fa-gear"></i>
-                    </button>
                 </div>
+
+                <button id="manageGroupsBtn" onclick="openManageGroupsModal()" class="bg-indigo-800 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-indigo-700 shadow-sm" title="إدارة الفصول والمجموعات">
+                    <i class="fa-solid fa-folder-plus text-amber-300"></i> الفصول
+                </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow space-y-6 w-full">
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
 
-        <!-- 🎓 حاوية عرض بوابة الطالب الشخصية (عند فتح رابط الطالب) -->
-        <div id="studentPortalContainer" class="space-y-6 hidden">
-            <div id="studentSwitchAccountBar" class="bg-indigo-900 text-white p-3 rounded-2xl shadow-md flex justify-between items-center hidden">
-                <span class="text-xs font-bold">👤 أنت تستعرض ملف الطالب الآن</span>
-                <button onclick="logoutStudentPortal()" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-xl text-xs font-bold transition">العودة لتسجيل الدخول</button>
-            </div>
-
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full font-black">ثانوية الأمير عبد المجيد</span>
-                        <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-bold">إشراف: أ. عبد العزيز الفيفي</span>
+        <!-- 🎓 شاشة دخول الطالب الموحدة عبر البريد الإلكتروني -->
+        <div id="studentLoginContainer" class="hidden max-w-md mx-auto mt-6">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-l from-indigo-950 via-indigo-900 to-slate-900 p-6 text-white text-center space-y-2">
+                    <div class="w-16 h-16 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center mx-auto text-3xl text-amber-300 shadow-inner">
+                        <i class="fa-solid fa-user-graduate"></i>
                     </div>
-                    <h2 id="portalStudentName" class="text-xl sm:text-2xl font-black text-slate-900 mt-2">اسم الطالب</h2>
-                    <p id="portalStudentDetails" class="text-xs text-slate-500 mt-1">الفصل والمجموعة</p>
+                    <h2 class="text-xl font-black">بوابة متابعة الطالب</h2>
+                    <p class="text-xs text-indigo-200">أدخل بريدك الإلكتروني المدرسي للاطلاع على سجل الحضور والواجبات والملاحظات</p>
                 </div>
-                <div class="bg-indigo-900 text-white p-4 rounded-2xl shadow-inner text-center min-w-[140px]">
-                    <span class="text-[10px] text-indigo-200 block">نسبة الحضور</span>
-                    <span id="portalRateBadge" class="text-lg font-black text-emerald-400">0%</span>
-                </div>
+
+                <form onsubmit="handleStudentEmailLogin(event)" class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">البريد الإلكتروني المسجل في المنصة:</label>
+                        <div class="relative">
+                            <i class="fa-regular fa-envelope absolute right-3.5 top-3.5 text-slate-400"></i>
+                            <input type="email" id="studentLoginEmailInput" required dir="ltr" placeholder="s123456@rb.moe.gov.sa" class="w-full bg-slate-50 border border-slate-300 rounded-xl pr-10 pl-4 py-3 text-sm font-mono font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-left">
+                        </div>
+                    </div>
+
+                    <div id="studentLoginError" class="hidden bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-circle-exclamation text-rose-600 shrink-0"></i>
+                        <span id="studentLoginErrorText">البريد الإلكتروني غير مسجل، تأكد من كتابته بشكل صحيح.</span>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-md">
+                        <i class="fa-solid fa-arrow-left-to-bracket"></i>
+                        عرض سجلي الآن
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- بوابة الطالب الفردي -->
+        <div id="studentPortalContainer" class="hidden space-y-6 max-w-4xl mx-auto">
+            <div id="studentSwitchAccountBar" class="hidden flex justify-between items-center bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-200">
+                <span class="text-xs font-bold text-slate-600"><i class="fa-solid fa-shield-check text-emerald-600 ml-1"></i> تم التحقق عبر البريد الإلكتروني</span>
+                <button onclick="logoutStudentPortal()" class="bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200">
+                    <i class="fa-solid fa-right-from-bracket"></i> تسجيل خروج / استعلام لبريد آخر
+                </button>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-100">
-                <div onclick="openPortalCategoryModal('present')" class="bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer p-3 rounded-xl border border-emerald-200 text-center shadow-sm">
-                    <span class="text-[11px] font-bold text-emerald-700 block">أيام الحضور</span>
-                    <span id="portalPresent" class="text-xl font-black text-emerald-800">0</span>
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-0"></div>
+                <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <span class="text-xs font-bold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">تقرير متابعة الطالب الفردي</span>
+                        <h2 id="portalStudentName" class="text-2xl font-black text-slate-900 mt-2">اسم الطالب</h2>
+                        <p id="portalStudentDetails" class="text-xs text-slate-500 mt-1">الفصل والمجموعة</p>
+                    </div>
+                    <div class="bg-indigo-900 text-white p-4 rounded-2xl shadow-inner text-center min-w-[140px]">
+                        <span class="text-[10px] text-indigo-200 block">نسبة الحضور</span>
+                        <span id="portalRateBadge" class="text-lg font-black text-emerald-400">0%</span>
+                    </div>
                 </div>
-                <div onclick="openPortalCategoryModal('absent')" class="bg-rose-50 hover:bg-rose-100 transition cursor-pointer p-3 rounded-xl border border-rose-200 text-center shadow-sm">
-                    <span class="text-[11px] font-bold text-rose-700 block">أيام الغياب</span>
-                    <span id="portalAbsent" class="text-xl font-black text-rose-800">0</span>
-                </div>
-                <div onclick="openPortalCategoryModal('late')" class="bg-amber-50 hover:bg-amber-100 transition cursor-pointer p-3 rounded-xl border border-amber-200 text-center shadow-sm">
-                    <span class="text-[11px] font-bold text-amber-700 block">أيام التأخر</span>
-                    <span id="portalLate" class="text-xl font-black text-amber-800">0</span>
-                </div>
-                <div onclick="openPortalCategoryModal('excused')" class="bg-blue-50 hover:bg-blue-100 transition cursor-pointer p-3 rounded-xl border border-blue-200 text-center shadow-sm">
-                    <span class="text-[11px] font-bold text-blue-700 block">أعذار أخرى</span>
-                    <span id="portalExcused" class="text-xl font-black text-blue-800">0</span>
-                </div>
-            </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-3">
-                <div onclick="openPortalCategoryModal('homework_done')" class="bg-teal-50 hover:bg-teal-100 transition cursor-pointer p-3 rounded-xl border border-teal-200 text-center shadow-sm">
-                    <span class="text-[11px] font-bold text-teal-700 block">حل الواجبات</span>
-                    <span id="portalHomeworkDone" class="text-lg font-black text-teal-800">0</span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-100">
+                    <div onclick="openPortalCategoryModal('present')" class="bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer p-3 rounded-xl border border-emerald-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-emerald-700 block">أيام الحضور</span>
+                        <span id="portalPresent" class="text-xl font-black text-emerald-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('absent')" class="bg-rose-50 hover:bg-rose-100 transition cursor-pointer p-3 rounded-xl border border-rose-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-rose-700 block">أيام الغياب</span>
+                        <span id="portalAbsent" class="text-xl font-black text-rose-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('late')" class="bg-amber-50 hover:bg-amber-100 transition cursor-pointer p-3 rounded-xl border border-amber-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-amber-700 block">أيام التأخر</span>
+                        <span id="portalLate" class="text-xl font-black text-amber-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('excused')" class="bg-blue-50 hover:bg-blue-100 transition cursor-pointer p-3 rounded-xl border border-blue-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-blue-700 block">أعذار أخرى</span>
+                        <span id="portalExcused" class="text-xl font-black text-blue-800">0</span>
+                    </div>
                 </div>
-                <div onclick="openPortalCategoryModal('homework_not')" class="bg-pink-50 hover:bg-pink-100 transition cursor-pointer p-3 rounded-xl border border-pink-200 text-center shadow-sm">
-                    <span class="text-[11px] font-bold text-pink-700 block">لم يحل الواجب</span>
-                    <span id="portalHomeworkNot" class="text-lg font-black text-pink-800">0</span>
-                </div>
-                <div onclick="openPortalCategoryModal('participations')" class="bg-sky-50 hover:bg-sky-100 transition cursor-pointer p-3 rounded-xl border border-sky-200 text-center shadow-sm">
-                    <span class="text-[11px] font-bold text-sky-700 block">المشاركات</span>
-                    <span id="portalParticipations" class="text-lg font-black text-sky-800">0</span>
-                </div>
-                <div onclick="openPortalCategoryModal('behaviors_notes')" class="bg-purple-50 hover:bg-purple-100 transition cursor-pointer p-3 rounded-xl border border-purple-200 text-center shadow-sm">
-                    <span class="text-[11px] font-bold text-purple-700 block">الملاحظات والسلوك</span>
-                    <span id="portalBehaviorsNotes" class="text-lg font-black text-purple-800">0</span>
-                </div>
-                <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-200 text-center shadow-sm col-span-2 sm:col-span-1">
-                    <span class="text-[11px] font-bold text-indigo-700 block">نقاط السلوك</span>
-                    <span id="portalBehaviorPoints" class="text-lg font-black text-indigo-800">0</span>
+
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-3">
+                    <div onclick="openPortalCategoryModal('homework_done')" class="bg-teal-50 hover:bg-teal-100 transition cursor-pointer p-3 rounded-xl border border-teal-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-teal-700 block">حل الواجبات</span>
+                        <span id="portalHomeworkDone" class="text-lg font-black text-teal-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('homework_not')" class="bg-pink-50 hover:bg-pink-100 transition cursor-pointer p-3 rounded-xl border border-pink-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-pink-700 block">لم يحل الواجب</span>
+                        <span id="portalHomeworkNot" class="text-lg font-black text-pink-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('participations')" class="bg-sky-50 hover:bg-sky-100 transition cursor-pointer p-3 rounded-xl border border-sky-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-sky-700 block">المشاركات</span>
+                        <span id="portalParticipations" class="text-lg font-black text-sky-800">0</span>
+                    </div>
+                    <div onclick="openPortalCategoryModal('behaviors_notes')" class="bg-purple-50 hover:bg-purple-100 transition cursor-pointer p-3 rounded-xl border border-purple-200 text-center shadow-sm">
+                        <span class="text-[11px] font-bold text-purple-700 block">الملاحظات والسلوك</span>
+                        <span id="portalBehaviorsNotes" class="text-lg font-black text-purple-800">0</span>
+                    </div>
+                    <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-200 text-center shadow-sm col-span-2 sm:col-span-1">
+                        <span class="text-[11px] font-bold text-indigo-700 block">نقاط السلوك</span>
+                        <span id="portalBehaviorPoints" class="text-lg font-black text-indigo-800">0</span>
+                    </div>
                 </div>
             </div>
 
@@ -452,7 +470,7 @@
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-indigo-600"></i>
-                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب • ثانوية الأمير عبد المجيد</h3>
+                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب</h3>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button onclick="openAddModalWithClass()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-indigo-200" title="نسخ طلاب الفصل الحالي لصق سريع">
@@ -502,33 +520,14 @@
         </div>
     </main>
 
-    <!-- 🏛️ التذييل الرسمي للمدرسة والمعلم في أسفل كل الصفحات والتقارير ثانوية الأمير عبد المجيد مع فيس تعبيري -->
-    <footer class="bg-slate-900 text-slate-300 border-t border-slate-800 py-4 px-4 mt-8">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs font-bold">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-school text-amber-400"></i>
-                <span class="text-white">ثانوية الأمير عبد المجيد 🏫</span>
-                <span class="text-slate-600">|</span>
-                <span class="text-slate-400">منصة المتابعة اليومية والسلوكية - الكفايات اللغوية</span>
-            </div>
-            <div class="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-xl border border-white/10">
-                <i class="fa-solid fa-chalkboard-user text-amber-400"></i>
-                <span>إعداد وإشراف: <strong class="text-amber-300">أ / عبدالعزيز الفيفي ثانوية الأمير عبد المجيد 🏫</strong></span>
-            </div>
-        </div>
-    </footer>
-
     <!-- 📝 نافذة تعديل الدرس اليومي والمهمة والملاحظة مع اختيار الألوان -->
     <div id="lessonEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
-                <div>
-                    <h3 class="text-base font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-palette text-amber-300"></i>
-                        تحديث بيانات الحصة وألوان البطاقات
-                    </h3>
-                    <p class="text-[11px] text-indigo-200 mt-0.5">ثانوية الأمير عبد المجيد 🏫 • أ / عبدالعزيز الفيفي</p>
-                </div>
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-palette text-amber-300"></i>
+                    تحديث بيانات الحصة وألوان البطاقات
+                </h3>
                 <button onclick="closeLessonModal()" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -603,13 +602,10 @@
     <div id="studentPortalShareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-sky-800 text-white flex justify-between items-center">
-                <div>
-                    <h3 class="text-base font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-user-graduate text-amber-300"></i>
-                        بوابة دخول الطلاب الموحدة
-                    </h3>
-                    <p class="text-[11px] text-sky-200 mt-0.5">ثانوية الأمير عبد المجيد 🏫 • أ / عبدالعزيز الفيفي</p>
-                </div>
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-user-graduate text-amber-300"></i>
+                    بوابة دخول الطلاب الموحدة
+                </h3>
                 <button onclick="closeStudentPortalShareModal()" class="text-sky-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -617,7 +613,7 @@
             
             <div class="p-6 space-y-4">
                 <p class="text-xs text-slate-600 leading-relaxed font-semibold">
-                    شارك هذا الرابط الموحد مع جميع طلابك في <strong class="text-slate-800">ثانوية الأمير عبد المجيد 🏫</strong>؛ حيث يقوم كل طالب بإدخال <span class="text-sky-700 font-black">بريده الإلكتروني فقط</span> لتفتح له صفحته الشخصية ويعرف حضوره وغيابه والمتأخرات والملاحظات مباشرة:
+                    شارك هذا الرابط الموحد مع جميع طلابك؛ حيث يقوم كل طالب بإدخال <span class="text-sky-700 font-black">بريده الإلكتروني فقط</span> لتفتح له صفحته الشخصية ويعرف حضوره وغيابه والمتأخرات والملاحظات مباشرة:
                 </p>
 
                 <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
@@ -648,7 +644,6 @@
                 <div class="flex items-center gap-3">
                     <div id="fullModalIcon" class="text-2xl"></div>
                     <div>
-                        <span class="text-[10px] bg-white/15 text-amber-300 px-2 py-0.5 rounded font-bold inline-block mb-1">ثانوية الأمير عبد المجيد 🏫 • أ / عبدالعزيز الفيفي</span>
                         <h3 id="fullModalTitle" class="text-lg font-bold">تفاصيل الفئة</h3>
                         <p id="fullModalSubtitle" class="text-xs text-indigo-200 mt-0.5">التاريخ والفصل</p>
                     </div>
@@ -680,10 +675,7 @@
             <div id="portalModalHeader" class="p-4 text-white flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-2.5">
                     <span id="portalModalIcon" class="text-xl"></span>
-                    <div>
-                        <h3 id="portalModalTitle" class="text-base font-bold">سجل الفئة</h3>
-                        <p class="text-[10px] text-white/80">ثانوية الأمير عبد المجيد 🏫 • أ / عبدالعزيز الفيفي</p>
-                    </div>
+                    <h3 id="portalModalTitle" class="text-base font-bold">سجل الفئة</h3>
                 </div>
                 <button onclick="closePortalCategoryModal()" class="text-white/80 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -702,13 +694,10 @@
     <div id="customNoteModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
-                <div>
-                    <h3 class="text-base font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-pen-nib text-amber-300"></i>
-                        إضافة ملاحظة خطية للطالب
-                    </h3>
-                    <p class="text-[11px] text-indigo-200 mt-0.5">ثانوية الأمير عبد المجيد 🏫 • أ / عبدالعزيز الفيفي</p>
-                </div>
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-pen-nib text-amber-300"></i>
+                    إضافة ملاحظة خطية للطالب
+                </h3>
                 <button onclick="closeCustomNoteModal()" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -735,13 +724,10 @@
     <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-800 text-white flex justify-between items-center">
-                <div>
-                    <h3 class="text-base font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-users-rectangle"></i>
-                        إضافة أسماء الطلاب إلى الفصل والسحابة
-                    </h3>
-                    <p class="text-[11px] text-indigo-200 mt-0.5">ثانوية الأمير عبد المجيد 🏫 • أ / عبدالعزيز الفيفي</p>
-                </div>
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-users-rectangle"></i>
+                    إضافة أسماء الطلاب إلى الفصل والسحابة
+                </h3>
                 <button id="closeModalBtn" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -781,13 +767,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
     <div id="groupsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
-                <div>
-                    <h3 class="text-base font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-folder-plus"></i>
-                        إدارة الفصول والمجموعات
-                    </h3>
-                    <p class="text-[11px] text-indigo-200 mt-0.5">ثانوية الأمير عبد المجيد 🏫 • أ / عبدالعزيز الفيفي</p>
-                </div>
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus"></i>
+                    إدارة الفصول والمجموعات
+                </h3>
                 <button onclick="closeManageGroupsModal()" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -819,13 +802,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
     <div id="shareModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
-                <div>
-                    <h3 class="text-base font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-paper-plane text-amber-300"></i>
-                        مشاركة التقرير مع مدير المدرسة
-                    </h3>
-                    <p class="text-[11px] text-indigo-200 mt-0.5">ثانوية الأمير عبد المجيد 🏫 • أ / عبدالعزيز الفيفي</p>
-                </div>
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-amber-300"></i>
+                    مشاركة التقرير مع المدير
+                </h3>
                 <button onclick="closeShareModal()" class="text-indigo-200 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
@@ -833,7 +813,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             
             <div class="p-6 space-y-4">
                 <p class="text-xs text-slate-600 leading-relaxed font-semibold">
-                    يمكنك إرسال رابط لوحة المتابعة الشاملة الخاصة بـ <strong class="text-slate-800">أ / عبدالعزيز الفيفي</strong> في <strong class="text-slate-800">ثانوية الأمير عبد المجيد 🏫</strong> مباشرة لمدير المدرسة (بصلاحية العرض والقراءة فقط دون تعديل) أو نسخ الرابط:
+                    يمكنك إرسال رابط لوحة المتابعة الشاملة مباشرة للمدير (بصلاحية العرض والقراءة فقط دون تعديل) أو نسخ الرابط:
                 </p>
 
                 <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
@@ -884,6 +864,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             { icon: '📝', name: 'ملاحظة خطية مخصصة', score: 0.0, color: '#4f46e5', isCustomNote: true }
         ];
 
+        // 🎨 ثيمات الألوان للبطاقات الثلاث
         const cardColorThemes = {
             white: {
                 card: 'bg-white border-slate-200 hover:border-slate-300',
@@ -923,7 +904,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         };
 
-        let selectedCardColors = { title: 'white', homework: 'white', note: 'white' };
+        let selectedCardColors = {
+            title: 'white',
+            homework: 'white',
+            note: 'white'
+        };
+
         let isReadOnly = false; 
         let isStudentPortal = false;
         let isUnifiedStudentLogin = false;
@@ -954,6 +940,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         const classSelector = document.getElementById('classSelector');
         const modalGroupSelector = document.getElementById('modalGroupSelector');
 
+        // 🕒 تحديث الساعة الرقمية الحية كل ثانية
         function updateLiveClock() {
             const now = new Date();
             let hours = now.getHours();
@@ -1003,6 +990,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         }
 
+        // 📚 دوال البطاقات الثلاث التفاعلية + الألوان
         function getLessonDocKey() {
             const safeGroup = (activeGroup || 'الجميع').replace(/\//g, '_');
             return `${currentDate}__${safeGroup}`;
@@ -1128,10 +1116,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const viewCategory = urlParams.get('category');
             const paramDate = urlParams.get('date');
 
-            if (paramDate) currentDate = paramDate;
+            if (paramDate) {
+                currentDate = paramDate;
+            }
 
             const paramGroup = urlParams.get('group');
-            if (paramGroup) activeGroup = decodeURIComponent(paramGroup).trim();
+            if (paramGroup) {
+                activeGroup = decodeURIComponent(paramGroup).trim();
+            }
 
             selectedDateInput.value = currentDate;
             updateSelectedDateLabels();
@@ -1155,7 +1147,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 window.pendingViewCategory = viewCategory;
                 document.getElementById('mainDashboardContainer').classList.add('hidden');
                 document.getElementById('readOnlyBanner').classList.remove('hidden');
-                document.getElementById('bannerText').textContent = 'تقرير فئة مخصص للاطلاع فقط • ثانوية الأمير عبد المجيد 🏫 (أ / عبدالعزيز الفيفي)';
+                document.getElementById('bannerText').textContent = 'تقرير فئة مخصص للاطلاع فقط';
                 document.getElementById('manageGroupsBtn').classList.add('hidden');
                 document.getElementById('classSelector').disabled = true;
             } else if (urlParams.get('mode') === 'view') {
@@ -1168,6 +1160,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             updateShareUrl();
         });
 
+        // 🎓 معالجة دخول الطالب بالبريد الإلكتروني
         function handleStudentEmailLogin(e) {
             e.preventDefault();
             const emailInput = document.getElementById('studentLoginEmailInput');
@@ -1237,13 +1230,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function sendStudentPortalToWhatsApp() {
             const portalUrl = document.getElementById('studentPortalShareUrlInput').value;
-            const rawMessage = `أبنائي طلاب ثانوية الأمير عبد المجيد 🏫،\n\nيمكنكم الاطلاع على سجل الحضور والغياب والواجبات والملاحظات في مادة الكفايات اللغوية (إشراف: أ / عبدالعزيز الفيفي ثانوية الأمير عبد المجيد 🏫) مباشرة عبر إدخال بريدكم الإلكتروني المدرسي في الرابط التالي:\n${portalUrl}`;
+            const rawMessage = `أبنائي الطلاب،\n\nيمكنكم الاطلاع على سجل الحضور والغياب والواجبات والملاحظات الخاصة بكم مباشرة عبر إدخال بريدكم الإلكتروني المدرسي في الرابط التالي:\n${portalUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
         }
 
         function applyReadOnlyMode() {
             document.getElementById('readOnlyBanner').classList.remove('hidden');
-            document.getElementById('bannerText').textContent = 'وضع العرض (للقراءة والاطلاع فقط) • ثانوية الأمير عبد المجيد 🏫 (أ / عبدالعزيز الفيفي)';
+            document.getElementById('bannerText').textContent = 'وضع العرض (للقراءة والاطلاع فقط - لا يمكن التعديل)';
 
             document.getElementById('manageGroupsBtn').classList.add('hidden');
             document.getElementById('quickAddControls').classList.add('hidden');
@@ -1293,10 +1286,15 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const cloudStatus = document.getElementById('cloudStatus');
             const cloudIcon = document.getElementById('cloudIcon');
 
+            // 📚 مزامنة الدروس والمهام والملاحظات وألوانها سحابياً
             db.collection("daily_lessons").onSnapshot((snapshot) => {
                 dailyLessonsData = {};
-                snapshot.forEach(doc => { dailyLessonsData[doc.id] = doc.data(); });
+                snapshot.forEach(doc => {
+                    dailyLessonsData[doc.id] = doc.data();
+                });
                 renderDailyLessonCards();
+            }, (error) => {
+                console.error("Daily lessons fetch error:", error);
             });
 
             db.collection("attendance_groups").doc("list").onSnapshot((doc) => {
@@ -1307,15 +1305,22 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     db.collection("attendance_groups").doc("list").set({ groups: groups });
                 }
                 updateGroupDropdowns();
+            }, (error) => {
+                console.error("Groups fetch error:", error);
+                updateGroupDropdowns();
             });
 
             db.collection("allowed_students").onSnapshot((snapshot) => {
                 allowedStudentsPreset = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data && data.name) allowedStudentsPreset.push(data.name.trim());
+                    if (data && data.name) {
+                        allowedStudentsPreset.push(data.name.trim());
+                    }
                 });
                 populatePresetDropdown();
+            }, (error) => {
+                console.error("Allowed students fetch error:", error);
             });
 
             db.collection("attendance_students").onSnapshot((snapshot) => {
@@ -1345,24 +1350,40 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 fetchBehaviorsForDate(currentDate);
                 checkAndRenderPendingCategory();
                 refreshOpenCategoryModalIfActive();
+            }, (error) => {
+                console.error("Students fetch error:", error);
+                if (cloudStatus) cloudStatus.textContent = "خطأ في الاتصال";
+                if (cloudIcon) cloudIcon.className = "fa-solid fa-cloud text-rose-400";
             });
 
             db.collection("attendance_records").onSnapshot((snapshot) => {
                 allAttendanceRecords = {};
-                snapshot.forEach(doc => { allAttendanceRecords[doc.id] = doc.data().records || {}; });
+                snapshot.forEach(doc => {
+                    allAttendanceRecords[doc.id] = doc.data().records || {};
+                });
                 renderSingleDayReport();
-                if (isStudentPortal) renderStudentPortalView();
-                if (!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) renderTable();
+                if (isStudentPortal) {
+                    renderStudentPortalView();
+                }
+                if (!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) {
+                    renderTable();
+                }
                 checkAndRenderPendingCategory();
                 refreshOpenCategoryModalIfActive();
             });
 
             db.collection("student_behaviors_records").onSnapshot((snapshot) => {
                 allBehaviorsRecords = {};
-                snapshot.forEach(doc => { allBehaviorsRecords[doc.id] = doc.data().records || {}; });
+                snapshot.forEach(doc => {
+                    allBehaviorsRecords[doc.id] = doc.data().records || {};
+                });
                 renderSingleDayReport();
-                if (isStudentPortal) renderStudentPortalView();
-                if (!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) renderTable();
+                if (isStudentPortal) {
+                    renderStudentPortalView();
+                }
+                if (!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) {
+                    renderTable();
+                }
                 checkAndRenderPendingCategory();
                 refreshOpenCategoryModalIfActive();
             });
@@ -1381,8 +1402,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                 const fullBackup = {
                     version: "1.0",
-                    school: "ثانوية الأمير عبد المجيد 🏫",
-                    teacher: "أ / عبدالعزيز الفيفي ثانوية الأمير عبد المجيد 🏫",
                     exportDate: new Date().toISOString(),
                     attendance_records: attendanceRecordsBackup,
                     student_behaviors_records: behaviorsRecordsBackup
@@ -1391,7 +1410,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup, null, 2));
                 const downloadAnchor = document.createElement('a');
                 downloadAnchor.setAttribute("href", dataStr);
-                downloadAnchor.setAttribute("download", `نسخة_احتياطية_ثانوية_الأمير_عبدالمجيد_${new Date().toISOString().split('T')[0]}.json`);
+                downloadAnchor.setAttribute("download", `نسخة_احتياطية_الغياب_والحضور_${new Date().toISOString().split('T')[0]}.json`);
                 document.body.appendChild(downloadAnchor);
                 downloadAnchor.click();
                 downloadAnchor.remove();
@@ -1453,7 +1472,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             document.getElementById('portalStudentName').textContent = student.name;
-            document.getElementById('portalStudentDetails').textContent = `الفصل: ${student.group} | البريد: ${student.email} | ثانوية الأمير عبد المجيد 🏫 • إشراف: أ / عبدالعزيز الفيفي`;
+            document.getElementById('portalStudentDetails').textContent = `الفصل: ${student.group} | البريد: ${student.email}`;
 
             let present = 0, absent = 0, late = 0, excused = 0;
             let homeworkDoneCount = 0, homeworkNotCount = 0, participationsCount = 0, behaviorsNotesCount = 0;
@@ -1735,7 +1754,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 return actGroup === 'الجميع' || sGroup === actGroup;
             });
             let textValue = "";
-            activeInGroup.forEach(s => { textValue += `${s.name}\n${s.email}\n`; });
+            activeInGroup.forEach(s => {
+                textValue += `${s.name}\n${s.email}\n`;
+            });
             bulkNamesInput.value = textValue;
             addModal.classList.remove('hidden');
         }
@@ -1979,8 +2000,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
 
             let csvContent = "\uFEFF";
-            csvContent += `"ثانوية الأمير عبد المجيد 🏫","إعداد وإشراف: أ / عبدالعزيز الفيفي","التاريخ: ${targetDate}","الفصل: ${activeGroup}"\n\n`;
-
             if (currentModalCategory === 'present' || currentModalCategory === 'absent' || currentModalCategory === 'late' || currentModalCategory === 'excused' || currentModalCategory === 'other' || currentModalCategory === 'high_absent') {
                 csvContent += `اسم الطالب,البريد الإلكتروني,الفصل,الحالة/التفاصيل\n`;
                 filteredStudents.forEach(student => {
@@ -2037,7 +2056,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `تقرير_${currentModalCategory}_ثانوية_الأمير_عبدالمجيد_${activeGroup}_${targetDate}.csv`;
+            link.download = `تقرير_${currentModalCategory}_${activeGroup}_${targetDate}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -2064,7 +2083,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             };
 
             const catTitle = categoryNames[currentModalCategory] || 'تقرير الفئة المحددة';
-            const rawMessage = `ثانوية الأمير عبد المجيد 🏫\nسعادة مدير المدرسة المحترم،\n\nالاطلاع على (${catTitle}) في مادة الكفايات اللغوية (إعداد: أ / عبدالعزيز الفيفي ثانوية الأمير عبد المجيد 🏫) للفصل: (${activeGroup}) ليوم (${dayName}) بتاريخ (${targetDate}) عبر الرابط:\n${shareUrl}`;
+            const rawMessage = `سعادة مدير المدرسة المحترم،\n\nالاطلاع على (${catTitle}) للفصل: (${activeGroup}) ليوم (${dayName}) بتاريخ (${targetDate}) عبر الرابط:\n${shareUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
         }
 
@@ -2080,7 +2099,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 } else {
                     const now = new Date();
                     const timeString = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-                    updatedRecords[studentId] = { status: status, time: timeString };
+                    updatedRecords[studentId] = {
+                        status: status,
+                        time: timeString
+                    };
                 }
 
                 await docRef.set({
@@ -2355,7 +2377,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             if (listCount === 0) {
-                content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold">لا يوجد طلاب مسجلون تحت هذه القائمة في هذا التاريخ</div>`;
+                content.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold">لا يوجد طلاب مسجلون تحت هذه الفئة في هذا التاريخ</div>`;
             }
 
             countBadge.textContent = `العدد الإجمالي: ${listCount} طالب`;
@@ -2375,6 +2397,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     attendanceData = {};
                 }
                 if(!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) renderTable();
+            }, (error) => {
+                console.error("Attendance fetch error:", error);
             });
         }
 
@@ -2386,6 +2410,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     studentBehaviorsData = {};
                 }
                 if(!isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory) renderTable();
+            }, (error) => {
+                console.error("Behaviors fetch error:", error);
             });
         }
 
@@ -2719,7 +2745,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             } else {
                 const now = new Date();
                 const timeString = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-                updatedRecords[studentId] = { status: status, time: timeString };
+                updatedRecords[studentId] = {
+                    status: status,
+                    time: timeString
+                };
             }
 
             try {
@@ -2874,7 +2903,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     return actGroup === 'الجميع' || sGroup === actGroup;
                 });
                 let textValue = "";
-                activeInGroup.forEach(s => { textValue += `${s.name}\n${s.email}\n`; });
+                activeInGroup.forEach(s => {
+                    textValue += `${s.name}\n${s.email}\n`;
+                });
                 bulkNamesInput.value = textValue;
                 addModal.classList.remove('hidden');
             });
@@ -2954,7 +2985,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
 
             let csvContent = "\uFEFF"; 
-            csvContent += `"ثانوية الأمير عبد المجيد 🏫","إعداد وإشراف: أ / عبدالعزيز الفيفي","التاريخ: ${currentDate}","الفصل: ${activeGroup}"\n\n`;
             csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,حالة الحضور ووقت الرصد\n`;
 
             activeStudents.forEach(student => {
@@ -2974,7 +3004,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `كشف_حضور_ثانوية_الأمير_عبدالمجيد_${activeGroup}_${currentDate}.csv`;
+            link.download = `كشف_حضور_${activeGroup}_${currentDate}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -2998,7 +3028,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function sendReportToWhatsAppManager() {
             const shareUrl = document.getElementById('shareUrlInput').value;
-            const rawMessage = `ثانوية الأمير عبد المجيد 🏫\nسعادة مدير المدرسة المحترم،\n\nيمكنكم الاطلاع على لوحة المتابعة الكاملة لمادة الكفايات اللغوية (إعداد: أ / عبدالعزيز الفيفي ثانوية الأمير عبد المجيد 🏫) للفصل: (${activeGroup}) عبر الرابط:\n${shareUrl}`;
+            const rawMessage = `سعادة مدير المدرسة المحترم،\n\nيمكنكم الاطلاع على لوحة المتابعة الكاملة للفصل: (${activeGroup}) عبر الرابط:\n${shareUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(rawMessage)}`, '_blank');
         }
 
