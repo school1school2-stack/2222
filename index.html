@@ -290,7 +290,7 @@
                             <i class="fa-solid fa-chevron-left text-xs text-blue-300/60"></i>
                         </div>
 
-                        <!-- زر الغياب المتكرر المدمج مع الأزرار العلوية -->
+                        <!-- زر الغياب المتكرر -->
                         <div onclick="openCategoryFullModal('high_absent')" class="bg-white/10 hover:bg-red-600/30 border border-red-500/30 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition shadow-sm group">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 bg-red-500/20 text-red-300 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
@@ -428,6 +428,7 @@
         </div>
     </main>
 
+    <!-- نافذة تفاصيل الفئة مع أزرار المشاركة والتصدير الخاصة بكل زر -->
     <div id="fullCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-xl overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
             <div id="fullModalHeader" class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
@@ -445,14 +446,15 @@
             
             <div id="fullModalContent" class="p-6 space-y-3 overflow-y-auto custom-scrollbar flex-grow"></div>
 
-            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center shrink-0">
-                <div class="flex items-center gap-2">
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center shrink-0 flex-wrap gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                     <span id="fullModalCountBadge" class="text-xs font-bold text-slate-600 bg-slate-200 px-3 py-1.5 rounded-xl">الإجمالي: 0</span>
-                    <button id="modalActionBtn1" onclick="exportHighAbsenceCSVFromModal()" class="hidden bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm items-center gap-1">
-                        <i class="fa-solid fa-file-excel"></i> تصدير الغياب
+                    <!-- أزرار مشاركة وتصدير تظهر ديناميكياً لكل زر -->
+                    <button id="modalExportBtn" onclick="exportCurrentModalCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm inline-flex items-center gap-1">
+                        <i class="fa-solid fa-file-excel"></i> تصدير القائمة
                     </button>
-                    <button id="modalActionBtn2" onclick="sendHighAbsenceToWhatsAppFromModal()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition items-center gap-1 shadow-sm">
-                        <i class="fa-brands fa-whatsapp"></i> واتساب
+                    <button id="modalWhatsAppBtn" onclick="sendCurrentModalToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1 shadow-sm">
+                        <i class="fa-brands fa-whatsapp"></i> مشاركة عبر واتساب
                     </button>
                 </div>
                 <button onclick="closeCategoryFullModal()" class="px-5 py-2 rounded-xl bg-slate-200 text-slate-700 font-bold text-sm transition">إغلاق</button>
@@ -667,6 +669,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         let allAttendanceRecords = {}; 
         let allBehaviorsRecords = {};
         let currentCustomNoteStudentId = null;
+        let currentModalCategory = null; // لتخزين الفئة الحالية المفتوحة في النافذة
 
         const selectedDateInput = document.getElementById('selectedDate');
         const studentsTableBody = document.getElementById('studentsTableBody');
@@ -831,26 +834,17 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
         }
 
-        // دالة تصدير نسخة احتياطية كاملة للحضور والغياب والسلوكيات بصيغة JSON
         async function exportFullAttendanceBackupJSON() {
             try {
                 showToast('جاري تجهيز النسخة الاحتياطية...', 'cloud');
-                
-                // جلب جميع سجلات الحضور من كل التواريخ
                 const attendanceSnap = await db.collection("attendance_records").get();
                 let attendanceRecordsBackup = {};
-                attendanceSnap.forEach(doc => {
-                    attendanceRecordsBackup[doc.id] = doc.data();
-                });
+                attendanceSnap.forEach(doc => { attendanceRecordsBackup[doc.id] = doc.data(); });
 
-                // جلب جميع سجلات السلوكيات والمشاركات من كل التواريخ
                 const behaviorsSnap = await db.collection("student_behaviors_records").get();
                 let behaviorsRecordsBackup = {};
-                behaviorsSnap.forEach(doc => {
-                    behaviorsRecordsBackup[doc.id] = doc.data();
-                });
+                behaviorsSnap.forEach(doc => { behaviorsRecordsBackup[doc.id] = doc.data(); });
 
-                // تجميع البيانات في هيكل واحد متكامل
                 const fullBackup = {
                     version: "1.0",
                     exportDate: new Date().toISOString(),
@@ -873,7 +867,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         }
 
-        // دالة استعادة النسخة الاحتياطية المرفوعة من ملف JSON إلى السحابة
         async function restoreAttendanceBackupJSON(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -888,10 +881,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 try {
                     showToast('جاري استعادة البيانات إلى السحابة...', 'cloud');
                     const backupData = JSON.parse(e.target.result);
-
                     const batch = db.batch();
 
-                    // استعادة سجلات الحضور
                     if (backupData.attendance_records) {
                         for (const [dateKey, recordVal] of Object.entries(backupData.attendance_records)) {
                             const ref = db.collection("attendance_records").doc(dateKey);
@@ -899,7 +890,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                         }
                     }
 
-                    // استعادة سجلات السلوكيات
                     if (backupData.student_behaviors_records) {
                         for (const [dateKey, recordVal] of Object.entries(backupData.student_behaviors_records)) {
                             const ref = db.collection("student_behaviors_records").doc(dateKey);
@@ -1014,7 +1004,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             const totalEval = present + absent + late;
             const rate = totalEval > 0 ? Math.round(((present + late) / totalEval) * 100) : 0;
-
             const rateBadge = document.getElementById('portalRateBadge');
             rateBadge.textContent = `${rate}%`;
             rateBadge.className = rate >= 75 ? "text-lg font-black text-emerald-600" : "text-lg font-black text-rose-600";
@@ -1163,6 +1152,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const targetDate = selectedDateInput.value;
             const dayRecords = allAttendanceRecords[targetDate] || {};
 
+            currentModalCategory = categoryType;
             const modal = document.getElementById('fullCategoryModal');
             const header = document.getElementById('fullModalHeader');
             const title = document.getElementById('fullModalTitle');
@@ -1170,9 +1160,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const icon = document.getElementById('fullModalIcon');
             const content = document.getElementById('fullModalContent');
             const countBadge = document.getElementById('fullModalCountBadge');
-
-            document.getElementById('modalActionBtn1').classList.add('hidden');
-            document.getElementById('modalActionBtn2').classList.add('hidden');
 
             content.innerHTML = '';
             let listCount = 0;
@@ -1377,7 +1364,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
 
             const trimmedNewName = newName.trim();
-
             if (groups.includes(trimmedNewName)) {
                 showToast('يوجد فصل بنفس هذا الاسم بالفعل', 'warning');
                 return;
@@ -1388,7 +1374,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             try {
                 await db.collection("attendance_groups").doc("list").set({ groups: groups });
-
                 const studentsToUpdate = students.filter(s => s.group === oldName);
                 if (studentsToUpdate.length > 0) {
                     const batch = db.batch();
@@ -1530,92 +1515,136 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('dayBehaviorsCount').textContent = behCount;
         }
 
-        function exportHighAbsenceCSV() {
-            const activeStudents = students.filter(s => {
+        // دالة تصدير بيانات النافذة الحالية CSV
+        function exportCurrentModalCSV() {
+            const targetDate = document.getElementById('singleReportDate').value;
+            const filteredStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
                 return actGroup === 'الجميع' || sGroup === actGroup;
             });
 
             let csvContent = "\uFEFF";
-            csvContent += `قائمة الطلاب المتجاوزين لـ 3 أيام غياب - الفصل: (${activeGroup})\n`;
-            csvContent += `اسم الطالب,البريد الإلكتروني,الفصل/المجموعة,عدد أيام الغياب\n`;
+            let titleName = "تقرير";
 
-            let count = 0;
-            activeStudents.forEach(student => {
-                let absentCount = 0;
-                Object.keys(allAttendanceRecords).forEach(date => {
-                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
-                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
-                    if (st === 'absent') absentCount++;
+            if (currentModalCategory === 'present' || currentModalCategory === 'absent' || currentModalCategory === 'late' || currentModalCategory === 'excused' || currentModalCategory === 'other' || currentModalCategory === 'high_absent') {
+                csvContent += `اسم الطالب,البريد الإلكتروني,الفصل,الحالة/التفاصيل\n`;
+                filteredStudents.forEach(student => {
+                    const dayRecords = allAttendanceRecords[targetDate] || {};
+                    const recordObj = dayRecords[student.id];
+                    const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                    
+                    let absentCount = 0;
+                    Object.keys(allAttendanceRecords).forEach(d => {
+                        const rec = (allAttendanceRecords[d] || {})[student.id];
+                        const st = typeof rec === 'object' && rec !== null ? rec.status : rec;
+                        if (st === 'absent') absentCount++;
+                    });
+
+                    let match = false;
+                    if (currentModalCategory === 'present' && status === 'present') match = true;
+                    if (currentModalCategory === 'absent' && status === 'absent') match = true;
+                    if (currentModalCategory === 'late' && status === 'late') match = true;
+                    if (currentModalCategory === 'excused' && status === 'excused') match = true;
+                    if (currentModalCategory === 'other' && (status === 'late' || status === 'excused')) match = true;
+                    if (currentModalCategory === 'high_absent' && absentCount >= 3) match = true;
+
+                    if (match) {
+                        csvContent += `"${student.name}","${student.email}","${student.group}","${currentModalCategory === 'high_absent' ? absentCount + ' أيام غياب' : status}"\n`;
+                    }
                 });
+            } else {
+                csvContent += `اسم الطالب,البريد الإلكتروني,الفصل,السجل/المشاركة,الوقت\n`;
+                filteredStudents.forEach(student => {
+                    Object.keys(allBehaviorsRecords).forEach(d => {
+                        const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
+                        logs.forEach(item => {
+                            const name = item.name || '';
+                            const isParticipation = name.includes('مشاركة') || name.includes('إجابة');
+                            const isCustomNote = item.isCustomNote;
+                            if (isParticipation && d !== targetDate) return;
 
-                if (absentCount >= 3) {
-                    count++;
-                    csvContent += `"${student.name.replace(/"/g, '""')}","${student.email}","${student.group}",${absentCount}\n`;
-                }
-            });
+                            let match = false;
+                            if (currentModalCategory === 'participations' && (isParticipation || (!name.includes('واجب') && !name.includes('ملف') && !name.includes('بحث') && !isCustomNote && item.score >= 0))) match = true;
+                            if (currentModalCategory === 'homework_done' && name.includes('حل الواجب') && !name.includes('لم يحل')) match = true;
+                            if (currentModalCategory === 'homework_not' && name.includes('لم يحل الواجب')) match = true;
+                            if (currentModalCategory === 'research' && (name.includes('إنجاز ملف') || name.includes('بحث'))) match = true;
+                            if (currentModalCategory === 'forgot_file' && name.includes('نسيان ملف')) match = true;
+                            if (currentModalCategory === 'behaviors' && (isCustomNote || (!isParticipation && item.score < 0))) match = true;
 
-            if (count === 0) {
-                showToast('لا توجد حالات غياب متكرر للتصدير', 'warning');
-                return;
+                            if (match) {
+                                csvContent += `"${student.name}","${student.email}","${student.group}","${name.replace(/"/g, '""')}","${item.time}"\n`;
+                            }
+                        });
+                    });
+                });
             }
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `الغياب_المتكرر_اكثر_من_3ايام_${activeGroup}.csv`);
+            link.href = URL.createObjectURL(blob);
+            link.download = `تقرير_${currentModalCategory}_${activeGroup}_${targetDate}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        function exportHighAbsenceCSVFromModal() {
-            exportHighAbsenceCSV();
-        }
-
-        function sendHighAbsenceToWhatsApp() {
-            const activeStudents = students.filter(s => {
+        // دالة إرسال تقرير الفئة الحالية للواتساب
+        function sendCurrentModalToWhatsApp() {
+            const targetDate = document.getElementById('singleReportDate').value;
+            const filteredStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
                 return actGroup === 'الجميع' || sGroup === actGroup;
             });
 
-            let highAbsentListText = "";
+            let listText = "";
             let count = 0;
 
-            activeStudents.forEach(student => {
+            filteredStudents.forEach(student => {
+                const dayRecords = allAttendanceRecords[targetDate] || {};
+                const recordObj = dayRecords[student.id];
+                const status = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+
                 let absentCount = 0;
-                Object.keys(allAttendanceRecords).forEach(date => {
-                    const recordObj = (allAttendanceRecords[date] || {})[student.id];
-                    const st = typeof recordObj === 'object' && recordObj !== null ? recordObj.status : recordObj;
+                Object.keys(allAttendanceRecords).forEach(d => {
+                    const rec = (allAttendanceRecords[d] || {})[student.id];
+                    const st = typeof rec === 'object' && rec !== null ? rec.status : rec;
                     if (st === 'absent') absentCount++;
                 });
 
-                if (absentCount >= 3) {
+                let match = false;
+                if (currentModalCategory === 'present' && status === 'present') match = true;
+                if (currentModalCategory === 'absent' && status === 'absent') match = true;
+                if (currentModalCategory === 'late' && status === 'late') match = true;
+                if (currentModalCategory === 'excused' && status === 'excused') match = true;
+                if (currentModalCategory === 'other' && (status === 'late' || status === 'excused')) match = true;
+                if (currentModalCategory === 'high_absent' && absentCount >= 3) match = true;
+
+                if (match) {
                     count++;
-                    highAbsentListText += `%0A- ${student.name} (${student.group}): ${absentCount} أيام`;
+                    listText += `%0A- ${student.name} (${student.group})`;
                 }
             });
 
-            if (count === 0) {
-                showToast('لا توجد حالات غياب تتجاوز 3 أيام للإرسال', 'warning');
-                return;
-            }
+            const categoryNames = {
+                'present': 'الحاضرون اليوم',
+                'absent': 'الغائبون اليوم',
+                'late': 'المتأخرون اليوم',
+                'excused': 'بعذر / أخرى',
+                'high_absent': 'غياب 3 أيام فأكثر'
+            };
 
-            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقريراً بالطلاب الذين تجاوزوا 3 أيام غياب فأكثر للفصل: (${activeGroup}):%0A${highAbsentListText}%0A%0Aيرجى التكرم بالاطلاع واتخاذ الإجراء اللازم.`;
+            const catTitle = categoryNames[currentModalCategory] || 'تقرير الأنشطة';
+            const message = `سعادة مدير المدرسة المحترم،%0A%0Aإليك تقريراً عن (${catTitle}) للفصل (${activeGroup}) بتاريخ ${targetDate}:%0A${listText}%0A%0Aالإجمالي: ${count} طالب.`;
             window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
-        }
-
-        function sendHighAbsenceToWhatsAppFromModal() {
-            sendHighAbsenceToWhatsApp();
         }
 
         function openCategoryFullModal(categoryType) {
             const targetDate = document.getElementById('singleReportDate').value;
             const dayRecords = allAttendanceRecords[targetDate] || {};
 
+            currentModalCategory = categoryType;
             const modal = document.getElementById('fullCategoryModal');
             const header = document.getElementById('fullModalHeader');
             const title = document.getElementById('fullModalTitle');
@@ -1624,16 +1653,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const content = document.getElementById('fullModalContent');
             const countBadge = document.getElementById('fullModalCountBadge');
 
-            const btn1 = document.getElementById('modalActionBtn1');
-            const btn2 = document.getElementById('modalActionBtn2');
-            btn1.classList.add('hidden');
-            btn2.classList.add('hidden');
-            btn1.classList.remove('inline-flex');
-            btn2.classList.remove('inline-flex');
-
             content.innerHTML = '';
             let listCount = 0;
-
             let headerBgClass = "bg-indigo-900";
             let typeTitle = "";
             let statusName = "";
@@ -1662,10 +1683,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 typeTitle = "قائمة الطلاب المتجاوزين لـ 3 أيام غياب فأكثر";
                 headerBgClass = "bg-red-700";
                 icon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
-                btn1.classList.remove('hidden');
-                btn1.classList.add('inline-flex');
-                btn2.classList.remove('hidden');
-                btn2.classList.add('inline-flex');
             } else if (categoryType === 'participations') {
                 typeTitle = "تقرير المشاركات كاملاً";
                 headerBgClass = "bg-sky-700";
@@ -1796,7 +1813,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 listCount++;
                                 const card = document.createElement('div');
                                 card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm hover:bg-slate-100 transition";
-                                
                                 let pulseBadgeHTML = (!isParticipation && !isCustomNote) ? '<span class="pulse-badge text-[10px] bg-rose-500 text-white px-1.5 py-0.5 rounded font-bold mr-1">دائم ⚠️</span>' : '';
 
                                 card.innerHTML = `
@@ -2128,7 +2144,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             const now = new Date();
             const timeString = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-
             const updatedBehaviors = { ...studentBehaviorsData };
             if (!updatedBehaviors[currentCustomNoteStudentId]) {
                 updatedBehaviors[currentCustomNoteStudentId] = [];
@@ -2160,7 +2175,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (isReadOnly || isStudentPortal) return;
             const now = new Date();
             const timeString = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-
             const updatedBehaviors = { ...studentBehaviorsData };
             if (!updatedBehaviors[studentId]) {
                 updatedBehaviors[studentId] = [];
@@ -2219,16 +2233,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             try {
                 const docRef = db.collection("student_behaviors_records").doc(dateStr);
                 const doc = await docRef.get();
-
                 if (!doc.exists) return;
 
                 let targetDateBehaviors = doc.data().records || {};
                 let studentLogs = targetDateBehaviors[studentId] || [];
-
                 if (studentLogs.length <= logIndex) return;
 
                 studentLogs.splice(logIndex, 1);
-
                 if (studentLogs.length === 0) {
                     delete targetDateBehaviors[studentId];
                 } else {
@@ -2255,7 +2266,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 }
 
                 showToast('تم حذف السجل بنجاح ☁️', 'info');
-
             } catch (error) {
                 console.error("Error removing behavior:", error);
                 showToast('فشل الحذف من السحابة', 'warning');
@@ -2327,7 +2337,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 }
 
                 const targetGroup = activeGroup === 'الجميع' ? (groups[0] || 'عام') : activeGroup;
-
                 if (students.some(s => s.name === name && s.group.trim() === targetGroup.trim())) {
                     showToast('الطالب موجود مسبقاً في هذا الفصل', 'warning');
                     quickStudentInput.value = '';
@@ -2389,11 +2398,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                 try {
                     const batch = db.batch();
-                    
                     for (let i = 0; i < lines.length; i++) {
                         let line1 = lines[i];
                         let line2 = lines[i+1];
-
                         let name = "", email = "";
                         if (line2 && line2.includes('@')) {
                             name = line1.replace(/@\S+/g, '').trim();
@@ -2467,9 +2474,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `كشف_حضور_${activeGroup}_${currentDate}.csv`);
+            link.href = URL.createObjectURL(blob);
+            link.download = `كشف_حضور_${activeGroup}_${currentDate}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -2501,7 +2507,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toastText');
             const toastIcon = document.getElementById('toastIcon');
-
             toastText.textContent = message;
 
             if (type === 'cloud') {
