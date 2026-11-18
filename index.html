@@ -464,25 +464,22 @@
                             <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (كل صف يضم طالبين بتدرج لون سماوي أوضح وأغمق)</h3>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <button onclick="openBatchActionModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm" title="رصد جماعي لمجموعة طلاب في تاريخ معين مع استبعاد الغائبين تلقائياً">
-                                <i class="fa-solid fa-users-gear"></i> رصد جماعي سريع (ذكي للحاضرين)
-                            </button>
-                            <button onclick="openAddModalWithClass()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-indigo-200" title="نسخ طلاب الفصل الحالي لصق سريع">
-                                <i class="fa-regular fa-copy"></i> نسخ طلاب الفصل
-                            </button>
-                            <button onclick="deleteCurrentClassData()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-rose-200" title="حذف جميع طلاب هذا الفصل">
-                                <i class="fa-solid fa-trash-can"></i> حذف الفصل
-                            </button>
-                            <button onclick="exportFullAttendanceBackupJSON()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm" title="حفظ نسخة احتياطية لجميع الحضور والغياب وسجلات السلوك في ملف JSON">
-                                <i class="fa-solid fa-download"></i> نسخة احتياطية (JSON)
-                            </button>
-                            <label class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm cursor-pointer" title="استعادة النسخة الاحتياطية للسحابة">
-                                <i class="fa-solid fa-upload"></i> استعادة النسخة
-                                <input type="file" id="restoreBackupInput" accept=".json" onchange="restoreAttendanceBackupJSON(event)" class="hidden">
-                            </label>
-                            <button id="exportExcelBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1">
-                                <i class="fa-solid fa-file-excel text-emerald-600"></i> تصدير CSV
-                            </button>
+                            
+                            <!-- 🔽 القائمة المنسدلة الذكية للعمليات والإجراءات السريعة -->
+                            <div class="relative inline-block text-right">
+                                <select onchange="handleHeaderDropdownAction(this)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer focus:outline-none">
+                                    <option value="" selected disabled>⚡ خيارات وإجراءات سريعة...</option>
+                                    <option value="batch_action">👥 رصد جماعي سريع (للحاضرين)</option>
+                                    <option value="copy_class">📋 نسخ طلاب الفصل الحالي</option>
+                                    <option value="delete_class">🗑️ حذف الفصل الحالي</option>
+                                    <option value="backup_json">💾 نسخة احتياطية (JSON)</option>
+                                    <option value="restore_json">📂 استعادة النسخة الاحتياطية</option>
+                                    <option value="export_excel">📊 تصدير كشف Excel / CSV</option>
+                                </select>
+                            </div>
+                            <!-- مخفي لتشغيل الاستعادة عند اختيارها من القائمة المنسدلة -->
+                            <input type="file" id="restoreBackupInput" accept=".json" onchange="restoreAttendanceBackupJSON(event)" class="hidden">
+
                         </div>
                     </div>
 
@@ -981,6 +978,26 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         const classSelector = document.getElementById('classSelector');
         const modalGroupSelector = document.getElementById('modalGroupSelector');
 
+        function handleHeaderDropdownAction(selectElem) {
+            const val = selectElem.value;
+            selectElem.value = ""; // إعادة تعيين القائمة
+            if (!val) return;
+
+            if (val === 'batch_action') {
+                openBatchActionModal();
+            } else if (val === 'copy_class') {
+                openAddModalWithClass();
+            } else if (val === 'delete_class') {
+                deleteCurrentClassData();
+            } else if (val === 'backup_json') {
+                exportFullAttendanceBackupJSON();
+            } else if (val === 'restore_json') {
+                document.getElementById('restoreBackupInput').click();
+            } else if (val === 'export_excel') {
+                exportToCSV();
+            }
+        }
+
         function updateLiveClock() {
             const now = new Date();
             let hours = now.getHours();
@@ -1281,13 +1298,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('openAddModalBtn').classList.add('hidden');
             document.getElementById('shareStudentPortalBtn').classList.add('hidden');
             document.getElementById('shareManagerBtn').classList.add('hidden');
-
-            const deleteClassBtn = document.querySelector('button[onclick="deleteCurrentClassData()"]');
-            const copyClassBtn = document.querySelector('button[onclick="openAddModalWithClass()"]');
-            const batchActionBtn = document.querySelector('button[onclick="openBatchActionModal()"]');
-            if (deleteClassBtn) deleteClassBtn.classList.add('hidden');
-            if (copyClassBtn) copyClassBtn.classList.add('hidden');
-            if (batchActionBtn) batchActionBtn.classList.add('hidden');
 
             document.getElementById('dailySection').classList.remove('hidden');
         }
@@ -3199,8 +3209,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     showToast('حدث خطأ أثناء حفظ الأسماء', 'warning');
                 }
             });
-
-            document.getElementById('exportExcelBtn').addEventListener('click', exportToCSV);
         }
 
         function exportToCSV() {
