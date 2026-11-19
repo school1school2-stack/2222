@@ -46,6 +46,10 @@
             background-color: #bae6fd55;
             border: 1px solid #7dd3fc;
         }
+        #floatingClockBadge {
+            touch-action: none;
+            user-select: none;
+        }
     </style>
 
     <script>
@@ -492,8 +496,8 @@
         </div>
     </main>
 
-    <!-- أيقونة صغيرة عائمة للساعة والتاريخ تتحرك أثناء التمرير -->
-    <button id="floatingClockBadge" onclick="handleFloatingClockClick()" class="hidden fixed bottom-5 right-5 z-40 bg-indigo-950/90 hover:bg-indigo-900 backdrop-blur-md text-white border border-amber-300/40 rounded-2xl px-3 py-2 shadow-xl flex items-center gap-2.5 transition transform hover:scale-105 cursor-pointer" title="الساعة والتاريخ الحالي - اضغط للعودة للأعلى أو تغيير التاريخ">
+    <!-- أيقونة صغيرة عائمة للساعة والتاريخ قابلة للسحب بإصبعك إلى أي مكان -->
+    <button id="floatingClockBadge" type="button" onclick="handleFloatingClockClick()" class="hidden fixed bottom-5 right-5 z-40 bg-indigo-950/90 hover:bg-indigo-900 backdrop-blur-md text-white border border-amber-300/40 rounded-2xl px-3 py-2 shadow-xl flex items-center gap-2.5 cursor-grab active:cursor-grabbing" title="اسحبها بإصبعك لأي مكان، أو اضغط للعودة للأعلى وتغيير التاريخ">
         <span class="w-7 h-7 rounded-xl bg-amber-400/15 text-amber-300 flex items-center justify-center text-xs shrink-0">
             <i class="fa-regular fa-clock"></i>
         </span>
@@ -1008,6 +1012,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         let currentModalCategory = null;
         window.pendingViewCategory = null;
 
+        let floatingBadgeDragged = false;
+        let floatingBadgeHasCustomPos = false;
+
         const selectedDateInput = document.getElementById('selectedDate');
         const studentsGridContainer = document.getElementById('studentsGridContainer');
         const emptyState = document.getElementById('emptyState');
@@ -1087,6 +1094,106 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             if (floatingTimeEl) floatingTimeEl.textContent = `${hoursStr}:${minutes}:${seconds} ${ampm}`;
         }
 
+        function clampFloatingBadgeToViewport() {
+            const badge = document.getElementById('floatingClockBadge');
+            if (!badge || !floatingBadgeHasCustomPos) return;
+            const margin = 10;
+            const rect = badge.getBoundingClientRect();
+            const width = rect.width || badge.offsetWidth || 120;
+            const height = rect.height || badge.offsetHeight || 48;
+
+            let left = parseFloat(badge.style.left);
+            let top = parseFloat(badge.style.top);
+            if (Number.isNaN(left) || Number.isNaN(top)) return;
+
+            const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+            const maxTop = Math.max(margin, window.innerHeight - height - margin);
+
+            left = Math.min(Math.max(margin, left), maxLeft);
+            top = Math.min(Math.max(margin, top), maxTop);
+
+            badge.style.left = `${left}px`;
+            badge.style.top = `${top}px`;
+        }
+
+        function initDraggableFloatingClock() {
+            const badge = document.getElementById('floatingClockBadge');
+            if (!badge) return;
+
+            let isPointerDown = false;
+            let startX = 0;
+            let startY = 0;
+            let origLeft = 0;
+            let origTop = 0;
+
+            badge.addEventListener('pointerdown', (e) => {
+                if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
+                isPointerDown = true;
+                floatingBadgeDragged = false;
+                startX = e.clientX;
+                startY = e.clientY;
+
+                const rect = badge.getBoundingClientRect();
+                origLeft = rect.left;
+                origTop = rect.top;
+
+                if (!floatingBadgeHasCustomPos) {
+                    badge.style.right = 'auto';
+                    badge.style.bottom = 'auto';
+                    badge.style.left = `${origLeft}px`;
+                    badge.style.top = `${origTop}px`;
+                    floatingBadgeHasCustomPos = true;
+                }
+
+                try {
+                    badge.setPointerCapture(e.pointerId);
+                } catch (err) {}
+            });
+
+            badge.addEventListener('pointermove', (e) => {
+                if (!isPointerDown) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                if (Math.hypot(dx, dy) > 6) {
+                    floatingBadgeDragged = true;
+                }
+
+                if (!floatingBadgeDragged) return;
+
+                const margin = 10;
+                const width = badge.offsetWidth || 120;
+                const height = badge.offsetHeight || 48;
+                const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+                const maxTop = Math.max(margin, window.innerHeight - height - margin);
+
+                const nextLeft = Math.min(Math.max(margin, origLeft + dx), maxLeft);
+                const nextTop = Math.min(Math.max(margin, origTop + dy), maxTop);
+
+                badge.style.left = `${nextLeft}px`;
+                badge.style.top = `${nextTop}px`;
+            });
+
+            const finishDrag = (e) => {
+                if (!isPointerDown) return;
+                isPointerDown = false;
+                try {
+                    if (badge.hasPointerCapture && badge.hasPointerCapture(e.pointerId)) {
+                        badge.releasePointerCapture(e.pointerId);
+                    }
+                } catch (err) {}
+                if (floatingBadgeDragged) {
+                    setTimeout(() => {
+                        floatingBadgeDragged = false;
+                    }, 40);
+                }
+            };
+
+            badge.addEventListener('pointerup', finishDrag);
+            badge.addEventListener('pointercancel', finishDrag);
+            window.addEventListener('resize', clampFloatingBadgeToViewport, { passive: true });
+        }
+
         function updateFloatingClockVisibility() {
             const badge = document.getElementById('floatingClockBadge');
             if (!badge) return;
@@ -1096,12 +1203,17 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             if (shouldShow) {
                 badge.classList.remove('hidden');
+                clampFloatingBadgeToViewport();
             } else {
                 badge.classList.add('hidden');
             }
         }
 
         function handleFloatingClockClick() {
+            if (floatingBadgeDragged) {
+                floatingBadgeDragged = false;
+                return;
+            }
             if (selectedDateInput && !isReadOnly) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 setTimeout(() => {
@@ -1270,6 +1382,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         window.addEventListener('DOMContentLoaded', () => {
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
+            initDraggableFloatingClock();
             window.addEventListener('scroll', updateFloatingClockVisibility, { passive: true });
 
             const urlParams = new URLSearchParams(window.location.search);
