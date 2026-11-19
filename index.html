@@ -227,7 +227,6 @@
         <div id="mainDashboardContainer" class="space-y-6">
 
             <div id="dailySection" class="space-y-6">
-                <!-- شريط البحث والإضافة والقائمة المنسدلة بمحاذاة متوازنة تشبه الشريط السفلي -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 flex flex-wrap items-center justify-between gap-2.5">
                     <div class="flex flex-wrap items-center gap-2 flex-grow">
                         <div class="relative flex-grow sm:flex-grow-0 min-w-[140px]">
@@ -244,7 +243,6 @@
                         </div>
                     </div>
 
-                    <!-- 🔽 القائمة المنسدلة العلوية بمحاذاة واضحة على الطرف مثل القائمة السفلية -->
                     <div id="topAdminDropdownContainer" class="flex items-center shrink-0">
                         <select onchange="handleTopBarDropdownAction(this)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer focus:outline-none">
                             <option value="" selected disabled>⚙️ الإيميلات والمشاركة...</option>
@@ -462,7 +460,6 @@
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             
-                            <!-- 🔽 القائمة المنسدلة الذكية للعمليات والإجراءات السريعة -->
                             <div class="relative inline-block text-right">
                                 <select onchange="handleHeaderDropdownAction(this)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer focus:outline-none">
                                     <option value="" selected disabled>⚡ خيارات وإجراءات سريعة...</option>
@@ -499,7 +496,6 @@
         <p>منصة المتابعة اليومية والسلوكية © 2026 | إعداد المعلم: <strong class="text-amber-300">أ/ عبدالعزيز الفيفي</strong> - ثانوية الأمير عبدالمجيد | جميع الحقوق محفوظة</p>
     </footer>
 
-    <!-- ⚡ نافذة الرصد الجماعي السريع -->
     <div id="batchActionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
@@ -972,7 +968,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         const classSelector = document.getElementById('classSelector');
         const modalGroupSelector = document.getElementById('modalGroupSelector');
 
-        // 🔽 التحكم بالقائمة المنسدلة العلوية
         function handleTopBarDropdownAction(selectElem) {
             const val = selectElem.value;
             selectElem.value = "";
@@ -987,7 +982,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         }
 
-        // 🔽 التحكم بالقائمة المنسدلة للكشف
         function handleHeaderDropdownAction(selectElem) {
             const val = selectElem.value;
             selectElem.value = "";
@@ -1008,7 +1002,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             }
         }
 
-        // 🔢 دالة حساب الرقم التسلسلي الثابت لكل طالب داخل فصله (أو الكل)
         function getStudentNumberMap() {
             const map = {};
             const groupStudents = students.filter(s => {
@@ -2264,7 +2257,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function exportCurrentModalCSV() {
             const targetDate = currentDate;
-            const numMap = getStudentNumberMap();
             const filteredStudents = students.filter(s => {
                 const sGroup = (s.group || '').trim();
                 const actGroup = activeGroup.trim();
@@ -2274,7 +2266,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             let csvContent = "\uFEFF";
             let rowSeq = 0;
             if (currentModalCategory === 'present' || currentModalCategory === 'absent' || currentModalCategory === 'late' || currentModalCategory === 'excused' || currentModalCategory === 'other' || currentModalCategory === 'high_absent') {
-                csvContent += `الرقم التسلسلي,رقم الفصل,اسم الطالب,البريد الإلكتروني,الفصل,الحالة/التفاصيل\n`;
+                csvContent += `الرقم التسلسلي,اسم الطالب,البريد الإلكتروني,الفصل,الحالة/التفاصيل\n`;
                 filteredStudents.forEach(student => {
                     const dayRecords = allAttendanceRecords[targetDate] || {};
                     const recordObj = dayRecords[student.id];
@@ -2297,11 +2289,11 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                     if (match) {
                         rowSeq++;
-                        csvContent += `"${rowSeq}","${numMap[student.id] || ''}","${student.name}","${student.email}","${student.group}","${currentModalCategory === 'high_absent' ? absentCount + ' أيام غياب' : status}"\n`;
+                        csvContent += `"${rowSeq}","${student.name}","${student.email}","${student.group}","${currentModalCategory === 'high_absent' ? absentCount + ' أيام غياب' : status}"\n`;
                     }
                 });
             } else {
-                csvContent += `الرقم التسلسلي,رقم الفصل,اسم الطالب,البريد الإلكتروني,الفصل,السجل/المشاركة,الوقت\n`;
+                csvContent += `الرقم التسلسلي,اسم الطالب,البريد الإلكتروني,الفصل,السجل/المشاركة,الوقت\n`;
                 filteredStudents.forEach(student => {
                     Object.keys(allBehaviorsRecords).forEach(d => {
                         const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
@@ -2321,7 +2313,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                             if (match) {
                                 rowSeq++;
-                                csvContent += `"${rowSeq}","${numMap[student.id] || ''}","${student.name}","${student.email}","${student.group}","${name.replace(/"/g, '""')}","${item.time}"\n`;
+                                csvContent += `"${rowSeq}","${student.name}","${student.email}","${student.group}","${name.replace(/"/g, '""')}","${item.time}"\n`;
                             }
                         });
                     });
@@ -2409,7 +2401,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const targetDate = currentDate;
             const dayName = getArabicDayNameFromStr(targetDate);
             const dayRecords = allAttendanceRecords[targetDate] || {};
-            const numMap = getStudentNumberMap();
 
             currentModalCategory = categoryType;
             const modal = document.getElementById('fullCategoryModal');
@@ -2513,7 +2504,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     if (absentCount >= 3) {
                         listCount++;
                         let studentPortalLink = `${getBasePortalUrl()}?student=${student.id}${isReadOnly ? '&mode=view' : ''}`;
-                        const rosterLabel = numMap[student.id] ? `رقم الفصل: ${numMap[student.id]} | ` : '';
 
                         const card = document.createElement('div');
                         card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
@@ -2522,7 +2512,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 <span class="w-7 h-7 bg-indigo-900 text-amber-300 font-black text-xs rounded-lg flex items-center justify-center shadow-sm">${listCount}</span>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
-                                    <p class="text-xs text-slate-500 font-medium">${rosterLabel}${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                                    <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
@@ -2542,7 +2532,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                     if (status === 'late' || status === 'excused') {
                         listCount++;
-                        const rosterLabel = numMap[student.id] ? `رقم الفصل: ${numMap[student.id]} | ` : '';
                         const statusTag = status === 'late' ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold mr-1">متأخر</span>' : '<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold mr-1">بعذر</span>';
                         const card = document.createElement('div');
                         card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
@@ -2551,7 +2540,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 <span class="w-7 h-7 bg-indigo-900 text-amber-300 font-black text-xs rounded-lg flex items-center justify-center shadow-sm">${listCount}</span>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)} ${statusTag}</h4>
-                                    <p class="text-xs text-slate-500 font-medium">${rosterLabel}${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                                    <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
@@ -2572,7 +2561,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
                     if (status === statusName) {
                         listCount++;
-                        const rosterLabel = numMap[student.id] ? `رقم الفصل: ${numMap[student.id]} | ` : '';
                         const card = document.createElement('div');
                         card.className = "p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-2 flex-wrap shadow-sm hover:bg-slate-100 transition";
                         card.innerHTML = `
@@ -2580,7 +2568,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 <span class="w-7 h-7 bg-indigo-900 text-amber-300 font-black text-xs rounded-lg flex items-center justify-center shadow-sm">${listCount}</span>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
-                                    <p class="text-xs text-slate-500 font-medium">${rosterLabel}${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                                    <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
@@ -2593,7 +2581,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 });
             } else {
                 filteredStudents.forEach((student) => {
-                    const rosterLabel = numMap[student.id] ? `رقم الفصل: ${numMap[student.id]} | ` : '';
                     Object.keys(allBehaviorsRecords).forEach(d => {
                         const logs = (allBehaviorsRecords[d] || {})[student.id] || [];
                         logs.forEach((item, logIdx) => {
@@ -2636,7 +2623,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                         <span class="w-7 h-7 bg-indigo-900 text-amber-300 font-black text-xs rounded-lg flex items-center justify-center shadow-sm">${listCount}</span>
                                         <div>
                                             <h4 class="font-bold text-slate-800 text-sm">${escapeHtml(student.name)}</h4>
-                                            <p class="text-xs text-slate-500 font-medium">${rosterLabel}${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
+                                            <p class="text-xs text-slate-500 font-medium">${escapeHtml(student.group)} | ${escapeHtml(student.email)}</p>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
