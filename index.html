@@ -227,24 +227,26 @@
         <div id="mainDashboardContainer" class="space-y-6">
 
             <div id="dailySection" class="space-y-6">
-                <!-- شريط البحث والإضافة والقائمة المنسدلة مع مسافة تباعد مريحة ومتوسطة (gap-5) -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 flex flex-wrap items-center gap-20">
-                    <div class="relative flex-grow sm:flex-grow-0 min-w-[140px]">
-                        <i class="fa-solid fa-search absolute right-3 top-2.5 text-slate-400 text-xs"></i>
-                        <input type="text" id="searchInput" placeholder="بحث بالاسم أو الرقم..." class="w-full sm:w-52 bg-slate-50 border border-slate-200 rounded-xl pr-8 pl-2.5 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <!-- شريط البحث والإضافة والقائمة المنسدلة بمحاذاة متوازنة تشبه الشريط السفلي -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 flex flex-wrap items-center justify-between gap-2.5">
+                    <div class="flex flex-wrap items-center gap-2 flex-grow">
+                        <div class="relative flex-grow sm:flex-grow-0 min-w-[140px]">
+                            <i class="fa-solid fa-search absolute right-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" id="searchInput" placeholder="بحث بالاسم أو الرقم..." class="w-full sm:w-52 bg-slate-50 border border-slate-200 rounded-xl pr-8 pl-2.5 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+
+                        <div id="quickAddControls" class="flex items-center gap-2 flex-grow sm:flex-grow-0">
+                            <input type="text" id="quickStudentInput" list="presetStudentsList" placeholder="اسم طالب جديد..." class="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-xs flex-grow sm:w-44 min-w-[120px] focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <datalist id="presetStudentsList"></datalist>
+                            <button id="addQuickStudentBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm shrink-0">
+                                <i class="fa-solid fa-user-plus"></i> إضافة
+                            </button>
+                        </div>
                     </div>
 
-                    <div id="quickAddControls" class="flex items-center gap-2 flex-grow sm:flex-grow-0">
-                        <input type="text" id="quickStudentInput" list="presetStudentsList" placeholder="اسم طالب جديد..." class="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-xs flex-grow sm:w-44 min-w-[120px] focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <datalist id="presetStudentsList"></datalist>
-                        <button id="addQuickStudentBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm shrink-0">
-                            <i class="fa-solid fa-user-plus"></i> إضافة
-                        </button>
-                    </div>
-
-                    <!-- 🔽 القائمة المنسدلة العلوية بمسافة مريحة ومتوسطة عن زر الإضافة -->
-                    <div id="topAdminDropdownContainer" class="flex items-center flex-grow sm:flex-grow-0">
-                        <select onchange="handleTopBarDropdownAction(this)" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer focus:outline-none">
+                    <!-- 🔽 القائمة المنسدلة العلوية بمحاذاة واضحة على الطرف مثل القائمة السفلية -->
+                    <div id="topAdminDropdownContainer" class="flex items-center shrink-0">
+                        <select onchange="handleTopBarDropdownAction(this)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer focus:outline-none">
                             <option value="" selected disabled>⚙️ الإيميلات والمشاركة...</option>
                             <option value="students_emails">👥 قائمة الطلاب والإيميلات</option>
                             <option value="student_portal">🎓 بوابة الطلاب (دخول بالإيميل)</option>
@@ -456,7 +458,7 @@
                     <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-indigo-600"></i>
-                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب ( أ/عبدالعزيز الفيفي)</h3>
+                            <h3 class="font-bold text-slate-800 text-sm">كشف المتابعة اليومية للطلاب (مرقمة تسلسلياً للنداء السريع)</h3>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             
