@@ -27,6 +27,17 @@
             50% { transform: scale(1.03); opacity: 0.9; }
         }
         .pulse-badge { animation: pulse-soft 2s infinite ease-in-out; }
+        @keyframes floatingGentle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        .floating-motion {
+            animation: floatingGentle 3.2s ease-in-out infinite;
+        }
+        .floating-motion.is-dragging {
+            animation: none !important;
+            transform: scale(1.04);
+        }
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(84%) sepia(56%) saturate(600%) hue-rotate(355deg) brightness(103%) contrast(103%);
             cursor: pointer;
@@ -496,9 +507,9 @@
         </div>
     </main>
 
-    <!-- أيقونة صغيرة عائمة للساعة والتاريخ قابلة للسحب بإصبعك إلى أي مكان -->
-    <button id="floatingClockBadge" type="button" onclick="handleFloatingClockClick()" class="hidden fixed bottom-5 right-5 z-40 bg-indigo-950/90 hover:bg-indigo-900 backdrop-blur-md text-white border border-amber-300/40 rounded-2xl px-3 py-2 shadow-xl flex items-center gap-2.5 cursor-grab active:cursor-grabbing" title="اسحبها بإصبعك لأي مكان، أو اضغط للعودة للأعلى وتغيير التاريخ">
-        <span class="w-7 h-7 rounded-xl bg-amber-400/15 text-amber-300 flex items-center justify-center text-xs shrink-0">
+    <!-- أيقونة متحركة وقابلة للسحب بإصبعك إلى أي مكان وتظهر في كل مكان بما فيها تقارير الطلاب -->
+    <button id="floatingClockBadge" type="button" onclick="handleFloatingClockClick()" class="fixed bottom-5 right-5 z-[65] floating-motion bg-indigo-950/95 hover:bg-indigo-900 backdrop-blur-md text-white border border-amber-300/50 rounded-2xl px-3 py-2 shadow-xl flex items-center gap-2.5 cursor-grab active:cursor-grabbing" title="اسحبها بإصبعك لأي جهة تريدها، أو اضغط للعودة للأعلى">
+        <span class="w-7 h-7 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs shrink-0">
             <i class="fa-regular fa-clock"></i>
         </span>
         <div class="text-right leading-tight">
@@ -1145,6 +1156,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                     floatingBadgeHasCustomPos = true;
                 }
 
+                badge.classList.add('is-dragging');
+
                 try {
                     badge.setPointerCapture(e.pointerId);
                 } catch (err) {}
@@ -1177,6 +1190,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const finishDrag = (e) => {
                 if (!isPointerDown) return;
                 isPointerDown = false;
+                badge.classList.remove('is-dragging');
                 try {
                     if (badge.hasPointerCapture && badge.hasPointerCapture(e.pointerId)) {
                         badge.releasePointerCapture(e.pointerId);
@@ -1197,16 +1211,8 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         function updateFloatingClockVisibility() {
             const badge = document.getElementById('floatingClockBadge');
             if (!badge) return;
-
-            const hasOpenModal = Array.from(document.querySelectorAll('[id$="Modal"]')).some(m => !m.classList.contains('hidden'));
-            const shouldShow = !isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory && !hasOpenModal && window.scrollY > 140;
-
-            if (shouldShow) {
-                badge.classList.remove('hidden');
-                clampFloatingBadgeToViewport();
-            } else {
-                badge.classList.add('hidden');
-            }
+            badge.classList.remove('hidden');
+            clampFloatingBadgeToViewport();
         }
 
         function handleFloatingClockClick() {
@@ -1214,7 +1220,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 floatingBadgeDragged = false;
                 return;
             }
-            if (selectedDateInput && !isReadOnly) {
+            if (selectedDateInput && !isReadOnly && !isStudentPortal && !isUnifiedStudentLogin) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 setTimeout(() => {
                     if (typeof selectedDateInput.showPicker === 'function') {
@@ -1383,7 +1389,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
             initDraggableFloatingClock();
-            window.addEventListener('scroll', updateFloatingClockVisibility, { passive: true });
 
             const urlParams = new URLSearchParams(window.location.search);
             targetStudentId = urlParams.get('student');
