@@ -301,7 +301,7 @@
                 <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-xl border border-indigo-800 text-white p-6 space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-indigo-800/60">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-indigo-800 rounded-xl flex items-center justify-center border border-indigo-700">
+                            <div class="w-10 h-10 bg-indigo-800 rounded-xl flex items-center justify-center border border-indigo-700 shrink-0">
                                 <i class="fa-solid fa-file-invoice text-amber-300 text-lg"></i>
                             </div>
                             <div>
@@ -310,7 +310,7 @@
                             </div>
                         </div>
 
-                        <div id="cloudBadge" class="bg-indigo-950/80 border border-indigo-700/80 px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold shadow-inner">
+                        <div id="cloudBadge" class="bg-indigo-950/80 border border-indigo-700/80 px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold shadow-inner shrink-0">
                             <i id="cloudIcon" class="fa-solid fa-cloud text-amber-400"></i>
                             <span id="cloudStatus" class="text-indigo-100">متصل ومزامن</span>
                         </div>
@@ -2891,9 +2891,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                     <i class="fa-solid fa-link"></i> ملف الطالب الفردي
                                 </a>
                                 ${!isReadOnly ? `
-                                <button onclick="deleteStudent('${student.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-bold flex items-center gap-1 transition" title="حذف الطالب">
-                                    <i class="fa-regular fa-trash-can"></i> حذف
-                                </button>
+                                <div class="flex items-center gap-3">
+                                    <button onclick="editStudentName('${student.id}')" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 transition" title="تعديل اسم الطالب">
+                                        <i class="fa-regular fa-pen-to-square"></i> تعديل
+                                    </button>
+                                    <button onclick="deleteStudent('${student.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-bold flex items-center gap-1 transition" title="حذف الطالب">
+                                        <i class="fa-regular fa-trash-can"></i> حذف
+                                    </button>
+                                </div>
                                 ` : ''}
                             </div>
                         </div>
@@ -3094,6 +3099,32 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             } catch (error) {
                 console.error("Error deleting student:", error);
                 showToast('حدث خطأ أثناء الحذف', 'warning');
+            }
+        };
+
+        window.editStudentName = async function(studentId) {
+            if (isReadOnly || isStudentPortal) return;
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const newName = prompt("أدخل الاسم الجديد للطالب:", student.name);
+            if (!newName || newName.trim() === "" || newName.trim() === student.name) return;
+
+            const trimmedName = newName.trim();
+            const isDuplicate = students.some(s => s.id !== studentId && s.name === trimmedName && s.group.trim() === student.group.trim());
+            if (isDuplicate) {
+                showToast('يوجد طالب بنفس هذا الاسم في نفس الفصل بالفعل', 'warning');
+                return;
+            }
+
+            try {
+                await db.collection("attendance_students").doc(studentId).update({
+                    name: trimmedName
+                });
+                showToast('تم تعديل اسم الطالب بنجاح ☁️', 'cloud');
+            } catch (error) {
+                console.error("Error updating student name:", error);
+                showToast('حدث خطأ أثناء تعديل الاسم', 'warning');
             }
         };
 
