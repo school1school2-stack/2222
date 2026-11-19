@@ -492,6 +492,17 @@
         </div>
     </main>
 
+    <!-- أيقونة صغيرة عائمة للساعة والتاريخ تتحرك أثناء التمرير -->
+    <button id="floatingClockBadge" onclick="handleFloatingClockClick()" class="hidden fixed bottom-5 right-5 z-40 bg-indigo-950/90 hover:bg-indigo-900 backdrop-blur-md text-white border border-amber-300/40 rounded-2xl px-3 py-2 shadow-xl flex items-center gap-2.5 transition transform hover:scale-105 cursor-pointer" title="الساعة والتاريخ الحالي - اضغط للعودة للأعلى أو تغيير التاريخ">
+        <span class="w-7 h-7 rounded-xl bg-amber-400/15 text-amber-300 flex items-center justify-center text-xs shrink-0">
+            <i class="fa-regular fa-clock"></i>
+        </span>
+        <div class="text-right leading-tight">
+            <div id="floatingClockTime" class="text-xs font-black text-amber-300 font-mono" dir="ltr">00:00:00</div>
+            <div id="floatingClockDate" class="text-[10px] font-bold text-indigo-100 mt-0.5">--</div>
+        </div>
+    </button>
+
     <footer class="bg-slate-900 text-slate-400 py-4 text-center text-xs border-t border-slate-800 mt-auto">
         <p>منصة المتابعة اليومية والسلوكية © 2026 | إعداد المعلم: <strong class="text-amber-300">أ/ عبدالعزيز الفيفي</strong> - ثانوية الأمير عبدالمجيد | جميع الحقوق محفوظة</p>
     </footer>
@@ -1071,6 +1082,36 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const ampmEl = document.getElementById('liveAmPm');
             if (clockEl) clockEl.textContent = `${hoursStr}:${minutes}:${seconds}`;
             if (ampmEl) ampmEl.textContent = ampm;
+
+            const floatingTimeEl = document.getElementById('floatingClockTime');
+            if (floatingTimeEl) floatingTimeEl.textContent = `${hoursStr}:${minutes}:${seconds} ${ampm}`;
+        }
+
+        function updateFloatingClockVisibility() {
+            const badge = document.getElementById('floatingClockBadge');
+            if (!badge) return;
+
+            const hasOpenModal = Array.from(document.querySelectorAll('[id$="Modal"]')).some(m => !m.classList.contains('hidden'));
+            const shouldShow = !isStudentPortal && !isUnifiedStudentLogin && !window.pendingViewCategory && !hasOpenModal && window.scrollY > 140;
+
+            if (shouldShow) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function handleFloatingClockClick() {
+            if (selectedDateInput && !isReadOnly) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => {
+                    if (typeof selectedDateInput.showPicker === 'function') {
+                        try { selectedDateInput.showPicker(); } catch (e) {}
+                    }
+                }, 350);
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         function getArabicDayNameFromStr(dateStr) {
@@ -1086,6 +1127,9 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const dayName = getArabicDayNameFromStr(currentDate);
             const selDayEl = document.getElementById('selectedDayLabel');
             if (selDayEl) selDayEl.textContent = `يوم ${dayName}`;
+
+            const floatingDateEl = document.getElementById('floatingClockDate');
+            if (floatingDateEl) floatingDateEl.textContent = `${dayName} • ${currentDate}`;
 
             const hijriEl = document.getElementById('selectedHijriLabel');
             if (hijriEl && currentDate) {
@@ -1182,6 +1226,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             selectCardColor('note', existing.noteColor || 'white');
 
             document.getElementById('lessonEditModal').classList.remove('hidden');
+            updateFloatingClockVisibility();
 
             setTimeout(() => {
                 if (focusField === 'homework') document.getElementById('lessonHomeworkInput').focus();
@@ -1192,6 +1237,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function closeLessonModal() {
             document.getElementById('lessonEditModal').classList.add('hidden');
+            updateFloatingClockVisibility();
         }
 
         async function saveDailyLesson() {
@@ -1224,6 +1270,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         window.addEventListener('DOMContentLoaded', () => {
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
+            window.addEventListener('scroll', updateFloatingClockVisibility, { passive: true });
 
             const urlParams = new URLSearchParams(window.location.search);
             targetStudentId = urlParams.get('student');
@@ -1243,6 +1290,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             selectedDateInput.value = currentDate;
             updateSelectedDateLabels();
             renderDailyLessonCards();
+            updateFloatingClockVisibility();
 
             if (portalMode === 'student') {
                 isUnifiedStudentLogin = true;
@@ -1329,10 +1377,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             const portalUrl = `${getBasePortalUrl()}?portal=student`;
             document.getElementById('studentPortalShareUrlInput').value = portalUrl;
             document.getElementById('studentPortalShareModal').classList.remove('hidden');
+            updateFloatingClockVisibility();
         }
 
         function closeStudentPortalShareModal() {
             document.getElementById('studentPortalShareModal').classList.add('hidden');
+            updateFloatingClockVisibility();
         }
 
         function copyStudentPortalShareUrl() {
@@ -1811,10 +1861,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             countBadge.textContent = `الإجمالي: ${listCount}`;
             modal.classList.remove('hidden');
+            updateFloatingClockVisibility();
         }
 
         function closePortalCategoryModal() {
             document.getElementById('portalCategoryModal').classList.add('hidden');
+            updateFloatingClockVisibility();
         }
 
         function updateGroupDropdowns() {
@@ -1850,10 +1902,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         function openManageGroupsModal() {
             renderGroupsManageList();
             document.getElementById('groupsModal').classList.remove('hidden');
+            updateFloatingClockVisibility();
         }
 
         function closeManageGroupsModal() {
             document.getElementById('groupsModal').classList.add('hidden');
+            updateFloatingClockVisibility();
         }
 
         function openAddModalWithClass() {
@@ -1875,6 +1929,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
             bulkNamesInput.value = textValue;
             addModal.classList.remove('hidden');
+            updateFloatingClockVisibility();
         }
 
         async function deleteCurrentClassData() {
@@ -2040,6 +2095,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             refreshBatchStudentsList();
             document.getElementById('batchActionModal').classList.remove('hidden');
+            updateFloatingClockVisibility();
         }
 
         function onBatchActionSelectChanged(val) {
@@ -2124,6 +2180,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
         function closeBatchActionModal() {
             document.getElementById('batchActionModal').classList.add('hidden');
+            updateFloatingClockVisibility();
         }
 
         function toggleSelectAllBatch(checked) {
@@ -2690,11 +2747,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             countBadge.textContent = `العدد الإجمالي: ${listCount} سجل/طالب`;
             modal.classList.remove('hidden');
+            updateFloatingClockVisibility();
         }
 
         function closeCategoryFullModal() {
             document.getElementById('fullCategoryModal').classList.add('hidden');
             currentModalCategory = null;
+            updateFloatingClockVisibility();
         }
 
         function fetchAttendanceForDate(dateStr) {
@@ -2980,12 +3039,14 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             });
 
             document.getElementById('editStudentModal').classList.remove('hidden');
+            updateFloatingClockVisibility();
             setTimeout(() => document.getElementById('editStudentNameInput').focus(), 50);
         };
 
         window.closeEditStudentModal = function() {
             document.getElementById('editStudentModal').classList.add('hidden');
             currentEditingStudentId = null;
+            updateFloatingClockVisibility();
         };
 
         window.saveStudentEdit = async function() {
@@ -3050,11 +3111,13 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             document.getElementById('customNoteStudentName').textContent = `الطالب: ${stNum}${student ? student.name : ''}`;
             document.getElementById('customNoteInput').value = '';
             document.getElementById('customNoteModal').classList.remove('hidden');
+            updateFloatingClockVisibility();
         }
 
         function closeCustomNoteModal() {
             document.getElementById('customNoteModal').classList.add('hidden');
             currentCustomNoteStudentId = null;
+            updateFloatingClockVisibility();
         }
 
         async function saveCustomNote() {
@@ -3281,7 +3344,10 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                 }
             });
 
-            const closeModal = () => addModal.classList.add('hidden');
+            const closeModal = () => {
+                addModal.classList.add('hidden');
+                updateFloatingClockVisibility();
+            };
             document.getElementById('closeModalBtn').addEventListener('click', closeModal);
             document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
 
@@ -3383,10 +3449,12 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         function shareReportWithManager() {
             updateShareUrl();
             document.getElementById('shareModal').classList.remove('hidden');
+            updateFloatingClockVisibility();
         }
 
         function closeShareModal() {
             document.getElementById('shareModal').classList.add('hidden');
+            updateFloatingClockVisibility();
         }
 
         function copyShareUrl() {
