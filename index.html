@@ -496,6 +496,46 @@
         <p>منصة المتابعة اليومية والسلوكية © 2026 | إعداد المعلم: <strong class="text-amber-300">أ/ عبدالعزيز الفيفي</strong> - ثانوية الأمير عبدالمجيد | جميع الحقوق محفوظة</p>
     </footer>
 
+    <!-- نافذة تعديل اسم الطالب ونقله إلى فصل آخر مع كامل مدخلاته -->
+    <div id="editStudentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all">
+            <div class="p-5 bg-indigo-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-user-pen text-amber-300"></i>
+                    تعديل بيانات الطالب ونقل الفصل
+                </h3>
+                <button onclick="closeEditStudentModal()" class="text-indigo-200 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">اسم الطالب:</label>
+                    <input type="text" id="editStudentNameInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">الفصل الدراسي (سينتقل بكامل سجلاته وحضوره ومشاركاته):</label>
+                    <select id="editStudentGroupSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-indigo-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></select>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-xs text-indigo-900 flex items-start gap-2">
+                    <i class="fa-solid fa-circle-info text-indigo-600 text-sm mt-0.5 shrink-0"></i>
+                    <span>جميع سجلات الحضور والغياب والواجبات والمشاركات والملاحظات تبقى مرتبطة بالطالب وتنتقل معه تلقائياً للفصل الجديد.</span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                <button onclick="closeEditStudentModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-200 font-semibold text-sm transition">إلغاء</button>
+                <button onclick="saveStudentEdit()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-bold text-sm transition flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    حفظ التعديل ونقل الفصل
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="batchActionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
             <div class="p-5 bg-indigo-900 text-white flex justify-between items-center shrink-0">
@@ -953,6 +993,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
         let allAttendanceRecords = {}; 
         let allBehaviorsRecords = {};
         let currentCustomNoteStudentId = null;
+        let currentEditingStudentId = null;
         let currentModalCategory = null;
         window.pendingViewCategory = null;
 
@@ -2892,7 +2933,7 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
                                 </a>
                                 ${!isReadOnly ? `
                                 <div class="flex items-center gap-3">
-                                    <button onclick="editStudentName('${student.id}')" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 transition" title="تعديل اسم الطالب">
+                                    <button onclick="openEditStudentModal('${student.id}')" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 transition" title="تعديل اسم الطالب أو نقله لفصل آخر">
                                         <i class="fa-regular fa-pen-to-square"></i> تعديل
                                     </button>
                                     <button onclick="deleteStudent('${student.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-bold flex items-center gap-1 transition" title="حذف الطالب">
@@ -2918,6 +2959,72 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
 
             updateStats();
         }
+
+        window.openEditStudentModal = function(studentId) {
+            if (isReadOnly || isStudentPortal) return;
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            currentEditingStudentId = studentId;
+            document.getElementById('editStudentNameInput').value = student.name;
+
+            const groupSelect = document.getElementById('editStudentGroupSelect');
+            groupSelect.innerHTML = '';
+            const availableGroups = groups.includes(student.group) ? groups : [student.group, ...groups];
+            availableGroups.forEach(grp => {
+                const opt = document.createElement('option');
+                opt.value = grp;
+                opt.textContent = grp;
+                if (grp.trim() === student.group.trim()) opt.selected = true;
+                groupSelect.appendChild(opt);
+            });
+
+            document.getElementById('editStudentModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('editStudentNameInput').focus(), 50);
+        };
+
+        window.closeEditStudentModal = function() {
+            document.getElementById('editStudentModal').classList.add('hidden');
+            currentEditingStudentId = null;
+        };
+
+        window.saveStudentEdit = async function() {
+            if (isReadOnly || isStudentPortal || !currentEditingStudentId) return;
+            const student = students.find(s => s.id === currentEditingStudentId);
+            if (!student) return;
+
+            const newName = document.getElementById('editStudentNameInput').value.trim();
+            const newGroup = document.getElementById('editStudentGroupSelect').value.trim();
+
+            if (!newName) {
+                showToast('يرجى إدخال اسم الطالب أولاً', 'warning');
+                return;
+            }
+            if (!newGroup) {
+                showToast('يرجى اختيار الفصل أولاً', 'warning');
+                return;
+            }
+
+            const isDuplicate = students.some(s => s.id !== currentEditingStudentId && s.name === newName && s.group.trim() === newGroup);
+            if (isDuplicate) {
+                showToast('يوجد طالب بنفس هذا الاسم في الفصل المختار بالفعل', 'warning');
+                return;
+            }
+
+            try {
+                const groupChanged = student.group.trim() !== newGroup;
+                await db.collection("attendance_students").doc(currentEditingStudentId).update({
+                    name: newName,
+                    group: newGroup
+                });
+
+                showToast(groupChanged ? `تم نقل (${newName}) إلى (${newGroup}) بكامل مدخلاته ☁️` : 'تم تعديل اسم الطالب بنجاح ☁️', 'cloud');
+                closeEditStudentModal();
+            } catch (error) {
+                console.error("Error updating student:", error);
+                showToast('حدث خطأ أثناء حفظ التعديل', 'warning');
+            }
+        };
 
         window.handleBehaviorDropdown = function(studentId, selectElement) {
             const val = selectElement.value;
@@ -3099,32 +3206,6 @@ s789012@rb.moe.gov.sa" class="w-full border border-slate-300 rounded-xl p-3 text
             } catch (error) {
                 console.error("Error deleting student:", error);
                 showToast('حدث خطأ أثناء الحذف', 'warning');
-            }
-        };
-
-        window.editStudentName = async function(studentId) {
-            if (isReadOnly || isStudentPortal) return;
-            const student = students.find(s => s.id === studentId);
-            if (!student) return;
-
-            const newName = prompt("أدخل الاسم الجديد للطالب:", student.name);
-            if (!newName || newName.trim() === "" || newName.trim() === student.name) return;
-
-            const trimmedName = newName.trim();
-            const isDuplicate = students.some(s => s.id !== studentId && s.name === trimmedName && s.group.trim() === student.group.trim());
-            if (isDuplicate) {
-                showToast('يوجد طالب بنفس هذا الاسم في نفس الفصل بالفعل', 'warning');
-                return;
-            }
-
-            try {
-                await db.collection("attendance_students").doc(studentId).update({
-                    name: trimmedName
-                });
-                showToast('تم تعديل اسم الطالب بنجاح ☁️', 'cloud');
-            } catch (error) {
-                console.error("Error updating student name:", error);
-                showToast('حدث خطأ أثناء تعديل الاسم', 'warning');
             }
         };
 
